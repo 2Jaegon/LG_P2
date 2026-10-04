@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pull-up Agent Dashboard</title>
+    <meta name="description" content="가변저항 값을 풀업 바 위치로 시각화하고 로컬 LLM 에이전트의 안전 판단을 실시간으로 보여주는 대시보드">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --panel-bg: #131c2e;
+            --panel-border: rgba(148, 163, 184, 0.12);
+            --text-main: #f1f5f9;
+            --text-muted: #8392ab;
+            --accent: #38bdf8;
+            --accent-2: #818cf8;
+            --low-color: #34d399;
+            --normal-color: #38bdf8;
+            --high-color: #f87171;
+            --bar-color: #38bdf8;
+            --bar-glow: rgba(56, 189, 248, 0.55);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(1200px 600px at 10% -10%, rgba(129, 140, 248, 0.18), transparent 60%),
+                radial-gradient(900px 500px at 110% 110%, rgba(56, 189, 248, 0.14), transparent 60%),
+                var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 32px 16px;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 980px;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.75), rgba(19, 28, 46, 0.85));
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 36px;
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 28px;
+        }
+
+        h1 {
+            margin: 0;
+            font-weight: 800;
+            font-size: 1.9rem;
+            letter-spacing: -0.03em;
+            background: linear-gradient(90deg, #f1f5f9, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .conn-state {
+            font-size: 0.8rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--panel-border);
+            transition: color 0.3s, border-color 0.3s;
+        }
+        .conn-state.live { color: var(--low-color); border-color: rgba(52, 211, 153, 0.4); }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: rgba(11, 17, 32, 0.55);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            margin-bottom: 14px;
+        }
+
+        /* ---------- Pull-up stage ---------- */
+        .stage-wrap {
+            display: grid;
+            grid-template-columns: 44px 1fr;
+            gap: 12px;
+        }
+
+        .scale {
+            position: relative;
+            height: 440px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+        .scale span {
+            position: absolute;
+            right: 0;
+            transform: translateY(-50%);
+        }
+
+        .stage {
+            position: relative;
+            height: 440px;
+            border-radius: 14px;
+            overflow: hidden;
+            background:
+                repeating-linear-gradient(0deg, rgba(148, 163, 184, 0.07) 0 1px, transparent 1px 44px),
+                linear-gradient(180deg, rgba(56, 189, 248, 0.05), rgba(129, 140, 248, 0.03));
+            border: 1px solid var(--panel-border);
+        }
+
+        /* side rails */
+        .rail {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 10px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, #1e293b, #334155, #1e293b);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+        }
+        .rail.left { left: 14%; }
+        .rail.right { right: 14%; }
+
+        /* fill below the bar, shows travelled height */
+        .fill {
+            position: absolute;
+            left: 14%;
+            right: 14%;
+            bottom: 0;
+            height: 0;
+            background: linear-gradient(180deg, var(--bar-glow), transparent);
+            opacity: 0.25;
+            transition: background 0.4s;
+            pointer-events: none;
+        }
+
+        /* the moving bar */
+        .bar {
+            position: absolute;
+            left: 8%;
+            right: 8%;
+            top: 0;
+            height: 18px;
+            will-change: transform;
+        }
+        .bar-rod {
+            position: absolute;
+            inset: 4px 0;
+            border-radius: 6px;
+            background: linear-gradient(180deg, #e2e8f0, #94a3b8 55%, #475569);
+            box-shadow: 0 0 22px var(--bar-glow), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+            transition: box-shadow 0.4s;
+        }
+        .grip {
+            position: absolute;
+            top: 0;
+            width: 22%;
+            height: 18px;
+            border-radius: 7px;
+            background: linear-gradient(180deg, var(--bar-color), color-mix(in srgb, var(--bar-color) 55%, #000));
+            box-shadow: 0 0 16px var(--bar-glow);
+            transition: background 0.4s, box-shadow 0.4s;
+        }
+        .grip.left { left: 12%; }
+        .grip.right { right: 12%; }
+
+        .bar-tag {
+            position: absolute;
+            right: -4px;
+            top: -30px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(11, 17, 32, 0.85);
+            border: 1px solid var(--panel-border);
+            color: var(--bar-color);
+            transition: color 0.4s;
+        }
+
+        /* zone marker lines */
+        .zone-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            border-top: 1px dashed rgba(148, 163, 184, 0.25);
+        }
+        .zone-line em {
+            position: absolute;
+            left: 10px;
+            top: -18px;
+            font-style: normal;
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* danger state */
+        body.danger {
+            --bar-color: #f87171;
+            --bar-glow: rgba(248, 113, 113, 0.65);
+        }
+        body.danger .stage { animation: pulse 1s ease-in-out infinite; }
+        @keyframes pulse {
+            0%, 100% { box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.2); }
+            50% { box-shadow: inset 0 0 40px rgba(248, 113, 113, 0.35); }
+        }
+
+        /* ---------- Right column ---------- */
+        .side { display: flex; flex-direction: column; gap: 24px; }
+
+        .value-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 4.2rem;
+            font-weight: 700;
+            line-height: 1;
+            margin: 0;
+            transition: color 0.3s ease;
+        }
+        .value-sub {
+            margin-top: 10px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .meter {
+            margin-top: 18px;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.12);
+            overflow: hidden;
+        }
+        .meter > div {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--low-color), var(--accent), var(--high-color));
+        }
+
+        .agent-card {
+            background: linear-gradient(160deg, rgba(56, 189, 248, 0.10), rgba(129, 140, 248, 0.06));
+            border-color: rgba(56, 189, 248, 0.22);
+            transition: background 0.4s, border-color 0.4s;
+        }
+        body.danger .agent-card {
+            background: linear-gradient(160deg, rgba(248, 113, 113, 0.16), rgba(248, 113, 113, 0.05));
+            border-color: rgba(248, 113, 113, 0.4);
+        }
+        .agent-status {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            background: rgba(148, 163, 184, 0.15);
+            color: var(--text-muted);
+        }
+        .agent-status.NORMAL { background: rgba(52, 211, 153, 0.15); color: var(--low-color); }
+        .agent-status.DANGER { background: rgba(248, 113, 113, 0.18); color: var(--high-color); }
+        .agent-status.ERROR  { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+
+        .agent-decision {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .val-low { color: var(--low-color); }
+        .val-normal { color: var(--normal-color); }
+        .val-high { color: var(--high-color); }
+
+        @media (max-width: 760px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="dashboard">
+        <header>
+            <h1>Pull-up Agent Monitor</h1>
+            <span id="connState" class="conn-state">Offline</span>
+        </header>
+
+        <div class="layout">
+            <!-- Pull-up visualization -->
+            <section class="card" aria-label="풀업 바 위치">
+                <span class="label">Bar Position (Y-axis)</span>
+                <div class="stage-wrap">
+                    <div class="scale" id="scale"></div>
+                    <div class="stage" id="stage">
+                        <div class="rail left"></div>
+                        <div class="rail right"></div>
+                        <div class="zone-line" id="topLine"><em>Top</em></div>
+                        <div class="zone-line" id="bottomLine"><em>Bottom</em></div>
+                        <div class="fill" id="fill"></div>
+                        <div class="bar" id="bar">
+                            <div class="bar-rod"></div>
+                            <div class="grip left"></div>
+                            <div class="grip right"></div>
+                            <div class="bar-tag" id="barTag">0</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="side">
+                <section class="card">
+                    <span class="label">Sensor Reading</span>
+                    <div id="sensorValue" class="value-display val-normal">--</div>
+                    <div class="value-sub">Height <span id="heightPct">0</span>%</div>
+                    <div class="meter"><div id="meterFill"></div></div>
+                </section>
+
+                <section class="card agent-card">
+                    <span class="label">Agent Analysis</span>
+                    <span id="agentStatus" class="agent-status">WAITING</span>
+                    <p id="agentDecision" class="agent-decision">버튼을 눌러 측정을 시작하세요.</p>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const socket = io();
+
+        const MAX_VAL = 1023;
+        const TOP_ZONE = 800;     // 이 값 이상이면 "Top" 구간
+        const BOTTOM_ZONE = 200;  // 이 값 이하면 "Bottom" 구간
+        const EASING = 0.18;      // 0~1, 클수록 즉각 반응 / 작을수록 부드러움
+
+        const stage = document.getElementById('stage');
+        const bar = document.getElementById('bar');
+        const fill = document.getElementById('fill');
+        const barTag = document.getElementById('barTag');
+        const scale = document.getElementById('scale');
+        const topLine = document.getElementById('topLine');
+        const bottomLine = document.getElementById('bottomLine');
+        const valueDisplay = document.getElementById('sensorValue');
+        const heightPct = document.getElementById('heightPct');
+        const meterFill = document.getElementById('meterFill');
+        const decisionDisplay = document.getElementById('agentDecision');
+        const statusBadge = document.getElementById('agentStatus');
+        const connState = document.getElementById('connState');
+
+        let targetVal = 0;   // 아두이노에서 받은 최신 값
+        let currentVal = 0;  // 화면에 그려지는 값 (부드럽게 targetVal을 따라감)
+
+        // 값(0~1023) -> 바의 Y 픽셀 위치 (1023 = 맨 위, 0 = 맨 아래)
+        function valueToY(val) {
+            const travel = stage.clientHeight - bar.offsetHeight;
+            return (1 - val / MAX_VAL) * travel;
+        }
+
+        function layoutGuides() {
+            const barHalf = bar.offsetHeight / 2;
+            topLine.style.top = (valueToY(TOP_ZONE) + barHalf) + 'px';
+            bottomLine.style.top = (valueToY(BOTTOM_ZONE) + barHalf) + 'px';
+
+            scale.innerHTML = '';
+            [1023, 768, 512, 256, 0].forEach(v => {
+                const s = document.createElement('span');
+                s.textContent = v;
+                s.style.top = (valueToY(v) + barHalf) + 'px';
+                scale.appendChild(s);
+            });
+        }
+
+        function render() {
+            currentVal += (targetVal - currentVal) * EASING;
+            if (Math.abs(targetVal - currentVal) < 0.05) currentVal = targetVal;
+
+            const y = valueToY(currentVal);
+            bar.style.transform = `translateY(${y}px)`;
+            fill.style.height = (stage.clientHeight - y - bar.offsetHeight / 2) + 'px';
+
+            const rounded = Math.round(currentVal);
+            barTag.textContent = rounded;
+            const pct = Math.round((currentVal / MAX_VAL) * 100);
+            heightPct.textContent = pct;
+            meterFill.style.width = pct + '%';
+
+            requestAnimationFrame(render);
+        }
+
+        socket.on('connect', () => {
+            connState.textContent = 'Live';
+            connState.classList.add('live');
+        });
+        socket.on('disconnect', () => {
+            connState.textContent = 'Offline';
+            connState.classList.remove('live');
+        });
+
+        socket.on('sensorData', (data) => {
+            const val = Math.min(MAX_VAL, Math.max(0, parseInt(data.value, 10) || 0));
+            targetVal = val;
+            valueDisplay.textContent = val;
+
+            valueDisplay.className = 'value-display';
+            if (val < 300) valueDisplay.classList.add('val-low');
+            else if (val < 700) valueDisplay.classList.add('val-normal');
+            else valueDisplay.classList.add('val-high');
+
+            // LLM 판단 결과가 포함된 경우에만 에이전트 영역 갱신
+            if (data.decision) {
+                decisionDisplay.textContent = data.decision;
+            }
+            if (data.status) {
+                statusBadge.textContent = data.status;
+                statusBadge.className = 'agent-status ' + data.status;
+                document.body.classList.toggle('danger', data.status === 'DANGER');
+            }
+        });
+
+        window.addEventListener('resize', layoutGuides);
+        layoutGuides();
+        requestAnimationFrame(render);
+    </script>
+</body>
+</html>

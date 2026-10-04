@@ -1,0 +1,14 @@
+{
+  "name": "arduino-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard for Arduino sensor data and agent",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "serialport": "^13.0.0",
+    "socket.io": "^4.8.4"
+  }
+}
