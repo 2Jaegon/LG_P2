@@ -585,6 +585,7 @@ function processSensorValue(value) {
     const now = Date.now();
 
     sensorDataBuffer.push(value);
+    if (sensorDataBuffer.length > 50) sensorDataBuffer.shift();
     lastValue = value;
     
     // 빠른 움직임 감지용 버퍼 유지 (최근 데이터 최대 15개, 약 1.5초)
@@ -919,15 +920,7 @@ setInterval(() => {
     }
 }, 3000);
 
-// 6초마다 버퍼에 쌓인 데이터를 로컬 LLM으로 분석 요청
-setInterval(() => {
-    // 데이터가 최소 5개 이상 모였을 때만 분석 실행
-    if (sensorDataBuffer.length > 5 && !isAnalyzing) { 
-        const dataToAnalyze = [...sensorDataBuffer];
-        sensorDataBuffer = []; // 다음 6초 배치를 위해 버퍼 비우기
-        analyzeWithLLM(dataToAnalyze);
-    }
-}, 6000);
+// (6초 주기 불필요한 자동 LLM 폴링 제거: 사용자가 질문하거나 실제 물리적 이벤트 발생 시에만 피드백 출력)
 
 async function analyzeWithLLM(dataArray) {
     isAnalyzing = true;
