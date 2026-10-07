@@ -261,10 +261,13 @@
         }
 
         @keyframes assistPulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: scale(1);
                 box-shadow: 0 0 0 rgba(0, 102, 255, 0);
             }
+
             50% {
                 transform: scale(1.05);
                 box-shadow: 0 0 8px rgba(0, 102, 255, 0.35);
@@ -414,13 +417,17 @@
             display: grid;
             grid-template-columns: 1.5fr 1fr;
             gap: 22px;
+            align-items: start;
         }
 
         .side {
             display: flex;
             flex-direction: column;
             gap: 18px;
-            height: 100%;
+            height: 636px;
+            max-height: 636px;
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         /* ---------- Pull-up stage (Hero Visualization) ---------- */
@@ -428,6 +435,9 @@
             display: flex;
             flex-direction: column;
             padding: 22px 24px;
+            height: 636px;
+            max-height: 636px;
+            box-sizing: border-box;
         }
 
         .stage-header {
@@ -453,8 +463,17 @@
         }
 
         @keyframes dotPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.6; }
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 0.6;
+            }
         }
 
         .stage-title {
@@ -670,13 +689,13 @@
         .agent-card {
             border: 1px solid var(--line);
             transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
-            height: 100%;
-            min-height: 635px;
+            height: 636px;
+            max-height: 636px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            padding: 26px 28px;
+            padding: 22px 24px;
             background: var(--surface);
             border-radius: var(--radius-lg);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
@@ -823,6 +842,7 @@
             flex-direction: column;
             flex: 1;
             min-height: 0;
+            max-height: 100%;
             overflow: hidden;
             gap: 10px;
         }
@@ -831,6 +851,7 @@
             flex: 1;
             min-height: 0;
             overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -860,6 +881,7 @@
                 opacity: 0;
                 transform: translateY(8px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -1072,9 +1094,12 @@
         }
 
         @keyframes micPulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 box-shadow: 0 0 0 0 rgba(165, 0, 52, 0.4);
             }
+
             50% {
                 box-shadow: 0 0 0 8px rgba(165, 0, 52, 0);
             }
@@ -1184,6 +1209,7 @@
         }
 
         @keyframes assistPulse {
+
             0%,
             100% {
                 box-shadow: inset 0 0 0 0 rgba(0, 102, 255, 0);
@@ -2315,7 +2341,8 @@
             margin-top: 6px;
         }
 
-        .tel-log-table th, .tel-log-table td {
+        .tel-log-table th,
+        .tel-log-table td {
             padding: 6px 8px;
             border-bottom: 1px solid var(--line);
             text-align: left;
@@ -2763,8 +2790,15 @@
         }
 
         @keyframes modalPop {
-            from { transform: scale(0.95); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .modal-header {
@@ -2933,7 +2967,8 @@
         <div class="gnb-inner">
             <div class="brand">
                 <button type="button" id="btnSidebarOpen" class="hamburger-btn" aria-label="사이드바 메뉴 열기" title="메뉴 열기">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <line x1="3" y1="12" x2="21" y2="12"></line>
                         <line x1="3" y1="6" x2="21" y2="6"></line>
                         <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -2954,7 +2989,8 @@
                 <span class="sidebar-badge">Smart Coach</span>
             </div>
             <button type="button" id="btnSidebarClose" class="sidebar-close-btn" aria-label="메뉴 닫기">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
@@ -3034,7 +3070,8 @@
                     </div>
                 </li>
                 <li id="sidebarDangerClearItem" style="display: none;">
-                    <button type="button" class="sidebar-link-btn" id="btnDangerClear" style="background: #FFF1F3; border: 1px solid #FECDD3;">
+                    <button type="button" class="sidebar-link-btn" id="btnDangerClear"
+                        style="background: #FFF1F3; border: 1px solid #FECDD3;">
                         <div class="sidebar-link-text">
                             <span class="title" style="color: #E11D48; font-weight: 700;">🚨 위험 해제 / 운동 재개</span>
                             <span class="desc">안전 리프트 해제 및 정상 모드 복귀</span>
@@ -3055,7 +3092,7 @@
         <div class="sidebar-footer">
             <div class="user-profile-badge">
                 <div class="user-info">
-                    <span class="user-name">LG Well</span>
+                    <span class="user-name"></span>
                     <span class="user-stats" id="sidebarUserReps">누적 0회 완료</span>
                 </div>
             </div>
@@ -3107,15 +3144,20 @@
                 <button type="button" class="modal-close-btn" id="btnCloseSafetyModal" aria-label="닫기">✕</button>
             </div>
             <div class="modal-body">
-                <div style="background: var(--surface-2); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--danger);">
-                    <strong style="color: var(--danger); display: block; margin-bottom: 6px;">바텀 탈진 위험 감지 (DANGER)</strong>
+                <div
+                    style="background: var(--surface-2); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid var(--danger);">
+                    <strong style="color: var(--danger); display: block; margin-bottom: 6px;">바텀 탈진 위험 감지
+                        (DANGER)</strong>
                     <div style="color: var(--text-2); font-size: 0.85rem;">
-                        바텀 구간에서 힘이 빠져 7초 이상 작은 범위로 꼼질거리는 탈진 상태가 감지되면, 머신이 바를 <strong>Bottom 안전선(280)까지 자동으로 부드럽게 리프트</strong>하여 사용자를 받쳐줍니다.<br>
-                        이 안전 조치는 <strong>휴식 모드로 전환되지 않고 안전 정지(SAFETY HOLD) 상태로 유지</strong>되며, 사용자가 바를 다시 당기거나 해제 버튼을 눌러야 재개됩니다.
+                        바텀 구간에서 힘이 빠져 7초 이상 작은 범위로 꼼질거리는 탈진 상태가 감지되면, 머신이 바를 <strong>Bottom 안전선(280)까지 자동으로 부드럽게
+                            리프트</strong>하여 사용자를 받쳐줍니다.<br>
+                        이 안전 조치는 <strong>휴식 모드로 전환되지 않고 안전 정지(SAFETY HOLD) 상태로 유지</strong>되며, 사용자가 바를 다시 당기거나 해제 버튼을 눌러야
+                        재개됩니다.
                     </div>
                 </div>
 
-                <div style="background: var(--surface-2); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid #0066FF;">
+                <div
+                    style="background: var(--surface-2); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid #0066FF;">
                     <strong style="color: #0066FF; display: block; margin-bottom: 6px;">무게 부담 자동 감지 (ASSIST)</strong>
                     <div style="color: var(--text-2); font-size: 0.85rem;">
                         바텀과 탑 사이에서 7초간 진전 없이 멈춰 서면 무게 부담을 감지하여 <strong>부하를 1단계(-15%) 즉시 감경</strong>합니다.<br>
@@ -3176,7 +3218,8 @@
             <div class="modal-header">
                 <div>
                     <h3 class="modal-title">무게 설정 &amp; AI 분석 Agent</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;">원하는 운동 무게(Kg) 직접 설정 또는 맞춤형 AI 진단 처방</p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;">원하는 운동 무게(Kg) 직접 설정 또는 맞춤형
+                        AI 진단 처방</p>
                 </div>
                 <button type="button" class="modal-close-btn" id="btnCloseWeightModal" aria-label="닫기">✕</button>
             </div>
@@ -3192,7 +3235,8 @@
                     <div class="setting-row">
                         <label class="setting-label" for="inputBodyWeight">체중 / 기준 무게 (Body Weight)</label>
                         <div class="weight-input-wrap">
-                            <input type="number" id="inputBodyWeight" min="30" max="180" step="0.5" value="70.0" class="weight-num-input">
+                            <input type="number" id="inputBodyWeight" min="30" max="180" step="0.5" value="70.0"
+                                class="weight-num-input">
                             <span class="weight-unit-tag">kg</span>
                         </div>
                         <div class="quick-step-group">
@@ -3201,7 +3245,8 @@
                             <button type="button" class="quick-step-btn" data-step="1">+1kg</button>
                             <button type="button" class="quick-step-btn" data-step="5">+5kg</button>
                         </div>
-                        <input type="range" id="sliderBodyWeight" min="40" max="120" step="0.5" value="70" class="weight-slider">
+                        <input type="range" id="sliderBodyWeight" min="40" max="120" step="0.5" value="70"
+                            class="weight-slider">
                     </div>
 
                     <div class="setting-row" style="margin-top: 14px;">
@@ -3238,8 +3283,10 @@
                             <span class="setting-label">1. 현재 풀업 수행 능력 (최대 연속 횟수)</span>
                             <div class="chip-group" id="aiAbilityChipGroup">
                                 <button type="button" class="setting-chip" data-val="beginner">입문 (0회 · 보조 필수)</button>
-                                <button type="button" class="setting-chip active" data-val="novice">초급 (1~3회 · 보조 권장)</button>
-                                <button type="button" class="setting-chip" data-val="intermediate">중급 (4~8회 · 맨몸)</button>
+                                <button type="button" class="setting-chip active" data-val="novice">초급 (1~3회 · 보조
+                                    권장)</button>
+                                <button type="button" class="setting-chip" data-val="intermediate">중급 (4~8회 ·
+                                    맨몸)</button>
                                 <button type="button" class="setting-chip" data-val="advanced">고급 (9회 이상 · 파워)</button>
                             </div>
                         </div>
@@ -3247,8 +3294,10 @@
                         <div class="setting-row" style="margin-top: 14px;">
                             <span class="setting-label">2. 오늘 운동 목표</span>
                             <div class="chip-group" id="aiGoalChipGroup">
-                                <button type="button" class="setting-chip active" data-val="hypertrophy">볼륨 근비대 (8~10회)</button>
-                                <button type="button" class="setting-chip" data-val="first_pullup">첫 풀업 달성 (기초 근력)</button>
+                                <button type="button" class="setting-chip active" data-val="hypertrophy">볼륨 근비대
+                                    (8~10회)</button>
+                                <button type="button" class="setting-chip" data-val="first_pullup">첫 풀업 달성 (기초
+                                    근력)</button>
                                 <button type="button" class="setting-chip" data-val="strength">스트렝스 (3~5회 고중량)</button>
                                 <button type="button" class="setting-chip" data-val="endurance">근지구력 &amp; 템포</button>
                             </div>
@@ -3304,7 +3353,8 @@
             <div class="modal-header">
                 <div>
                     <h3 class="modal-title" id="telModalTitle">SET 1 상세 텔레메트리 &amp; 수집 데이터</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;" id="telModalSub">2026.10.06 11:30:15 기록 · VBT 바이오메트릭스 센서 로그</p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;" id="telModalSub">2026.10.06
+                        11:30:15 기록 · VBT 바이오메트릭스 센서 로그</p>
                 </div>
                 <button type="button" class="modal-close-btn" id="btnCloseTelemetryModal" aria-label="닫기">✕</button>
             </div>
@@ -3329,7 +3379,8 @@
                 <div class="m-val-wrap">
                     <span id="repCount" class="m-val">0</span>
                 </div>
-                <div class="m-sub">목표: <strong id="targetReps" class="num">10</strong>회 · 오늘 누적 <strong id="totalReps" class="num">0</strong>회</div>
+                <div class="m-sub">목표: <strong id="targetReps" class="num">10</strong>회 · 오늘 누적 <strong id="totalReps"
+                        class="num">0</strong>회</div>
             </div>
 
             <div class="metric-box">
@@ -3430,7 +3481,8 @@
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <button type="button" id="btnVoiceAudioToggle" class="voice-audio-toggle active" title="음성 합성 안내 ON/OFF">
+                            <button type="button" id="btnVoiceAudioToggle" class="voice-audio-toggle active"
+                                title="음성 합성 안내 ON/OFF">
                                 <span id="voiceAudioIcon">🔊</span>
                                 <span id="voiceAudioText">음성 안내</span>
                             </button>
@@ -3451,7 +3503,8 @@
                                     </div>
                                     <div class="chat-bubble" id="agentDecision">
                                         <span class="agent-line">안녕하세요! 풀업 바를 끝까지 당겨 1회를 시작하세요.</span>
-                                        <span class="agent-subline" style="display:block; margin-top:5px; font-size:0.86rem; color:var(--text-muted);">
+                                        <span class="agent-subline"
+                                            style="display:block; margin-top:5px; font-size:0.86rem; color:var(--text-muted);">
                                             원하시는 목표나 부하 변경이 있으시면 아래 추천 칩을 누르거나 음성으로 말씀해 주세요.
                                         </span>
                                     </div>
@@ -3472,19 +3525,22 @@
                         <!-- 음성 대화 입력창 (음성 인식 및 텍스트 시뮬레이션) -->
                         <form id="voiceChatForm" class="voice-chat-form" onsubmit="return false;">
                             <button type="button" id="btnVoiceMic" class="voice-mic-btn" title="음성 인식 시작 (마이크)">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                                    <line x1="12" y1="19" x2="12" y2="23"/>
-                                    <line x1="8" y1="23" x2="16" y2="23"/>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                                    <line x1="12" y1="19" x2="12" y2="23" />
+                                    <line x1="8" y1="23" x2="16" y2="23" />
                                 </svg>
                             </button>
-                            <input type="text" id="voiceChatInput" class="voice-chat-input" placeholder="음성 명령을 말씀하시거나 입력하세요... (Enter)" autocomplete="off" />
+                            <input type="text" id="voiceChatInput" class="voice-chat-input"
+                                placeholder="음성 명령을 말씀하시거나 입력하세요... (Enter)" autocomplete="off" />
                             <button type="submit" id="btnVoiceSend" class="voice-send-btn">
                                 <span>말하기</span>
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="22" y1="2" x2="11" y2="13"/>
-                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13" />
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
                                 </svg>
                             </button>
                         </form>
@@ -3963,7 +4019,7 @@
                     const mins = String(Math.floor(rem / 60)).padStart(2, '0');
                     const secs = String(rem % 60).padStart(2, '0');
                     restTimerBig.textContent = `${mins}:${secs}`;
-                    
+
                     if (rem > 0) {
                         restTimerBig.className = 'm-val rest-timer-val';
                     } else {
@@ -4103,8 +4159,8 @@
                 const completedNum = todayCompletedSets > 0 ? todayCompletedSets : Math.max(0, state.currentSet - 1);
 
                 setNumberEl.textContent = completedNum > 0 ? completedNum : 1;
-                restStateBadgeEl.textContent = completedNum > 0 
-                    ? `${completedNum}세트 완료 (다음 ${state.currentSet}세트 대기)` 
+                restStateBadgeEl.textContent = completedNum > 0
+                    ? `${completedNum}세트 완료 (다음 ${state.currentSet}세트 대기)`
                     : '준비 / 휴식 중';
                 restStateBadgeEl.className = 'm-sub rest-badge resting';
 
@@ -4346,8 +4402,8 @@
                         </div>
                         <div class="history-sets-wrap" style="max-height: 250px;">
                             ${grp.sets.map((item, idx) => {
-                                const loadKg = (item.finalLoadKg || item.baseWeightKg || 70).toFixed(1);
-                                return `
+                    const loadKg = (item.finalLoadKg || item.baseWeightKg || 70).toFixed(1);
+                    return `
                                     <div class="history-item" data-set-id="${item.id || ''}" data-idx="${idx}">
                                         <div class="history-item-left">
                                             <span class="set-tag">SET ${item.set}</span>
@@ -4361,7 +4417,7 @@
                                         </div>
                                     </div>
                                 `;
-                            }).join('')}
+                }).join('')}
                         </div>
                     </div>
                 `;
@@ -4478,8 +4534,8 @@
             const slowestRep = tempoData.slowestRep || { rep: tempos.indexOf(Math.max(...tempos)) + 1, tempo: Math.max(...tempos) };
             const inflection = tempoData.inflectionPoint || {};
             const inflectionRep = inflection.rep || null;
-            const velocityLossPct = typeof tempoData.velocityLossPercent === 'number' 
-                ? tempoData.velocityLossPercent 
+            const velocityLossPct = typeof tempoData.velocityLossPercent === 'number'
+                ? tempoData.velocityLossPercent
                 : (item.tempoDropRatePercent || Math.max(0, Math.round(((tempos[tempos.length - 1] - tempos[0]) / tempos[0]) * 100)));
 
             const restPattern = item.restCyclePattern || {};
@@ -4500,14 +4556,14 @@
                             <span>⚡ 부하 감경 발동 지점</span>
                         </span>
                         <div class="pac-val" style="color: ${hasLoadReduction ? '#0066FF' : 'var(--text)'};">
-                            ${hasLoadReduction && firstReduction 
-                                ? `${firstReduction.repAtTrigger}회차 시도 중 (-${firstReduction.reductionKg}kg)` 
-                                : '감경 없이 100% 완주'}
+                            ${hasLoadReduction && firstReduction
+                    ? `${firstReduction.repAtTrigger}회차 시도 중 (-${firstReduction.reductionKg}kg)`
+                    : '감경 없이 100% 완주'}
                         </div>
                         <div class="pac-sub">
                             ${hasLoadReduction && firstReduction
-                                ? `높이 ${firstReduction.heightPct}%에서 정체 · 누적 ${firstReduction.totalRepsAtTrigger}회차`
-                                : `초기 부하 ${finalLoadKg}kg를 자력으로 온전히 유지`}
+                    ? `높이 ${firstReduction.heightPct}%에서 정체 · 누적 ${firstReduction.totalRepsAtTrigger}회차`
+                    : `초기 부하 ${finalLoadKg}kg를 자력으로 온전히 유지`}
                         </div>
                     </div>
 
@@ -4570,13 +4626,13 @@
                     </div>
                     <div class="tempo-bars-wrap">
                         ${tempos.map((t, i) => {
-                            const barHeight = Math.max(18, Math.min(80, Math.round((t / maxTempoVal) * 80)));
-                            const romTag = roms[i] || 'GOOD';
-                            const isInflection = (i + 1) === inflectionRep;
-                            const isFastest = (i + 1) === fastestRep.rep;
-                            const isSlowest = (i + 1) === slowestRep.rep && tempos.length > 2;
+                        const barHeight = Math.max(18, Math.min(80, Math.round((t / maxTempoVal) * 80)));
+                        const romTag = roms[i] || 'GOOD';
+                        const isInflection = (i + 1) === inflectionRep;
+                        const isFastest = (i + 1) === fastestRep.rep;
+                        const isSlowest = (i + 1) === slowestRep.rep && tempos.length > 2;
 
-                            return `
+                        return `
                                 <div class="tempo-bar-col" style="${isInflection ? 'position: relative; background: rgba(255, 77, 77, 0.08); border-radius: 6px; padding: 2px;' : ''}">
                                     <div class="tempo-bar-val" style="${isInflection ? 'color: #FF4D4D; font-weight: 800;' : ''}">${t}s</div>
                                     <div class="tempo-bar-track">
@@ -4588,7 +4644,7 @@
                                     ${isFastest && !isInflection ? '<span style="font-size: 0.6rem; color: #00AA77; font-weight: 700;">최속</span>' : ''}
                                 </div>
                             `;
-                        }).join('')}
+                    }).join('')}
                     </div>
                 </div>
 
@@ -4612,12 +4668,12 @@
                             </thead>
                             <tbody>
                                 ${loadChanges.length > 0 ? loadChanges.map(ch => {
-                                    const rRep = ch.repAtTrigger || ch.rep || item.reps;
-                                    const totRep = ch.totalRepsAtTrigger || item.reps;
-                                    const hPct = ch.heightPct || 52;
-                                    const redKg = ch.reductionKg || Math.max(0, Math.round(((ch.fromKg || 70) - (ch.toKg || 59.5)) * 10) / 10);
-                                    const redPct = ch.reductionPercent || 15;
-                                    return `
+                        const rRep = ch.repAtTrigger || ch.rep || item.reps;
+                        const totRep = ch.totalRepsAtTrigger || item.reps;
+                        const hPct = ch.heightPct || 52;
+                        const redKg = ch.reductionKg || Math.max(0, Math.round(((ch.fromKg || 70) - (ch.toKg || 59.5)) * 10) / 10);
+                        const redPct = ch.reductionPercent || 15;
+                        return `
                                         <tr>
                                             <td>${ch.time || item.completedAt}</td>
                                             <td><strong>Set ${ch.set || item.set} · ${rRep}회차 도중</strong><br><span style="font-size: 0.72rem; color: var(--text-muted);">(총 누적 ${totRep}회 시점)</span></td>
@@ -4627,7 +4683,7 @@
                                             <td><span style="color: var(--primary); font-weight: 600;">${ch.reason || '중간 정체 7초 감지 부하 감경'}</span></td>
                                         </tr>
                                     `;
-                                }).join('') : `
+                    }).join('') : `
                                     <tr>
                                         <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">
                                             세트 진행 중 중량 감경 없이 초기 설정 부하(${finalLoadKg}kg)를 100% 온전하게 완수했습니다.
@@ -4903,7 +4959,7 @@
                 <div class="chat-avatar chat-avatar-agent">LG</div>
                 <div class="chat-bubble-wrap">
                     <div class="chat-meta">
-                        <span>LG Well AI Coach</span>
+                        <span>LG Well</span>
                         <span class="chat-voice-tag">${isLiveCoach ? '⚡ 실시간 모션 코칭' : '🎙️ 음성 응답'}</span>
                     </div>
                     <div class="chat-bubble">${escapeHtml(text)}</div>
@@ -4936,7 +4992,7 @@
                 // 1-1. 랩/반복수 (Reps) 파싱: "목표 랩은 8회", "8회", "랩 8", "8랩", "8개", "8번", "랩은 8"
                 let matchedReps = null;
                 const repMatch = lower.match(/(?:목표\s*)?(?:랩|렙|rep|반복|횟수)\s*(?:은|는|이|가|을|를|도)?\s*(\d+)\s*(?:회|번|개|랩|렙)?/i)
-                              || lower.match(/(\d+)\s*(?:회|번|개|랩|렙)/i);
+                    || lower.match(/(\d+)\s*(?:회|번|개|랩|렙)/i);
                 if (repMatch) {
                     matchedReps = parseInt(repMatch[1], 10);
                 }
@@ -4944,7 +5000,7 @@
                 // 1-2. 세트수 (Sets) 파싱: "세트는 5로", "세트 5", "5세트", "세트는 5"
                 let matchedSets = null;
                 const setMatch = lower.match(/(?:목표\s*)?세트(?:수)?\s*(?:는|은|가|이|를|을|도)?\s*(\d+)/i)
-                              || lower.match(/(\d+)\s*세트/i);
+                    || lower.match(/(\d+)\s*세트/i);
                 if (setMatch) {
                     matchedSets = parseInt(setMatch[1], 10);
                 }
@@ -4961,12 +5017,12 @@
 
                 if (hasExplicitWeightKeyword) {
                     const weightDecreasing = /(?:무게|중량|부하|부담)?\s*(?:줄여|낮춰|덜어|가볍|깎아|감경)/.test(lower)
-                                          || /(\d+(?:\.\d+)?)\s*(?:kg|킬로)?\s*(?:줄여|낮춰|덜어|깎아|감경)/.test(lower);
+                        || /(\d+(?:\.\d+)?)\s*(?:kg|킬로)?\s*(?:줄여|낮춰|덜어|깎아|감경)/.test(lower);
                     const weightIncreasing = /(?:무게|중량|부하)?\s*(?:늘려|올려|무겁|더해)/.test(lower)
-                                          || /(\d+(?:\.\d+)?)\s*(?:kg|킬로)?\s*(?:늘려|올려|더해)/.test(lower);
+                        || /(\d+(?:\.\d+)?)\s*(?:kg|킬로)?\s*(?:늘려|올려|더해)/.test(lower);
 
                     const weightExplicitMatch = lower.match(/(?:무게|중량|부하)\s*(?:는|은|가|이|를|을|도)?\s*(\d+(?:\.\d+)?)\s*(?:kg|킬로)?/i)
-                                             || lower.match(/(\d+(?:\.\d+)?)\s*(?:kg|킬로)/i);
+                        || lower.match(/(\d+(?:\.\d+)?)\s*(?:kg|킬로)/i);
 
                     // A. 상대값 증감 ("5kg 줄여줘", "무게 5kg 늘려줘", "부하 좀 낮춰줘")
                     if (weightDecreasing || weightIncreasing) {
@@ -4983,7 +5039,7 @@
                 // 1-4. 휴식 시간 (Rest) 파싱: "휴식 90초", "휴식 시간 90초로 늘려줘", "휴식은 60초", "2분 휴식"
                 let matchedRest = null;
                 const restMatch = lower.match(/(?:휴식(?:\s*시간)?|쉬는\s*시간|쉬는시간|rest)\s*(?:은|는|이|가|을|를|도)?\s*(\d+)\s*(?:초|분)?/i)
-                               || lower.match(/(\d+)\s*(?:초|분)?\s*(?:휴식|쉬는)/i);
+                    || lower.match(/(\d+)\s*(?:초|분)?\s*(?:휴식|쉬는)/i);
                 if (restMatch) {
                     const val = parseInt(restMatch[1], 10);
                     matchedRest = lower.includes('분') ? val * 60 : val;

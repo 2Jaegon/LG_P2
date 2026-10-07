@@ -327,10 +327,10 @@ const THRESHOLD_BOTTOM = 280; // 하단 기준 (시작/완료)
 const THRESHOLD_TOP = 740;    // 상단 최고점 기준
 
 // =================== 실시간 안전 및 모션 타이밍 임계치 (단위: ms) ===================
-let DANGER_TRIGGER_MS = 2000;      // 바텀 탈진 꼼질거림 위험 감지 시간: 2.0초 (기존 7초에서 대폭 단축)
-let MID_STALL_TRIGGER_MS = 2500;   // 바텀-탑 중간 정체 부하감소(ASSIST) 시간: 2.5초 (기존 7초에서 대폭 단축)
-let CONT_STALL_TRIGGER_MS = 1800;  // 정체 지속 시 추가 감경 간격: 1.8초 (기존 3초에서 단축)
-let SET_COMPLETE_STILL_MS = 3500;  // 세트 완료 완전 정지 판정 시간: 3.5초 (기존 7초에서 단축)
+let DANGER_TRIGGER_MS = 2000;      // 바텀 탈진 꼼질거림 위험 감지 시간: 2.0초
+let MID_STALL_TRIGGER_MS = 5000;   // 바텀-탑 중간 정체 부하감소(ASSIST) 시간: 5.0초 (너무 빠른 발동 방지)
+let CONT_STALL_TRIGGER_MS = 4000;  // 정체 지속 시 추가 감경 간격: 4.0초
+let SET_COMPLETE_STILL_MS = 3500;  // 세트 완료 완전 정지 판정 시간: 3.5초
 
 function getWorkoutStatePayload() {
     const avgTempo = recentTempos.length > 0
@@ -426,6 +426,23 @@ function trackRepetition(value) {
         } else if (value <= THRESHOLD_BOTTOM) {
             // 충분히 오르지 못하고 바로 내려온 경우 초기화
             repStage = 'WAITING_START';
+            midStallStartTime = 0;
+            if (currentStatus === 'ASSIST') {
+                currentStatus = 'NORMAL';
+                lastAssistTimestamp = 0;
+                assistLevel = 0;
+                console.log(`\n[바텀 복귀] 바텀 도달로 인해 무게 부담(ASSIST) 상태 해제 -> NORMAL`);
+                if (port && port.isOpen) port.write('N\n');
+                io.emit('sensorData', {
+                    value: value,
+                    status: 'NORMAL',
+                    assistLevel: 0,
+                    loadKg: userWeightKg,
+                    userWeightKg: userWeightKg,
+                    decision: "바텀 위치로 복귀했습니다.\n호흡을 가다듬고 준비되시면 다시 당겨주세요."
+                });
+                io.emit('workoutState', getWorkoutStatePayload());
+            }
         }
     } else if (repStage === 'AT_TOP') {
         if (value > peakValue) peakValue = value;
@@ -595,6 +612,26 @@ function processSensorValue(value) {
     if (value <= BOTTOM_ZONE_LIMIT) {
         midStallStartTime = 0; // 중간 정체 타이머 리셋
 
+        // ⭐️ 바텀 구간(또는 바텀 아래)에 위치할 때는 무게 부담(ASSIST) 상태를 즉시 NORMAL로 자동 해제!
+        if (currentStatus === 'ASSIST') {
+            currentStatus = 'NORMAL';
+            lastAssistTimestamp = 0;
+            assistLevel = 0;
+            console.log(`\n[바텀 구간 진입] 바텀 위치(현재값: ${value} <= ${BOTTOM_ZONE_LIMIT})에 머물고 있으므로 무게 부담(ASSIST) 상태 해제 -> NORMAL 복구`);
+            if (port && port.isOpen) {
+                port.write('N\n');
+            }
+            io.emit('sensorData', {
+                value: value,
+                status: 'NORMAL',
+                assistLevel: 0,
+                loadKg: userWeightKg,
+                userWeightKg: userWeightKg,
+                decision: "바텀 위치입니다.\n호흡을 가다듬고 준비되시면 다시 당겨주세요."
+            });
+            io.emit('workoutState', getWorkoutStatePayload());
+        }
+
         // 1-A. 바텀 범위 내에서 꼼질꼼질 움직임 (recentDiff > 15) -> 탈진 위험 (DANGER)!
         if (recentDiff > 15) {
             bottomStillStartTime = 0; // 정지 타이머 리셋
@@ -671,10 +708,17 @@ function processSensorValue(value) {
             });
         }
 
-        // 바텀과 탑 사이(380 ~ 740) 중간 정체 판별 -> 사용자 무게 부담 (ASSIST)
-        if (value < THRESHOLD_TOP && !isResting) {
-            // 정체 상태 (최근 변동폭이 작음)
-            if (recentDiff < 160) {
+        // ⭐️ 바텀과 탑 사이 중간 정체 판별 -> 사용자 무게 부담 (ASSIST)
+        // 조건:
+        // 1. 반드시 당겨 올라가는 중(repStage === 'GOING_UP')이어야 함 (대기 중이거나 하강 중에는 발동 금지)
+        // 2. 바텀(280)을 확실히 벗어난 중상단 구간 (value >= THRESHOLD_BOTTOM + 120 = 400 이상)
+        // 3. 탑(740) 도달 직전 미만 (value < THRESHOLD_TOP - 40 = 700 미만)
+        // 4. 휴식 상태가 아님
+        const isMidAscentStallZone = (repStage === 'GOING_UP') && (value >= THRESHOLD_BOTTOM + 120) && (value < THRESHOLD_TOP - 40) && !isResting;
+
+        if (isMidAscentStallZone) {
+            // 실제 정체 상태: 움직임이 거의 정지된 호버링 상태 (recentDiff < 60)
+            if (recentDiff < 60) {
                 if (midStallStartTime === 0) {
                     midStallStartTime = now;
                 }
