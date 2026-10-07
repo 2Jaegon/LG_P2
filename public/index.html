@@ -488,18 +488,13 @@
         }
 
         .stage-wrap {
-            display: grid;
-            grid-template-columns: 44px 1fr;
-            gap: 14px;
+            display: block;
+            width: 100%;
             flex: 1;
         }
 
         .scale {
-            position: relative;
-            height: 540px;
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            font-variant-numeric: tabular-nums;
+            display: none;
         }
 
         .scale span {
@@ -677,103 +672,16 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
         }
 
-        .agent-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            flex-shrink: 0;
-            padding-bottom: 14px;
-            border-bottom: 1px solid var(--line);
-        }
-
-        .lg-well-brand {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .agent-orb-container {
-            position: relative;
-            width: 64px;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: var(--surface-2);
-            border: 1.5px solid var(--line);
-            flex-shrink: 0;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .agent-orb-container:hover {
-            transform: scale(1.08);
-            border-color: var(--line-strong);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-        }
-
-        .agent-orb-canvas {
-            width: 64px;
-            height: 64px;
-            display: block;
-            border-radius: 50%;
-        }
-
-        .lg-well-titles {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .lg-well-logo-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .lg-well-logo {
-            font-size: 1.28rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            color: var(--text);
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .agent-mode-badge {
-            font-size: 0.78rem;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 8px;
-            background: rgba(165, 0, 52, 0.08);
-            color: var(--lg-red);
-            letter-spacing: 0.04em;
-            transition: all 0.25s ease;
-        }
-
-        .lg-well-subtext {
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            letter-spacing: -0.01em;
-            transition: color 0.25s ease;
-        }
-
-        /* Danger state orb */
-        body.danger .agent-orb-container {
+        /* Danger state hero orb */
+        body.danger .agent-hero-orb-container {
             border-color: var(--lg-red);
-            box-shadow: 0 0 18px rgba(165, 0, 52, 0.45);
-            background: #fff;
+            box-shadow: 0 0 24px rgba(165, 0, 52, 0.45);
         }
 
-        /* Assist state orb */
-        body.assist .agent-orb-container {
+        /* Assist state hero orb */
+        body.assist .agent-hero-orb-container {
             border-color: #0066FF;
-            box-shadow: 0 0 18px rgba(0, 102, 255, 0.45);
-            background: #fff;
+            box-shadow: 0 0 24px rgba(0, 102, 255, 0.45);
         }
 
         .agent-status {
@@ -812,164 +720,130 @@
             color: #0066FF;
         }
 
-        /* ---------- Voice Interaction Chat Stream System ---------- */
-        .agent-voice-chat-wrap {
+        /* ---------- Hero Thinking Orb Showcase & Compact Action Box ---------- */
+        .agent-hero-orb-area {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            flex: 1;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 8px 0;
             min-height: 0;
-            max-height: 100%;
-            overflow: hidden;
-            gap: 10px;
         }
 
-        .agent-chat-stream {
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 6px 4px 10px 2px;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
-        }
-
-        .agent-chat-stream::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .agent-chat-stream::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.15);
-            border-radius: 4px;
-        }
-
-        .chat-msg {
-            display: flex;
-            gap: 10px;
-            max-width: 96%;
-            animation: chatSlideIn 0.28s ease-out;
-        }
-
-        @keyframes chatSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .chat-msg-agent {
-            align-self: flex-start;
-        }
-
-        .chat-msg-user {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-        }
-
-        .chat-avatar {
-            width: 32px;
-            height: 32px;
+        .agent-hero-orb-backdrop {
+            position: absolute;
+            width: 250px;
+            height: 250px;
             border-radius: 50%;
+            background: radial-gradient(circle, rgba(165, 0, 52, 0.08) 0%, rgba(165, 0, 52, 0) 70%);
+            pointer-events: none;
+            transition: background 0.4s ease;
+        }
+
+        .agent-hero-orb-container {
+            position: relative;
+            width: 176px;
+            height: 176px;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            font-size: 0.72rem;
-            font-weight: 800;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--surface) 30%, var(--surface-2) 100%);
+            border: 1.5px solid var(--line);
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+            z-index: 2;
         }
 
-        .chat-avatar-agent {
-            background: var(--lg-red);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(165, 0, 52, 0.25);
+        .agent-hero-orb-container:hover {
+            transform: scale(1.05);
+            border-color: var(--lg-red-line);
+            box-shadow: 0 14px 36px rgba(165, 0, 52, 0.14), 0 4px 12px rgba(0, 0, 0, 0.06);
         }
 
-        .chat-avatar-user {
-            background: var(--text);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        .agent-hero-orb-canvas {
+            width: 170px;
+            height: 170px;
+            display: block;
+            border-radius: 50%;
         }
 
-        .chat-bubble-wrap {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            max-width: 88%;
-        }
-
-        .chat-msg-user .chat-bubble-wrap {
-            align-items: flex-end;
-        }
-
-        .chat-meta {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.73rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .chat-voice-tag {
-            font-size: 0.68rem;
-            font-weight: 700;
-            color: var(--lg-red);
-            background: rgba(165, 0, 52, 0.08);
-            padding: 1px 6px;
-            border-radius: 4px;
+        .agent-orb-status-caption {
+            margin-top: 14px;
             display: inline-flex;
             align-items: center;
-            gap: 3px;
-        }
-
-        .chat-bubble {
-            padding: 12px 16px;
-            border-radius: 14px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            word-break: keep-all;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-            position: relative;
-        }
-
-        .chat-msg-agent .chat-bubble {
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 5px 14px;
+            border-radius: 12px;
             background: var(--surface-2);
-            color: var(--text);
             border: 1px solid var(--line);
-            border-top-left-radius: 3px;
+            z-index: 2;
+            transition: all 0.3s ease;
         }
 
-        .chat-msg-agent.live-coach .chat-bubble {
-            background: #fff;
-            border: 1.5px solid var(--lg-red-line);
-            box-shadow: 0 3px 12px rgba(165, 0, 52, 0.06);
+        .orb-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--lg-red);
+            animation: orbPulse 1.8s infinite ease-in-out;
         }
 
-        .chat-msg-user .chat-bubble {
-            background: var(--text);
-            color: #fff;
-            border-top-right-radius: 3px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+        @keyframes orbPulse {
+            0%, 100% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.2); }
         }
 
-        .agent-line {
-            display: block;
+        /* Bottom Control & Action Area */
+        .agent-control-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+
+        /* Compact Decision & Action Display Box */
+        .agent-action-box {
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: all 0.28s ease;
+            min-height: 52px;
+            max-height: 84px;
+            box-sizing: border-box;
+        }
+
+        .action-box-content {
+            font-size: 0.88rem;
+            line-height: 1.45;
+            color: var(--text);
+            font-weight: 500;
             word-break: keep-all;
-            line-height: 1.6;
+            overflow-y: auto;
+            max-height: 60px;
+            scrollbar-width: thin;
         }
 
-        .agent-line:first-child {
+        .action-box-content .agent-line {
+            display: block;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .action-box-content .agent-line:first-child {
             color: var(--lg-red);
             font-weight: 700;
-            font-size: 1.05rem;
-            margin-bottom: 2px;
         }
 
         /* Quick Voice Preset Chips */
@@ -1340,6 +1214,95 @@
         .danger-clear-btn:hover {
             background: var(--danger);
             color: #fff;
+        }
+
+        /* 메인 대시보드 긴급 위험 알림 배너 & 해제 버튼 */
+        .main-danger-alert {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: linear-gradient(135deg, rgba(235, 10, 40, 0.16) 0%, rgba(200, 16, 46, 0.08) 100%);
+            border: 1.5px solid rgba(235, 10, 40, 0.5);
+            border-radius: var(--radius-md);
+            padding: 13px 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 8px 24px rgba(235, 10, 40, 0.18);
+            animation: dangerPulseBox 2s infinite ease-in-out;
+        }
+
+        @keyframes dangerPulseBox {
+            0%, 100% {
+                border-color: rgba(235, 10, 40, 0.45);
+                box-shadow: 0 8px 24px rgba(235, 10, 40, 0.15);
+            }
+            50% {
+                border-color: rgba(235, 10, 40, 0.85);
+                box-shadow: 0 10px 32px rgba(235, 10, 40, 0.35);
+            }
+        }
+
+        .danger-alert-text {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .danger-alert-badge {
+            display: inline-flex;
+            align-items: center;
+            align-self: flex-start;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            color: #fff;
+            background: var(--danger);
+            padding: 2px 7px;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+
+        .danger-alert-text strong {
+            font-size: 0.94rem;
+            font-weight: 800;
+            color: var(--danger);
+        }
+
+        .danger-alert-text p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--text-2);
+            line-height: 1.4;
+        }
+
+        .main-danger-clear-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--danger);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 18px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(235, 10, 40, 0.35);
+            white-space: nowrap;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            flex-shrink: 0;
+        }
+
+        .main-danger-clear-btn:hover {
+            background: #b90b24;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(235, 10, 40, 0.5);
+        }
+
+        .main-danger-clear-btn:active {
+            transform: translateY(0);
         }
 
         .control-guide {
@@ -2947,7 +2910,6 @@
         <div class="sidebar-header">
             <div class="sidebar-brand">
                 <img src="/logo.png" alt="Life's Good." class="sidebar-logo-img">
-                <span class="sidebar-badge">Smart Coach</span>
             </div>
             <button type="button" id="btnSidebarClose" class="sidebar-close-btn" aria-label="메뉴 닫기">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
@@ -2959,84 +2921,14 @@
         </div>
 
         <div class="sidebar-content">
-            <div class="sidebar-group-title">운동 & 코칭</div>
             <ul class="sidebar-menu">
                 <li>
                     <button type="button" class="sidebar-link active" id="menuLiveDashboard">
                         <div class="sidebar-link-text">
                             <span class="title">실시간 풀업 코칭</span>
-                            <span class="desc">현재 진행 중인 세트 & 궤적</span>
+                            <span class="desc">메인 화면으로 이동</span>
                         </div>
                         <span class="sidebar-pill live">LIVE</span>
-                    </button>
-                </li>
-                <li>
-                    <button type="button" class="sidebar-link-btn" id="menuHistory">
-                        <div class="sidebar-link-text">
-                            <span class="title">전체 세트 기록 &amp; 통계</span>
-                            <span class="desc">과거 및 전체 날짜별 세트 기록</span>
-                        </div>
-                        <span class="sidebar-pill">ALL</span>
-                    </button>
-                </li>
-                <li>
-                    <button type="button" class="sidebar-link-btn" id="menuWeightAgent">
-                        <div class="sidebar-link-text">
-                            <span class="title">AI 운동 패턴 분석 &amp; 무게 제안</span>
-                            <span class="desc" id="sidebarWeightSummary">챗으로 실시간 패턴 기반 무게 제안</span>
-                        </div>
-                        <span class="sidebar-pill">AI 제안</span>
-                    </button>
-                </li>
-                <li>
-                    <button type="button" class="sidebar-link-btn" id="menuTargetSettings">
-                        <div class="sidebar-link-text">
-                            <span class="title">목표 횟수 / 휴식 설정</span>
-                            <span class="desc" id="sidebarTargetSummary">목표: 10회 / 휴식: 60초</span>
-                        </div>
-                    </button>
-                </li>
-            </ul>
-
-            <div class="sidebar-group-title">스마트 어시스트 & 안전</div>
-            <ul class="sidebar-menu">
-                <li>
-                    <button type="button" class="sidebar-link-btn" id="menuAssistGuide">
-                        <div class="sidebar-link-text">
-                            <span class="title">부하 경감 모드 (ASSIST)</span>
-                            <span class="desc" id="sidebarAssistSummary">현재 부하: 100%</span>
-                        </div>
-                        <span class="sidebar-pill" id="sidebarAssistPill">AUTO</span>
-                    </button>
-                </li>
-                <li>
-                    <button type="button" class="sidebar-link-btn" id="menuSafetyManual">
-                        <div class="sidebar-link-text">
-                            <span class="title">안전 리프트 & 비상 매뉴얼</span>
-                            <span class="desc">바텀 탈진 감지 및 자동 보호</span>
-                        </div>
-                    </button>
-                </li>
-            </ul>
-
-            <div class="sidebar-group-title">시스템 &amp; 하드웨어</div>
-            <ul class="sidebar-menu">
-                <li>
-                    <div class="sidebar-device-card">
-                        <div class="device-row">
-                            <span class="device-name" id="sidebarDeviceName">아두이노 센서 (COM3)</span>
-                            <span class="device-status" id="sidebarDeviceState">연결 대기</span>
-                        </div>
-                        <div class="device-sub" id="sidebarDeviceSub">Baud 9600 · VBT 센서 실시간 스트리밍</div>
-                    </div>
-                </li>
-                <li id="sidebarDangerClearItem" style="display: none;">
-                    <button type="button" class="sidebar-link-btn" id="btnDangerClear"
-                        style="background: #FFF1F3; border: 1px solid #FECDD3;">
-                        <div class="sidebar-link-text">
-                            <span class="title" style="color: #E11D48; font-weight: 700;">🚨 위험 해제 / 운동 재개</span>
-                            <span class="desc">안전 리프트 해제 및 정상 모드 복귀</span>
-                        </div>
                     </button>
                 </li>
                 <li>
@@ -3048,15 +2940,6 @@
                     </button>
                 </li>
             </ul>
-        </div>
-
-        <div class="sidebar-footer">
-            <div class="user-profile-badge">
-                <div class="user-info">
-                    <span class="user-name"></span>
-                    <span class="user-stats" id="sidebarUserReps">누적 0회 완료</span>
-                </div>
-            </div>
         </div>
     </aside>
 
@@ -3076,6 +2959,18 @@
                         <button type="button" class="setting-chip active" data-val="10">10회</button>
                         <button type="button" class="setting-chip" data-val="12">12회</button>
                         <button type="button" class="setting-chip" data-val="15">15회</button>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <span class="setting-label">목표 세트수 (Target Sets)</span>
+                    <div class="chip-group" id="setsChipGroup">
+                        <button type="button" class="setting-chip" data-val="3">3세트</button>
+                        <button type="button" class="setting-chip" data-val="4">4세트</button>
+                        <button type="button" class="setting-chip active" data-val="5">5세트</button>
+                        <button type="button" class="setting-chip" data-val="6">6세트</button>
+                        <button type="button" class="setting-chip" data-val="8">8세트</button>
+                        <button type="button" class="setting-chip" data-val="10">10세트</button>
                     </div>
                 </div>
 
@@ -3215,6 +3110,7 @@
                 <span class="m-label">SET</span>
                 <div class="m-val-wrap">
                     <span id="setNumber" class="m-val">1</span>
+                    <span class="m-unit" style="font-size: 1.15rem; color: var(--text-muted); margin-left: 3px; font-weight: 600;">/ <strong id="targetSetsDisplay" style="color: var(--text-main);">5</strong></span>
                 </div>
                 <div id="restStateBadge" class="m-sub rest-badge">1세트 진행 중</div>
             </div>
@@ -3243,26 +3139,13 @@
                     <span id="restTimerBig" class="m-val rest-timer-val" style="display: none;">00:00</span>
                     <span id="romBadge" class="m-rom-tag" style="font-size: 0.85rem;">READY</span>
                 </div>
-                <div class="m-sub" id="restTimerDisplay">대기 중</div>
+                <div class="m-sub" id="restTimerDisplay">권장 휴식: 60초</div>
             </div>
         </section>
 
         <div class="layout">
             <!-- Pull-up visualization: 시각화 중심의 Hero Stage -->
             <section class="card stage-card" aria-label="실시간 풀업 모션 시각화">
-                <div class="stage-header">
-                    <div class="stage-title-wrap">
-                        <span class="stage-pulse-dot"></span>
-                        <span class="stage-title">실시간 풀업 모션 시각화</span>
-                    </div>
-                    <div class="stage-metrics-pill">
-                        <span class="smp-label">바 높이</span>
-                        <span class="smp-val"><strong id="heightPct">0</strong>%</span>
-                    </div>
-                    <!-- JS 연동 호환용 히든 요소 -->
-                    <span id="sensorValue" style="display: none;">0</span>
-                    <div id="meterFill" style="display: none;"></div>
-                </div>
                 <div class="stage-wrap">
                     <div class="scale" id="scale"></div>
                     <div class="stage" id="stage">
@@ -3282,70 +3165,50 @@
             </section>
 
             <div class="side">
-                <!-- AI Coach 카드 (음성 대화형 에이전트 인터랙션 & Thinking Orb) -->
+                <!-- AI Coach 카드 (Large Hero Thinking Orb & Compact Action Display) -->
                 <section class="card agent-card">
-                    <div class="agent-head">
-                        <div class="lg-well-brand">
-                            <div class="agent-orb-container" id="agentOrbWrap" title="클릭하여 AI 지능 시각화 모드 전환">
-                                <canvas id="agentOrbCanvas" class="agent-orb-canvas"></canvas>
-                            </div>
-                            <div class="lg-well-titles">
-                                <div class="lg-well-logo-row">
-                                    <span class="agent-mode-badge" id="agentModeBadge">ON-DEVICE AI</span>
-                                </div>
-                            </div>
+                    <!-- 중앙: 대형 Thinking Orb 지능 시각화 영역 -->
+                    <div class="agent-hero-orb-area">
+                        <div class="agent-hero-orb-backdrop"></div>
+                        <div class="agent-hero-orb-container" id="agentOrbWrap" title="클릭하여 AI 지능 모드 전환">
+                            <canvas id="agentOrbCanvas" class="agent-hero-orb-canvas"></canvas>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span id="agentStatus" class="agent-status">WAITING</span>
+                        <div class="agent-orb-status-caption" id="agentOrbCaption">
+                            <span class="orb-status-dot"></span>
+                            <span id="agentOrbStatusText">음성 대화 및 풀업 동작 대기 중</span>
                         </div>
                     </div>
 
-                    <!-- 음성 대화형 에이전트 인터랙션 (Voice Chat Stream) -->
-                    <div class="agent-voice-chat-wrap">
-                        <div class="agent-chat-stream" id="agentChatStream" aria-live="polite">
-                            <!-- 초기 에이전트 음성 환영 & 실시간 모션 가이드 메시지 -->
-                            <div class="chat-msg chat-msg-agent" id="initialAgentMsg">
-                                <div class="chat-avatar chat-avatar-agent">AI</div>
-                                <div class="chat-bubble-wrap">
-                                    <div class="chat-meta">
-                                        <span>AI Coach</span>
-                                        <span class="chat-voice-tag">🎙️ 음성 모드</span>
-                                    </div>
-                                    <div class="chat-bubble" id="agentDecision">
-                                        <span class="agent-line">안녕하세요! 풀업 바를 끝까지 당겨 1회를 시작하세요.</span>
-                                        <span class="agent-subline"
-                                            style="display:block; margin-top:5px; font-size:0.86rem; color:var(--text-muted);">
-                                            원하시는 목표나 부하 변경이 있으시면 아래 추천 칩을 누르거나 음성으로 말씀해 주세요.
-                                        </span>
-                                    </div>
-                                </div>
+                    <!-- 하단: 판단/행동 시각화 박스 & 명령 입력창 -->
+                    <div class="agent-control-area">
+                        <!-- 메인 긴급 위험 알림 배너 & 해제 버튼 -->
+                        <div id="mainDangerAlertBanner" class="main-danger-alert" style="display: none;">
+                            <div class="danger-alert-text">
+                                <span class="danger-alert-badge">SAFETY HOLD</span>
+                                <strong>바텀 탈진 위험 감지 (안전 라인 고정)</strong>
+                                <p>바를 안전 라인에 고정했습니다. 무리하지 말고 안전하게 내려오세요.</p>
+                            </div>
+                            <button type="button" id="btnMainDangerClear" class="main-danger-clear-btn" title="위험 안전 고정을 해제하고 정상 운동 모드로 복귀합니다">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                                    <line x1="12" y1="2" x2="12" y2="12"></line>
+                                </svg>
+                                <span>위험 해제 / 운동 재개</span>
+                            </button>
+                        </div>
+
+                        <!-- 작게 사용자의 명령 입력창 위에 표시되는 판단 & 행동 디스플레이 -->
+                        <div class="agent-action-box" id="agentActionBox">
+                            <div class="action-box-content" id="agentDecision">
+                                <span class="agent-line">안녕하세요! 오늘도 건강하고 활기찬 하루 되세요.</span>
                             </div>
                         </div>
 
-                        <!-- 추천 음성 명령 칩 (원클릭 음성 발화 시뮬레이션) -->
-                        <div class="voice-chips-bar" aria-label="추천 음성 명령">
-                            <span class="voice-chips-label">🎙️ 추천:</span>
-                            <button type="button" class="voice-chip" data-cmd="내 운동 패턴 분석해서 무게 제안해줘">"패턴 분석·무게 제안"</button>
-                            <button type="button" class="voice-chip" data-cmd="무게 5kg 줄여줘">"무게 5kg 줄여줘"</button>
-                            <button type="button" class="voice-chip" data-cmd="무게 40kg으로 설정해줘">"무게 40kg 설정"</button>
-                            <button type="button" class="voice-chip" data-cmd="자세랑 템포 어때?">"자세·템포 분석"</button>
-                            <button type="button" class="voice-chip" data-cmd="휴식 90초로 늘려줘">"휴식 90초 설정"</button>
-                        </div>
-
-                        <!-- 음성 대화 입력창 (음성 인식 및 텍스트 시뮬레이션) -->
+                        <!-- 사용자 명령 입력창 -->
                         <form id="voiceChatForm" class="voice-chat-form" onsubmit="return false;">
-                            <button type="button" id="btnVoiceMic" class="voice-mic-btn" title="음성 인식 시작 (마이크)">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                                    <line x1="12" y1="19" x2="12" y2="23" />
-                                    <line x1="8" y1="23" x2="16" y2="23" />
-                                </svg>
-                            </button>
                             <input type="text" id="voiceChatInput" class="voice-chat-input"
-                                placeholder="음성 명령을 말씀하시거나 입력하세요... (Enter)" autocomplete="off" />
-                            <button type="submit" id="btnVoiceSend" class="voice-send-btn">
+                                placeholder="명령을 입력하거나 말씀해 주세요... (Enter)" autocomplete="off" />
+                            <button type="button" id="btnVoiceSend" class="voice-send-btn" title="엔터로 전송하거나 클릭하여 말하기">
                                 <span>말하기</span>
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -3400,9 +3263,6 @@
         const scale = document.getElementById('scale');
         const topLine = document.getElementById('topLine');
         const bottomLine = document.getElementById('bottomLine');
-        const valueDisplay = document.getElementById('sensorValue');
-        const heightPct = document.getElementById('heightPct');
-        const meterFill = document.getElementById('meterFill');
         const decisionDisplay = document.getElementById('agentDecision');
         const statusBadge = document.getElementById('agentStatus');
         const connState = document.getElementById('connState');
@@ -3412,6 +3272,7 @@
         const targetRepsEl = document.getElementById('targetReps');
         const totalRepsEl = document.getElementById('totalReps');
         const setNumberEl = document.getElementById('setNumber');
+        const targetSetsDisplayEl = document.getElementById('targetSetsDisplay');
         const restStateBadgeEl = document.getElementById('restStateBadge');
         const repTempoEl = document.getElementById('repTempo');
         const avgTempoEl = document.getElementById('avgTempo');
@@ -3422,6 +3283,9 @@
         const historyListEl = document.getElementById('historyList');
         const btnResetWorkout = document.getElementById('btnResetWorkout');
         const btnDangerClear = document.getElementById('btnDangerClear');
+        const mainDangerAlertBanner = document.getElementById('mainDangerAlertBanner');
+        const btnMainDangerClear = document.getElementById('btnMainDangerClear');
+        let isDangerAlertActive = false; // 위험 감지 활성 상태 및 긴급 음성 알림 발화 제어 플래그
 
         // 무게 강도 & Kg 부하 디스플레이 요소
         const loadBox = document.getElementById('loadBox');
@@ -3431,6 +3295,140 @@
         const baseWeightDisplay = document.getElementById('baseWeightDisplay');
         const assistKgDisplay = document.getElementById('assistKgDisplay');
         const btnOpenWeightModal = document.getElementById('btnOpenWeightModal');
+
+        // 챗 & 음성 에이전트 요소 및 상태 (최상단 초기화로 TDZ 참조 오류 방지)
+        const agentChatStream = document.getElementById('agentChatStream');
+        const voiceChatForm = document.getElementById('voiceChatForm');
+        const voiceChatInput = document.getElementById('voiceChatInput');
+        const btnVoiceSend = document.getElementById('btnVoiceSend');
+
+        let isVoiceAudioEnabled = true; // 음성 합성 (TTS) 기본 ON
+        let isSpeechListening = false;
+        let speechRecognition = null;
+        let lastSpokenDecision = '';
+        let koreanVoice = null;
+        let currentTtsAudio = null;
+
+        function loadKoreanVoice() {
+            if (typeof window === 'undefined' || !window.speechSynthesis) return;
+            try {
+                const voices = window.speechSynthesis.getVoices();
+                // 1순위: Natural / Neural / Online / SunHi / InJoon / Google 고품질 신경망 보이스
+                let best = voices.find(v => (v.lang.startsWith('ko') || v.lang.includes('KR')) && 
+                    (/natural|neural|online|sunhi|injoon|google/i.test(v.name)));
+                // 2순위: 기타 한국어 보이스 (기본 로컬 보이스)
+                if (!best) {
+                    best = voices.find(v => v.lang === 'ko-KR' || v.lang === 'ko_KR' || v.lang.startsWith('ko'));
+                }
+                koreanVoice = best || null;
+            } catch (e) {}
+        }
+
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+            loadKoreanVoice();
+            window.speechSynthesis.onvoiceschanged = loadKoreanVoice;
+            const unlockAudio = () => {
+                if (window.speechSynthesis && window.speechSynthesis.paused) {
+                    window.speechSynthesis.resume();
+                }
+            };
+            document.addEventListener('click', unlockAudio, { passive: true });
+            document.addEventListener('keydown', unlockAudio, { passive: true });
+        }
+
+        let currentSpeechToken = 0;
+
+        function stopAllSpeech() {
+            currentSpeechToken++;
+            if (currentTtsAudio) {
+                try {
+                    currentTtsAudio.pause();
+                    currentTtsAudio.currentTime = 0;
+                    currentTtsAudio.src = '';
+                } catch (e) {}
+                currentTtsAudio = null;
+            }
+            if (typeof window !== 'undefined' && window.speechSynthesis) {
+                try {
+                    window.speechSynthesis.cancel();
+                } catch (e) {}
+            }
+        }
+
+        // 고품질 자연스러운 신경망 음성 (Microsoft Azure SunHi Neural) 단일 발화 제어기
+        function speakAgentVoice(text) {
+            if (!isVoiceAudioEnabled) return;
+            try {
+                const cleanText = text
+                    .replace(/\[LG Well\]/gi, '')
+                    .replace(/[\[\]#*`\n]/g, ' ')
+                    .trim();
+
+                // 빈 문자열이거나 준비/분석 중 임시 텍스트는 발화하지 않음 (단일 확정 발화만 수행)
+                if (!cleanText || cleanText.includes('운동 준비 완료') || cleanText.includes('분석하고 있습니다')) return;
+
+                // 기존 재생 중인 모든 음성 즉시 정지 (이중 발화 원천 차단)
+                stopAllSpeech();
+                const thisToken = currentSpeechToken;
+
+                // 1. 고품질 신경망 AI TTS 서비스 시도 (SunHi Neural: 생생하고 활기찬 코칭 보이스)
+                const ttsUrl = `/api/tts?text=${encodeURIComponent(cleanText)}&v=${Date.now()}`;
+                const audio = new Audio(ttsUrl);
+                currentTtsAudio = audio;
+
+                const fallbackToSpeechSynthesis = () => {
+                    // 이미 다른 음성이 시작되었거나 토큰이 다르면 절대 실행 금지
+                    if (thisToken !== currentSpeechToken) return;
+                    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+                    try {
+                        window.speechSynthesis.cancel();
+                        const utter = new SpeechSynthesisUtterance(cleanText);
+                        utter.lang = 'ko-KR';
+                        utter.rate = 1.05;
+                        utter.pitch = 1.05;
+                        if (!koreanVoice) loadKoreanVoice();
+                        if (koreanVoice) utter.voice = koreanVoice;
+                        window.speechSynthesis.speak(utter);
+                    } catch (e) {}
+                };
+
+                audio.onerror = () => {
+                    if (thisToken !== currentSpeechToken) return;
+                    console.warn('Neural TTS stream error, falling back to Web Speech');
+                    fallbackToSpeechSynthesis();
+                };
+
+                audio.onplay = () => {
+                    if (thisToken !== currentSpeechToken) {
+                        try { audio.pause(); } catch (e) {}
+                        return;
+                    }
+                    if (agentOrb && !document.body.classList.contains('danger') && !isWorkoutResting) {
+                        agentOrb.setState('composing');
+                    }
+                };
+
+                audio.onended = () => {
+                    if (currentTtsAudio === audio) currentTtsAudio = null;
+                    if (agentOrb && !document.body.classList.contains('danger') && !isWorkoutResting) {
+                        agentOrb.setState('working');
+                    }
+                };
+
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch((err) => {
+                        // AbortError(새 음성이나 pause에 의한 중단)는 정상 취소이므로 폴백 발화 금지!
+                        if (err && (err.name === 'AbortError' || err.code === 20)) return;
+                        if (thisToken !== currentSpeechToken) return;
+                        fallbackToSpeechSynthesis();
+                    });
+                }
+            } catch (e) {
+                console.warn('speakAgentVoice error:', e);
+            }
+        }
 
         let currentUserWeightKg = 70.0;
         let currentLoadKg = 70.0;
@@ -3498,28 +3496,69 @@
         let aiTargetReps = 10;
         let aiTargetSets = 5;
         let aiRestTimeSeconds = 60;
+        let isWorkoutResting = false;
+        let hasNotifiedRestDone = false;
+        let agentOrb = null;
 
-        // Web Audio API를 이용한 Rep 성공 카운트 효과음 (외부 파일 없이 동작)
+        // Web Audio API를 이용한 프리미엄 파워풀 Rep 달성 효과음 (경쾌하고 힘찬 사운드)
+        let audioCtxInstance = null;
+
+        function getAudioContext() {
+            if (!audioCtxInstance && (window.AudioContext || window.webkitAudioContext)) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                audioCtxInstance = new AudioCtx();
+            }
+            if (audioCtxInstance && audioCtxInstance.state === 'suspended') {
+                audioCtxInstance.resume();
+            }
+            return audioCtxInstance;
+        }
+
         function playRepBeep() {
             try {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (!AudioCtx) return;
-                const ctx = new AudioCtx();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const now = ctx.currentTime;
 
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5 음
-                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12); // A5 음
+                // 1. 단단하고 경쾌한 어택 타격음 (Kick/Click: 힘찬 체결감)
+                const punchOsc = ctx.createOscillator();
+                const punchGain = ctx.createGain();
+                punchOsc.type = 'triangle';
+                punchOsc.frequency.setValueAtTime(160, now);
+                punchOsc.frequency.exponentialRampToValueAtTime(45, now + 0.06);
+                punchGain.gain.setValueAtTime(0.22, now);
+                punchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                punchOsc.connect(punchGain);
+                punchGain.connect(ctx.destination);
+                punchOsc.start(now);
+                punchOsc.stop(now + 0.07);
 
-                gain.gain.setValueAtTime(0.15, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                // 2. 경쾌하고 힘찬 메이저 상승 벨 화음 1 (C6 -> E6: 1046.5Hz -> 1318.5Hz)
+                const bell1 = ctx.createOscillator();
+                const bellGain1 = ctx.createGain();
+                bell1.type = 'sine';
+                bell1.frequency.setValueAtTime(1046.5, now);
+                bell1.frequency.exponentialRampToValueAtTime(1318.5, now + 0.08);
+                bellGain1.gain.setValueAtTime(0.18, now);
+                bellGain1.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                bell1.connect(bellGain1);
+                bellGain1.connect(ctx.destination);
+                bell1.start(now);
+                bell1.stop(now + 0.19);
 
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                osc.start();
-                osc.stop(ctx.currentTime + 0.16);
+                // 3. 반짝이는 성취감 하모닉스 벨 화음 2 (G6 -> C7: 1568Hz -> 2093Hz)
+                const bell2 = ctx.createOscillator();
+                const bellGain2 = ctx.createGain();
+                bell2.type = 'triangle'; // 풍부하고 시원한 배음
+                bell2.frequency.setValueAtTime(1567.98, now + 0.03);
+                bell2.frequency.exponentialRampToValueAtTime(2093.0, now + 0.12);
+                bellGain2.gain.setValueAtTime(0.001, now);
+                bellGain2.gain.setValueAtTime(0.16, now + 0.03);
+                bellGain2.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                bell2.connect(bellGain2);
+                bellGain2.connect(ctx.destination);
+                bell2.start(now + 0.03);
+                bell2.stop(now + 0.23);
             } catch (e) { }
         }
 
@@ -3534,13 +3573,7 @@
             topLine.style.top = (valueToY(TOP_ZONE) + barHalf) + 'px';
             bottomLine.style.top = (valueToY(BOTTOM_ZONE) + barHalf) + 'px';
 
-            scale.innerHTML = '';
-            [1023, 768, 512, 256, 0].forEach(v => {
-                const s = document.createElement('span');
-                s.textContent = v;
-                s.style.top = (valueToY(v) + barHalf) + 'px';
-                scale.appendChild(s);
-            });
+            if (scale) scale.innerHTML = '';
         }
 
         function render() {
@@ -3551,11 +3584,8 @@
             bar.style.transform = `translateY(${y}px)`;
             fill.style.height = (stage.clientHeight - y - bar.offsetHeight / 2) + 'px';
 
-            const rounded = Math.round(currentVal);
-            barTag.textContent = rounded;
             const pct = Math.round((currentVal / MAX_VAL) * 100);
-            heightPct.textContent = pct;
-            meterFill.style.width = pct + '%';
+            barTag.textContent = pct + '%';
 
             requestAnimationFrame(render);
         }
@@ -3570,16 +3600,96 @@
             connState.classList.remove('live');
         });
 
+        // 🚨 위험 상태 완전 해제 및 모든 위험 UI 복구 통합 함수
+        function resetDangerUI() {
+            isDangerAlertActive = false;
+            document.body.classList.remove('danger');
+            if (dangerSafetyInterval) {
+                clearInterval(dangerSafetyInterval);
+                dangerSafetyInterval = null;
+            }
+            if (mainDangerAlertBanner) mainDangerAlertBanner.style.display = 'none';
+            if (btnDangerClear) btnDangerClear.style.display = 'none';
+            const sidebarDangerClearItem = document.getElementById('sidebarDangerClearItem');
+            if (sidebarDangerClearItem) sidebarDangerClearItem.style.display = 'none';
+
+            if (statusBoxLabel) {
+                statusBoxLabel.textContent = isWorkoutResting ? 'REST TIME' : 'STATUS';
+                statusBoxLabel.style.color = isWorkoutResting ? 'var(--warn)' : '';
+            }
+            if (romBadgeEl && romBadgeEl.textContent === 'DANGER') {
+                romBadgeEl.textContent = 'READY';
+                romBadgeEl.className = 'm-rom-tag';
+            }
+            if (restTimerDisplayEl && (restTimerDisplayEl.textContent === '바텀 안전 고정' || restTimerDisplayEl.style.color === 'var(--danger)')) {
+                restTimerDisplayEl.textContent = isWorkoutResting ? restTimerDisplayEl.textContent : `권장 휴식: ${aiRestTimeSeconds}초`;
+                restTimerDisplayEl.style.color = '';
+            }
+            if (restStateBadgeEl && restStateBadgeEl.classList.contains('danger')) {
+                restStateBadgeEl.textContent = isWorkoutResting ? '휴식 중' : `${currentSet}세트 진행 중`;
+                restStateBadgeEl.className = isWorkoutResting ? 'm-sub rest-badge resting' : 'm-sub rest-badge';
+            }
+            if (restTimerBig && !isWorkoutResting) {
+                restTimerBig.style.display = 'none';
+            }
+        }
+        // 🎯 목표 세트수를 대시보드 메트릭/사이드바/모달에 실시간 동기화하는 함수
+        function syncTargetSetsToUI(sets) {
+            if (!sets || isNaN(sets)) return;
+            aiTargetSets = parseInt(sets, 10);
+            selectedTargetSets = aiTargetSets;
+
+            if (targetSetsDisplayEl) {
+                targetSetsDisplayEl.textContent = aiTargetSets;
+            }
+            const sidebarTargetSummary = document.getElementById('sidebarTargetSummary');
+            if (sidebarTargetSummary) {
+                sidebarTargetSummary.textContent = `목표: ${aiTargetSets}세트 · ${aiTargetReps}회 / 휴식: ${aiRestTimeSeconds}초`;
+            }
+
+            // 모달 내 칩 active 클래스 동기화
+            const setsChips = document.querySelectorAll('#setsChipGroup .setting-chip');
+            setsChips.forEach(chip => {
+                const val = parseInt(chip.getAttribute('data-val'), 10);
+                if (val === aiTargetSets) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+        }
+
+        // ⏱️ 사용자가 변경한 휴식 시간을 대시보드/사이드바/모달에 실시간 동기화하는 함수
+        function syncRestTimeToUI(restSec) {
+            if (!restSec || isNaN(restSec)) return;
+            aiRestTimeSeconds = parseInt(restSec, 10);
+            selectedRestTime = aiRestTimeSeconds;
+
+            if (!isWorkoutResting && restTimerDisplayEl) {
+                restTimerDisplayEl.textContent = `권장 휴식: ${aiRestTimeSeconds}초`;
+                restTimerDisplayEl.style.color = '';
+            }
+            const sidebarTargetSummary = document.getElementById('sidebarTargetSummary');
+            if (sidebarTargetSummary) {
+                sidebarTargetSummary.textContent = `목표: ${aiTargetReps}회 · ${aiTargetSets}세트 / 휴식: ${aiRestTimeSeconds}초`;
+            }
+
+            // 모달 내 칩 active 클래스 동기화
+            const restChips = document.querySelectorAll('#restChipGroup .setting-chip');
+            restChips.forEach(chip => {
+                const val = parseInt(chip.getAttribute('data-val'), 10);
+                if (val === aiRestTimeSeconds) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+        }
+
         // 실시간 센서 및 AI 판단 수신
         socket.on('sensorData', (data) => {
             const val = Math.min(MAX_VAL, Math.max(0, parseInt(data.value, 10) || 0));
             targetVal = val;
-            valueDisplay.textContent = val;
-
-            valueDisplay.className = 'value-display';
-            if (val < 300) valueDisplay.classList.add('val-low');
-            else if (val < 700) valueDisplay.classList.add('val-normal');
-            else valueDisplay.classList.add('val-high');
 
             // LLM 판단 결과가 포함된 경우에만 에이전트 영역 갱신
             if (data.decision) {
@@ -3601,6 +3711,8 @@
             if (data.status === 'DANGER') {
                 isWorkoutResting = false;
                 triggerDangerSafetyLift();
+                if (mainDangerAlertBanner) mainDangerAlertBanner.style.display = 'flex';
+                if (btnDangerClear) btnDangerClear.style.display = 'block';
                 if (statusBoxLabel) {
                     statusBoxLabel.textContent = 'SAFETY HOLD';
                     statusBoxLabel.style.color = 'var(--danger)';
@@ -3619,17 +3731,18 @@
                     restStateBadgeEl.textContent = 'DANGER';
                     restStateBadgeEl.className = 'm-sub rest-badge danger';
                 }
-                if (btnDangerClear) btnDangerClear.style.display = 'block';
-            } else if (data.status === 'NORMAL') {
-                if (dangerSafetyInterval) {
-                    clearInterval(dangerSafetyInterval);
-                    dangerSafetyInterval = null;
+
+                // 🚨 위험 감지 최초 진입 시 긴급 음성 알림 발화 (최우선 순위 보장)
+                if (!isDangerAlertActive) {
+                    isDangerAlertActive = true;
+                    stopAllSpeech();
+                    const dangerWarningNotice = "경고: 한계 도달 탈진 감지! 바를 안전 라인에 고정했습니다. 무리하지 말고 안전하게 내려오세요.";
+                    lastSpokenDecision = dangerWarningNotice;
+                    speakAgentVoice(dangerWarningNotice);
                 }
-                if (btnDangerClear) btnDangerClear.style.display = 'none';
-                if (!isWorkoutResting && statusBoxLabel) {
-                    statusBoxLabel.textContent = 'STATUS';
-                    statusBoxLabel.style.color = '';
-                }
+            } else {
+                // NORMAL, ASSIST, WAITING 등 DANGER가 아닌 모든 상황에서 위험 UI를 완전히 해제
+                resetDangerUI();
             }
 
             if (typeof data.assistLevel !== 'undefined') {
@@ -3637,12 +3750,19 @@
             }
         });
 
-        let isWorkoutResting = false;
-
         // ================== Thinking Orb AI 인텔리전스 엔진 연동 ==================
-        let agentOrb = null;
         const ORB_PREVIEW_STATES = ['working', 'searching', 'solving', 'listening', 'connecting', 'weaving', 'composing', 'breathing', 'shaping'];
         let currentOrbPreviewIndex = 0;
+
+        function setOrbStateWithCaption(stateName, captionText, speed = 1.0) {
+            if (agentOrb) {
+                agentOrb.setState(stateName);
+                const numSpeed = typeof speed === 'number' && !isNaN(speed) ? speed : 1.0;
+                agentOrb.speed = numSpeed;
+            }
+            const captionEl = document.getElementById('agentOrbStatusText');
+            if (captionEl && captionText) captionEl.textContent = captionText;
+        }
 
         function initAgentOrb() {
             const canvas = document.getElementById('agentOrbCanvas');
@@ -3651,7 +3771,7 @@
             try {
                 agentOrb = new window.ThinkingOrb(canvas, {
                     state: 'listening',
-                    size: 64,
+                    size: 170,
                     speed: 1,
                     dark: false,
                     color: '#A50034'
@@ -3663,13 +3783,7 @@
                     orbWrap.addEventListener('click', () => {
                         currentOrbPreviewIndex = (currentOrbPreviewIndex + 1) % ORB_PREVIEW_STATES.length;
                         const nextState = ORB_PREVIEW_STATES[currentOrbPreviewIndex];
-                        if (agentOrb) {
-                            agentOrb.setState(nextState);
-                        }
-                        const subtextEl = document.getElementById('agentSubtext');
-                        const modeBadge = document.getElementById('agentModeBadge');
-                        if (subtextEl) subtextEl.textContent = `Thinking Orb: ${nextState}`;
-                        if (modeBadge) modeBadge.textContent = nextState.toUpperCase();
+                        setOrbStateWithCaption(nextState, `Thinking Orb: ${nextState}`);
                     });
                 }
             } catch (e) {
@@ -3679,62 +3793,46 @@
 
         function updateAgentOrbState(status, isRest, isDanger, isAssisting) {
             if (!agentOrb) return;
-            const subtextEl = document.getElementById('agentSubtext');
-            const modeBadge = document.getElementById('agentModeBadge');
+            const captionEl = document.getElementById('agentOrbStatusText');
 
             if (isDanger) {
                 agentOrb.setState('solving');
-                agentOrb.setColor('#E00047');
-                agentOrb.speed = 1.6;
-                if (subtextEl) subtextEl.textContent = '비상 안전 리프트 고정 모드';
-                if (modeBadge) {
-                    modeBadge.textContent = 'SAFETY HOLD';
-                    modeBadge.style.color = 'var(--lg-red)';
-                    modeBadge.style.background = 'var(--lg-red-soft)';
-                }
+                if (captionEl) captionEl.textContent = '위험 감지 긴급 안전 고정';
             } else if (isAssisting) {
                 agentOrb.setState('connecting');
-                agentOrb.setColor('#0066FF');
-                agentOrb.speed = 1.25;
-                if (subtextEl) subtextEl.textContent = '스마트 어시스트 동적 부하 감경';
-                if (modeBadge) {
-                    modeBadge.textContent = 'SMART ASSIST';
-                    modeBadge.style.color = '#0066FF';
-                    modeBadge.style.background = 'rgba(0, 102, 255, 0.12)';
-                }
+                if (captionEl) captionEl.textContent = '스마트 부하 어시스트 작동 중';
             } else if (isRest) {
                 agentOrb.setState('breathing');
-                agentOrb.setColor('#00857C');
-                agentOrb.speed = 0.9;
-                if (subtextEl) subtextEl.textContent = '호흡 정리 & 심박 회복 가이드';
-                if (modeBadge) {
-                    modeBadge.textContent = 'RECOVERY';
-                    modeBadge.style.color = 'var(--ok)';
-                    modeBadge.style.background = 'var(--ok-soft)';
-                }
+                if (captionEl) captionEl.textContent = '세트 간 휴식 회복 중';
             } else if (status === 'NORMAL' && !isRest) {
                 agentOrb.setState('working');
-                agentOrb.setColor('#A50034');
-                agentOrb.speed = 1.1;
-                if (subtextEl) subtextEl.textContent = 'VBT 궤적 추적 & 파워 분석 중';
-                if (modeBadge) {
-                    modeBadge.textContent = 'VBT TRACKING';
-                    modeBadge.style.color = 'var(--lg-red)';
-                    modeBadge.style.background = 'rgba(165, 0, 52, 0.08)';
-                }
+                if (captionEl) captionEl.textContent = '실시간 풀업 궤적 분석 중';
             } else {
-                // WAITING / 대기
                 agentOrb.setState('listening');
-                agentOrb.setColor('#6E6862');
-                agentOrb.speed = 0.85;
-                if (subtextEl) subtextEl.textContent = '모션 감지 대기 중';
-                if (modeBadge) {
-                    modeBadge.textContent = 'ON-DEVICE AI';
-                    modeBadge.style.color = 'var(--text-muted)';
-                    modeBadge.style.background = 'var(--surface-2)';
-                }
+                if (captionEl) captionEl.textContent = '음성 대화 및 풀업 동작 대기 중';
             }
         }
+
+        // 로컬 LLM(Ollama) 실시간 대화형 코칭 응답 수신
+        socket.on('agentChatResponse', (data) => {
+            if (data && data.reply) {
+                renderAgentDecision(data.reply);
+                lastSpokenDecision = data.reply;
+                setOrbStateWithCaption('composing', 'AI 코치 답변 전달 중', 1.25);
+                speakAgentVoice(data.reply);
+
+                setTimeout(() => {
+                    if (agentOrb && !document.body.classList.contains('danger')) {
+                        updateAgentOrbState(
+                            isWorkoutResting ? 'REST' : (currentVal > 300 ? 'NORMAL' : 'WAITING'),
+                            isWorkoutResting,
+                            false,
+                            false
+                        );
+                    }
+                }, 4500);
+            }
+        });
 
         // 페이지 로드 시 즉시 ThinkingOrb 활성화
         if (document.readyState === 'loading') {
@@ -3772,13 +3870,19 @@
 
             const lines = formatted.split('\n').map(l => l.trim()).filter(Boolean);
             if (lines.length === 0) {
-                decisionDisplay.innerHTML = '<span class="agent-line">운동 준비 완료</span>';
+                decisionDisplay.innerHTML = '<span class="agent-line">안녕하세요! 오늘도 건강하고 활기찬 하루 되세요.</span>';
                 return;
             }
 
             decisionDisplay.innerHTML = lines
                 .map(line => `<span class="agent-line">${escapeHtml(line)}</span>`)
                 .join('');
+
+            // AI 판단 실시간 음성 발화 (TTS): 새로운 코칭/안내가 들어왔을 때 음성으로 즉시 전달 (대기 안부 인사는 텍스트로만 표시)
+            if (clean && clean !== lastSpokenDecision && !clean.includes('운동 준비 완료') && !clean.includes('분석하고 있습니다') && !clean.includes('활기찬 하루 되세요')) {
+                lastSpokenDecision = clean;
+                speakAgentVoice(clean);
+            }
 
             // AI 판단 수신 시 일시적 composing 펄스 효과
             if (agentOrb && !document.body.classList.contains('danger') && !isWorkoutResting) {
@@ -3814,6 +3918,8 @@
                 return;
             }
 
+            const target = targetSec || aiRestTimeSeconds || 60;
+
             if (isRest) {
                 if (statusBoxLabel) {
                     statusBoxLabel.textContent = 'REST TIME';
@@ -3834,12 +3940,9 @@
                     }
                 }
                 if (restTimerDisplayEl) {
-                    const target = targetSec || 60;
-                    const tMins = String(Math.floor(target / 60)).padStart(2, '0');
-                    const tSecs = String(target % 60).padStart(2, '0');
                     if (remainingSec > 0) {
-                        restTimerDisplayEl.textContent = `권장: ${tMins}:${tSecs}`;
-                        restTimerDisplayEl.style.color = 'var(--text-muted)';
+                        restTimerDisplayEl.textContent = `권장 휴식: ${target}초 (${remainingSec}초 남음)`;
+                        restTimerDisplayEl.style.color = 'var(--warn)';
                     } else {
                         restTimerDisplayEl.textContent = `휴식 완료 (다음 세트 시작 가능)`;
                         restTimerDisplayEl.style.color = 'var(--ok)';
@@ -3853,15 +3956,61 @@
                 if (restTimerBig) restTimerBig.style.display = 'none';
                 if (romBadgeEl) romBadgeEl.style.display = 'inline-flex';
                 if (restTimerDisplayEl) {
-                    restTimerDisplayEl.textContent = 'Active';
+                    restTimerDisplayEl.textContent = `권장 휴식: ${target}초`;
                     restTimerDisplayEl.style.color = '';
                 }
+            }
+        }
+
+        // 🎙️ 실시간 아나운서 랩(Rep) 카운트 & 모션 코칭 음성 엔진
+        function speakRepCount(reps, rom, tempoSec) {
+            if (!isVoiceAudioEnabled) return;
+
+            let speechText = '';
+            const target = aiTargetReps || 10;
+
+            if (reps === target) {
+                speechText = `목표 ${reps}회 완수! 완벽합니다!`;
+            } else if (reps > target) {
+                speechText = `${reps}회! 한계 돌파!`;
+            } else if (reps === Math.floor(target / 2) && target >= 6) {
+                speechText = `${reps}회! 절반 달성, 계속 힘내세요!`;
+            } else if (rom === 'PERFECT' && reps % 3 === 0) {
+                speechText = `${reps}회! 완벽한 자세!`;
+            } else if (tempoSec && tempoSec <= 1.4 && reps >= 3) {
+                speechText = `${reps}회! 나이스 페이스!`;
+            } else {
+                speechText = `${reps}회!`;
+            }
+
+            // 실시간 랩 카운트는 0초 즉각 반응이 핵심이므로 Web Speech API로 즉각 발화
+            if (typeof window !== 'undefined' && window.speechSynthesis) {
+                try {
+                    window.speechSynthesis.cancel();
+                    const utter = new SpeechSynthesisUtterance(speechText);
+                    utter.lang = 'ko-KR';
+                    utter.rate = 1.15; // 힘차고 빠른 스포츠 코치 보이스
+                    utter.pitch = 1.05;
+                    if (!koreanVoice) loadKoreanVoice();
+                    if (koreanVoice) utter.voice = koreanVoice;
+                    window.speechSynthesis.speak(utter);
+                } catch (e) {
+                    speakAgentVoice(speechText);
+                }
+            } else {
+                speakAgentVoice(speechText);
+            }
+
+            // 하단 에이전트 액션 박스에도 아나운서 코칭 메시지 실시간 갱신
+            if (decisionDisplay) {
+                decisionDisplay.innerHTML = `<span class="agent-line"><strong>${reps}회 달성!</strong> (${rom} · ${tempoSec}초) 페이스를 유지하세요!</span>`;
             }
         }
 
         // 1회 반복(Rep) 달성 시
         socket.on('repCompleted', (data) => {
             isWorkoutResting = false;
+            hasNotifiedRestDone = false;
             repCountEl.textContent = data.reps;
             totalRepsEl.textContent = data.totalReps;
             repTempoEl.textContent = data.duration;
@@ -3872,6 +4021,9 @@
             setTimeout(() => repCountEl.classList.remove('pulse'), 300);
             playRepBeep();
 
+            // 🎙️ 아나운서 실시간 횟수 카운팅 & 모션 코칭 발화!
+            speakRepCount(data.reps, data.rom, data.duration);
+
             // ROM 뱃지
             romBadgeEl.textContent = data.rom;
             romBadgeEl.className = 'm-rom-tag ' + data.rom;
@@ -3879,7 +4031,7 @@
             setNumberEl.textContent = data.currentSet || setNumberEl.textContent;
             restStateBadgeEl.textContent = `${setNumberEl.textContent}세트 진행 중`;
             restStateBadgeEl.className = 'm-sub rest-badge';
-            updateRestDisplay(false, 0, 0);
+            updateRestDisplay(false, 0, aiRestTimeSeconds);
             updateAgentOrbState('NORMAL', false, false, typeof data.assistLevel !== 'undefined' && data.assistLevel > 0);
 
             if (typeof data.assistLevel !== 'undefined') {
@@ -3890,30 +4042,43 @@
         // 1세트 종료 및 휴식 진입 시
         socket.on('setCompleted', (data) => {
             isWorkoutResting = true;
+            hasNotifiedRestDone = false;
             const completedNum = data.completedSet && data.completedSet.set ? data.completedSet.set : Math.max(1, (data.nextSet || 2) - 1);
             setNumberEl.textContent = completedNum;
             repCountEl.textContent = '0';
             restStateBadgeEl.textContent = `${completedNum}세트 완료 (다음 ${data.nextSet}세트 대기)`;
             restStateBadgeEl.className = 'm-sub rest-badge resting';
 
-            const target = data.targetRestTime || 60;
+            const target = data.targetRestTime || aiRestTimeSeconds || 60;
+            aiRestTimeSeconds = target;
+            selectedRestTime = target;
             updateRestDisplay(true, target, target);
             if (typeof data.assistLevel !== 'undefined') {
                 updateLoadDisplay(data.assistLevel, 'NORMAL', data.userWeightKg, data.currentLoadKg);
             }
             updateAgentOrbState('NORMAL', true, false, false);
             renderHistory(data.setHistory);
+
+            // 세트 완료 음성 피드백: 사용자가 변경한 휴식 시간(예: 30초)을 정확히 반영하여 안내!
+            speakAgentVoice(`${completedNum}세트 완료되었습니다. ${target}초간 휴식하세요.`);
         });
 
         // 휴식 시간 경과 틱 (남은 휴식 시간 카운트다운)
         socket.on('restTick', (data) => {
             isWorkoutResting = true;
-            const target = data.targetRestTime || 60;
+            const target = data.targetRestTime || aiRestTimeSeconds || 60;
+            aiRestTimeSeconds = target;
             const remaining = typeof data.remainingSeconds === 'number'
                 ? data.remainingSeconds
                 : Math.max(0, target - (data.restSeconds || 0));
 
             updateRestDisplay(true, remaining, target);
+
+            // 휴식 완료 시점(0초) 1회 자동 음성 안내
+            if (remaining === 0 && !hasNotifiedRestDone) {
+                hasNotifiedRestDone = true;
+                speakAgentVoice("휴식 시간이 완료되었습니다. 바를 당겨 다음 세트를 시작하세요!");
+            }
         });
 
         // 무게 변경 동기화 수신
@@ -3930,6 +4095,9 @@
 
             if (state.aiTargetReps) {
                 targetRepsEl.textContent = state.aiTargetReps;
+            }
+            if (state.aiTargetSets) {
+                syncTargetSetsToUI(state.aiTargetSets);
             }
 
             updateLoadDisplay(state.assistLevel || 0, 'NORMAL', state.userWeightKg, state.currentLoadKg);
@@ -3958,8 +4126,7 @@
                 if (btnDangerClear) btnDangerClear.style.display = 'block';
             } else if (state.isResting) {
                 isWorkoutResting = true;
-                document.body.classList.remove('danger');
-                if (btnDangerClear) btnDangerClear.style.display = 'none';
+                resetDangerUI();
 
                 const today = getTodayStr();
                 const todayCompletedSets = (state.setHistory || []).filter(s => (s.date || today) === today).length;
@@ -3979,14 +4146,17 @@
                 updateRestDisplay(true, remaining, target);
             } else {
                 isWorkoutResting = false;
-                document.body.classList.remove('danger');
-                if (btnDangerClear) btnDangerClear.style.display = 'none';
+                resetDangerUI();
                 setNumberEl.textContent = state.currentSet;
                 restStateBadgeEl.textContent = `${state.currentSet}세트 진행 중`;
                 restStateBadgeEl.className = 'm-sub rest-badge';
                 romBadgeEl.textContent = 'READY';
                 romBadgeEl.className = 'm-rom-tag';
-                updateRestDisplay(false, 0, 0);
+                updateRestDisplay(false, 0, state.aiRestTimeSeconds || aiRestTimeSeconds);
+            }
+
+            if (state.aiRestTimeSeconds) {
+                syncRestTimeToUI(state.aiRestTimeSeconds);
             }
 
             updateAgentOrbState(
@@ -4561,48 +4731,31 @@
         if (btnCloseTelemetryModal) btnCloseTelemetryModal.addEventListener('click', closeSetTelemetryModal);
         if (btnCloseTelemetryModalBottom) btnCloseTelemetryModalBottom.addEventListener('click', closeSetTelemetryModal);
 
+        function performDangerClear(fromVoice = false) {
+            socket.emit('clearDanger');
+            resetDangerUI();
+            updateAgentOrbState('NORMAL', isWorkoutResting, false, false);
+
+            if (!fromVoice) {
+                const clearMsg = "위험 상태가 해제되었습니다.\n자세를 가다듬고 바를 당겨 운동을 재개하세요.";
+                renderAgentDecision(clearMsg);
+                lastSpokenDecision = clearMsg;
+                speakAgentVoice("위험 상태가 해제되었습니다. 자세를 가다듬고 운동을 재개해 주세요.");
+            }
+        }
+
         if (btnDangerClear) {
-            btnDangerClear.addEventListener('click', () => {
-                socket.emit('clearDanger');
-                if (dangerSafetyInterval) {
-                    clearInterval(dangerSafetyInterval);
-                    dangerSafetyInterval = null;
-                }
-                document.body.classList.remove('danger');
-                btnDangerClear.style.display = 'none';
-                const sidebarDangerClearItem = document.getElementById('sidebarDangerClearItem');
-                if (sidebarDangerClearItem) sidebarDangerClearItem.style.display = 'none';
-                if (statusBoxLabel) {
-                    statusBoxLabel.textContent = 'STATUS';
-                    statusBoxLabel.style.color = '';
-                }
-                if (romBadgeEl) {
-                    romBadgeEl.textContent = 'READY';
-                    romBadgeEl.className = 'm-rom-tag';
-                }
-                if (restTimerDisplayEl) {
-                    restTimerDisplayEl.textContent = 'Active';
-                    restTimerDisplayEl.style.color = '';
-                }
-                if (restStateBadgeEl) {
-                    restStateBadgeEl.textContent = 'ACTIVE';
-                    restStateBadgeEl.className = 'm-sub rest-badge';
-                }
-            });
+            btnDangerClear.addEventListener('click', () => performDangerClear(false));
+        }
+        if (btnMainDangerClear) {
+            btnMainDangerClear.addEventListener('click', () => performDangerClear(false));
         }
 
         const handleWorkoutReset = () => {
             if (confirm('운동 기록을 초기화하시겠습니까?\n모든 세트와 부하가 리셋됩니다.')) {
                 socket.emit('resetWorkout');
                 updateLoadDisplay(0);
-                if (dangerSafetyInterval) {
-                    clearInterval(dangerSafetyInterval);
-                    dangerSafetyInterval = null;
-                }
-                document.body.classList.remove('danger');
-                if (btnDangerClear) btnDangerClear.style.display = 'none';
-                const sidebarDangerClearItem = document.getElementById('sidebarDangerClearItem');
-                if (sidebarDangerClearItem) sidebarDangerClearItem.style.display = 'none';
+                resetDangerUI();
                 closeSidebar();
             }
         };
@@ -4610,47 +4763,6 @@
         if (btnResetWorkout) btnResetWorkout.addEventListener('click', handleWorkoutReset);
 
         // ================== 음성 대화형 에이전트 인터랙션 (Voice-to-Agent Chat) ==================
-        const agentChatStream = document.getElementById('agentChatStream');
-        const voiceChatForm = document.getElementById('voiceChatForm');
-        const voiceChatInput = document.getElementById('voiceChatInput');
-        const btnVoiceMic = document.getElementById('btnVoiceMic');
-        const btnVoiceAudioToggle = document.getElementById('btnVoiceAudioToggle');
-        const voiceAudioIcon = document.getElementById('voiceAudioIcon');
-        const voiceAudioText = document.getElementById('voiceAudioText');
-
-        let isVoiceAudioEnabled = true; // 음성 합성 (TTS) 기본 ON
-        let isSpeechListening = false;
-        let speechRecognition = null;
-
-        // 음성 안내 ON/OFF 토글
-        if (btnVoiceAudioToggle) {
-            btnVoiceAudioToggle.addEventListener('click', () => {
-                isVoiceAudioEnabled = !isVoiceAudioEnabled;
-                btnVoiceAudioToggle.classList.toggle('active', isVoiceAudioEnabled);
-                if (voiceAudioIcon) voiceAudioIcon.textContent = isVoiceAudioEnabled ? '🔊' : '🔇';
-                if (voiceAudioText) voiceAudioText.textContent = isVoiceAudioEnabled ? '음성 안내' : '음성 음소거';
-                if (!isVoiceAudioEnabled && window.speechSynthesis) {
-                    window.speechSynthesis.cancel();
-                }
-            });
-        }
-
-        // Web Speech API - 음성 합성(TTS) 실행 함수
-        function speakAgentVoice(text) {
-            if (!isVoiceAudioEnabled || !window.speechSynthesis) return;
-            try {
-                window.speechSynthesis.cancel(); // 이전 발화 중단
-                const cleanText = text.replace(/\[LG Well\]/gi, '').replace(/[#*`\n]/g, ' ').trim();
-                const utter = new SpeechSynthesisUtterance(cleanText);
-                utter.lang = 'ko-KR';
-                utter.rate = 1.05;
-                utter.pitch = 1.0;
-                window.speechSynthesis.speak(utter);
-            } catch (e) {
-                console.warn('SpeechSynthesis error:', e);
-            }
-        }
-
         // Web Speech API - 음성 인식(STT) 설정
         function initSpeechRecognition() {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -4664,7 +4776,11 @@
 
                 speechRecognition.onstart = () => {
                     isSpeechListening = true;
-                    if (btnVoiceMic) btnVoiceMic.classList.add('listening');
+                    if (btnVoiceSend) {
+                        btnVoiceSend.classList.add('listening');
+                        btnVoiceSend.innerHTML = `<span>듣는 중...</span>`;
+                        btnVoiceSend.style.background = 'var(--lg-red)';
+                    }
                     if (voiceChatInput) voiceChatInput.placeholder = '말씀해 주세요... 듣고 있습니다 🎙️';
                     if (agentOrb) {
                         agentOrb.setState('listening');
@@ -4721,7 +4837,11 @@
 
         function stopSpeechRecognition() {
             isSpeechListening = false;
-            if (btnVoiceMic) btnVoiceMic.classList.remove('listening');
+            if (btnVoiceSend) {
+                btnVoiceSend.classList.remove('listening');
+                btnVoiceSend.style.background = '';
+                btnVoiceSend.innerHTML = `<span>말하기</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+            }
             if (voiceChatInput) voiceChatInput.placeholder = '음성 명령을 말씀하시거나 입력하세요... (Enter)';
             if (agentOrb && !document.body.classList.contains('danger')) {
                 agentOrb.setState(isWorkoutResting ? 'breathing' : 'working');
@@ -4729,74 +4849,47 @@
             }
         }
 
-        if (btnVoiceMic) {
-            btnVoiceMic.addEventListener('click', toggleSpeechRecognition);
-        }
 
-        // 유저 음성 발화 말풍선 추가 함수
-        function appendUserMessage(text) {
-            if (!agentChatStream) return;
-            const msgEl = document.createElement('div');
-            msgEl.className = 'chat-msg chat-msg-user';
-            msgEl.innerHTML = `
-                <div class="chat-avatar chat-avatar-user">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    </svg>
-                </div>
-                <div class="chat-bubble-wrap">
-                    <div class="chat-meta">
-                        <span class="chat-voice-tag">🎙️ 음성 전달</span>
-                        <span>사용자</span>
-                    </div>
-                    <div class="chat-bubble">${escapeHtml(text)}</div>
-                </div>
-            `;
-            agentChatStream.appendChild(msgEl);
-            agentChatStream.scrollTop = agentChatStream.scrollHeight;
-        }
 
-        // 에이전트 음성 답변 말풍선 추가 함수
-        function appendAgentMessage(text, isLiveCoach = false) {
-            if (!agentChatStream) return;
-            const msgEl = document.createElement('div');
-            msgEl.className = `chat-msg chat-msg-agent${isLiveCoach ? ' live-coach' : ''}`;
-            msgEl.innerHTML = `
-                <div class="chat-avatar chat-avatar-agent">AI</div>
-                <div class="chat-bubble-wrap">
-                    <div class="chat-meta">
-                        <span>AI Coach</span>
-                        <span class="chat-voice-tag">${isLiveCoach ? '⚡ 실시간 모션 코칭' : '🎙️ 음성 응답'}</span>
-                    </div>
-                    <div class="chat-bubble">${escapeHtml(text)}</div>
-                </div>
-            `;
-            agentChatStream.appendChild(msgEl);
-            agentChatStream.scrollTop = agentChatStream.scrollHeight;
-            speakAgentVoice(text);
-        }
-
-        // 사용자 음성 의도(Intent) 분석 및 스마트 에이전트 실행 엔진 (단일 및 복합 명령 지원)
+        // 사용자 음성/텍스트 명령 분석 및 스마트 에이전트 실행 엔진
         function handleUserVoiceCommand(userText) {
-            const text = (userText || '').trim();
+            let text = (userText || '').trim();
             if (!text) return;
 
-            appendUserMessage(text);
+            // 끝에 붙은 마침표(.), 물음표, 느낌표, 쉼표, 물결표 등 문장부호 정제
+            text = text.replace(/[\.\?!,~\s]+$/g, '').trim();
+            // 숫자 뒤에 홀로 붙은 마침표 정제 (예: "20." -> "20", 단 "20.5"는 유지)
+            text = text.replace(/(\d+)\.(?!\d)/g, '$1');
+
             if (voiceChatInput) voiceChatInput.value = '';
 
-            // Thinking Orb 반응: solving/searching
-            if (agentOrb) {
-                agentOrb.setState('solving');
-                agentOrb.speed = 1.45;
-            }
+            // 1. Thinking Orb '생각 중' 상태 전환 (solving 모드: 빠르게 소용돌이치며 연산)
+            setOrbStateWithCaption('solving', '명령 분석 및 판단 중...', 1.45);
+            renderAgentDecision(`"${escapeHtml(text)}" 명령을 분석하고 있습니다...`);
 
             setTimeout(() => {
                 let agentReply = '';
                 const lower = text.toLowerCase();
 
                 // 1. 다중 의도(Multi-Intent) 추출기
-                // 1-1. 랩/반복수 (Reps) 파싱: "목표 랩은 8회", "8회", "랩 8", "8랩", "8개", "8번", "랩은 8"
+                // 1-1. 휴식 시간 (Rest) 파싱: "휴식 시간 30으로", "휴식 30초", "30초 휴식", "휴식 60", "2분 휴식"
+                let matchedRest = null;
+                const restMatch = lower.match(/(?:휴식(?:\s*시간)?|쉬는\s*시간|쉬는시간|rest)\s*(?:은|는|이|가|을|를|도)?\s*(\d+)\s*(?:초|분|으로|로)?/i)
+                    || lower.match(/(\d+)\s*(?:초|분)\s*(?:휴식|쉬는)/i);
+                if (restMatch) {
+                    const val = parseInt(restMatch[1], 10);
+                    matchedRest = lower.includes('분') ? val * 60 : val;
+                }
+
+                // 1-2. 세트수 (Sets) 파싱: "세트는 5로", "세트 5", "5세트", "세트는 5", "목표 5세트", "목표 세트 6"
+                let matchedSets = null;
+                const setMatch = lower.match(/(?:목표\s*)?(?:세트|set)(?:수)?\s*(?:는|은|가|이|를|을|도)?\s*(\d+)/i)
+                    || lower.match(/(\d+)\s*(?:세트|set)/i);
+                if (setMatch) {
+                    matchedSets = parseInt(setMatch[1], 10);
+                }
+
+                // 1-3. 랩/반복수 (Reps) 파싱: "목표 랩은 8회", "8회", "랩 8", "8랩", "8개", "8번", "랩은 8"
                 let matchedReps = null;
                 const repMatch = lower.match(/(?:목표\s*)?(?:랩|렙|rep|반복|횟수)\s*(?:은|는|이|가|을|를|도)?\s*(\d+)\s*(?:회|번|개|랩|렙)?/i)
                     || lower.match(/(\d+)\s*(?:회|번|개|랩|렙)/i);
@@ -4804,60 +4897,69 @@
                     matchedReps = parseInt(repMatch[1], 10);
                 }
 
-                // 1-2. 세트수 (Sets) 파싱: "세트는 5로", "세트 5", "5세트", "세트는 5"
-                let matchedSets = null;
-                const setMatch = lower.match(/(?:목표\s*)?세트(?:수)?\s*(?:는|은|가|이|를|을|도)?\s*(\d+)/i)
-                    || lower.match(/(\d+)\s*세트/i);
-                if (setMatch) {
-                    matchedSets = parseInt(setMatch[1], 10);
-                }
-
-                // 1-3. 무게 / 부하 (Weight/Load) 파싱:
-                // 절대값 무게: "무게는 40kg으로 설정해줘", "무게 40kg", "40kg으로", "부하 40kg"
-                // 상대값 증감: "5kg 줄여줘", "부하 5kg 올려줘", "무게 5kg 늘려줘", "더 가볍게 해줘"
+                // 1-4. 무게 / 부하 (Weight/Load) 1kg 단위 정밀 파싱:
+                // 상대값 증감: "1kg 감소", "1 감소", "1kg 줄여", "1 올려", "무게 1kg 줄여줘", "1 빼", "1kg 증가"
+                // 절대값 설정: "무게 40kg", "40kg으로", "무게 20", "20으로", "20.", "20"
                 let matchedWeight = null;
                 let isDeltaWeight = false;
                 let deltaWeightVal = 0;
 
-                // 무게 변경 의도는 문장 내에 '무게', '중량', '부하', 'kg', '킬로', '가볍게', '무겁게' 등 무게 키워드가 명시적으로 있을 때만 인정
-                const hasExplicitWeightKeyword = /(?:무게|중량|부하|\d+\s*(?:kg|킬로)|kg|킬로|가볍|무겁)/i.test(lower);
+                const hasDecrease = /(?:감소|줄여|낮춰|덜어|가볍|깎아|감경|내려|다운|마이너스|빼|-|감량)/.test(lower);
+                const hasIncrease = /(?:추가|증가|늘려|올려|무겁|더해|올림|높여|업|플러스|\+|보태|달아|증량)/.test(lower);
+                const isUnitSetting = /(?:1kg\s*단위|1킬로\s*단위|1\s*단위|단위\s*1)/.test(lower) && !hasDecrease && !hasIncrease;
 
-                if (hasExplicitWeightKeyword) {
-                    const weightDecreasing = /(?:무게|중량|부하|부담)?\s*(?:줄여|낮춰|덜어|가볍|깎아|감경)/.test(lower)
-                        || /(\d+(?:\.\d+)?)\s*(?:kg|킬로)?\s*(?:줄여|낮춰|덜어|깎아|감경)/.test(lower);
-                    const weightIncreasing = /(?:무게|중량|부하)?\s*(?:늘려|올려|무겁|더해)/.test(lower)
-                        || /(\d+(?:\.\d+)?)\s*(?:kg|킬로)?\s*(?:늘려|올려|더해)/.test(lower);
+                // 명시적 무게 키워드 유무 판별
+                const hasExplicitWeightWord = /(?:무게|중량|부하|부담|\d+\s*(?:kg|킬로)|kg|킬로)/i.test(lower);
+                // 문장에 휴식/세트/랩 키워드만 있고 무게 키워드는 없는 경우 (예: '휴식 시간 30으로', '세트는 5로') -> 무게로 오인식 절대 금지!
+                const isOtherIntentOnly = !hasExplicitWeightWord && (matchedRest !== null || matchedSets !== null || matchedReps !== null);
 
-                    const weightExplicitMatch = lower.match(/(?:무게|중량|부하)\s*(?:는|은|가|이|를|을|도)?\s*(\d+(?:\.\d+)?)\s*(?:kg|킬로)?/i)
-                        || lower.match(/(\d+(?:\.\d+)?)\s*(?:kg|킬로)/i);
+                // 무게 의도 판별:
+                // 1) 명시적 무게 단어 또는 증감 표현이 있는 경우
+                // 2) 다른 의도(휴식/세트/랩)가 전혀 없는 상태에서 숫자 단독이나 조사('20으로', '20.', '20')가 들어온 경우
+                const hasWeightKeyword = !isOtherIntentOnly && (
+                    hasExplicitWeightWord ||
+                    hasDecrease || hasIncrease ||
+                    /(?:\d+\s*(?:으로|로|에|을|를)|^\s*\d+(?:\.\d+)?\s*$)/i.test(lower)
+                );
 
-                    // A. 상대값 증감 ("5kg 줄여줘", "무게 5kg 늘려줘", "부하 좀 낮춰줘")
-                    if (weightDecreasing || weightIncreasing) {
+                if (hasWeightKeyword && !isUnitSetting) {
+                    // 숫자 추출: 복합 문장('무게 20kg, 휴식 30초')인 경우 무게 단어 인접 숫자를 우선 캡처
+                    let numMatch = null;
+                    if (hasExplicitWeightWord) {
+                        numMatch = lower.match(/(?:무게|중량|부하)\s*(?:은|는|이|가|을|를|도)?\s*([+-]?\d+(?:\.\d+)?)/i)
+                            || lower.match(/([+-]?\d+(?:\.\d+)?)\s*(?:kg|킬로)/i)
+                            || lower.match(/([+-]?\d+(?:\.\d+)?)\s*(?:으로|로)?\s*(?:무게|중량)/i);
+                    }
+                    if (!numMatch) {
+                        numMatch = lower.match(/(?:무게|중량|부하)?\s*([+-]?\d+(?:\.\d+)?)\s*(?:kg|킬로|씩|단위|으로|로|에|을|를)?\s*(?:추가|증가|늘려|올려|무겁|더해|올림|높여|업|플러스|보태|달아|증량|감소|줄여|낮춰|덜어|가볍|깎아|감경|내려|다운|마이너스|빼|감량)?/i)
+                            || lower.match(/(?:추가|증가|늘려|올려|더해|보태|달아|증량|감소|줄여|낮춰|덜어|내려|빼|감량)\s*(?:무게|중량)?\s*([+-]?\d+(?:\.\d+)?)\s*(?:kg|킬로)?/i)
+                            || lower.match(/(\d+(?:\.\d+)?)\s*(?:kg|킬로)/i)
+                            || lower.match(/(\d+(?:\.\d+)?)/i);
+                    }
+
+                    const parsedNum = numMatch && !isNaN(parseFloat(numMatch[1])) ? Math.abs(parseFloat(numMatch[1])) : null;
+
+                    // A. 상대값 증감 (감소/증가/추가 키워드 또는 부호가 있는 경우, 기본값: 1.0kg 단위)
+                    if (hasDecrease || hasIncrease || lower.includes('-') || lower.includes('+')) {
                         isDeltaWeight = true;
-                        deltaWeightVal = weightExplicitMatch ? parseFloat(weightExplicitMatch[1]) : 5.0;
-                        if (weightDecreasing) deltaWeightVal = -deltaWeightVal;
+                        // 숫자 명시가 없으면 1kg 단위(1.0kg)로 기본 조절
+                        deltaWeightVal = parsedNum !== null ? parsedNum : 1.0;
+                        if (hasDecrease || lower.includes('-')) deltaWeightVal = -deltaWeightVal;
                     }
-                    // B. 절대값 설정 ("무게는 40kg으로 설정해줘", "40kg으로", "부하 45kg")
-                    else if (weightExplicitMatch) {
-                        matchedWeight = parseFloat(weightExplicitMatch[1]);
+                    // B. 절대값 설정 ("무게 40kg", "무게 20", "20으로", "20")
+                    else if (parsedNum !== null && (hasExplicitWeightWord || /(?:으로|로|에|을|를)/.test(lower) || /^\s*\d+(?:\.\d+)?\s*$/.test(lower))) {
+                        matchedWeight = parsedNum;
                     }
                 }
 
-                // 1-4. 휴식 시간 (Rest) 파싱: "휴식 90초", "휴식 시간 90초로 늘려줘", "휴식은 60초", "2분 휴식"
-                let matchedRest = null;
-                const restMatch = lower.match(/(?:휴식(?:\s*시간)?|쉬는\s*시간|쉬는시간|rest)\s*(?:은|는|이|가|을|를|도)?\s*(\d+)\s*(?:초|분)?/i)
-                    || lower.match(/(\d+)\s*(?:초|분)?\s*(?:휴식|쉬는)/i);
-                if (restMatch) {
-                    const val = parseInt(restMatch[1], 10);
-                    matchedRest = lower.includes('분') ? val * 60 : val;
-                }
+                console.log(`[명령 파싱] 원본: "${userText}", 정제: "${text}", 무게: ${matchedWeight}, 상대무게: ${isDeltaWeight ? deltaWeightVal : 'N/A'}, 휴식: ${matchedRest}, 세트: ${matchedSets}, 랩: ${matchedReps}`);
 
                 // 2. 실행 및 결과 수집
                 let actionsApplied = [];
 
-                // A. 무게 적용
+                // A. 무게 적용 (1kg 단위 지원, 최소 1kg 허용)
                 if (matchedWeight !== null) {
-                    currentLoadKg = Math.max(10, Math.min(180, matchedWeight));
+                    currentLoadKg = Math.max(1, Math.min(180, Math.round(matchedWeight * 10) / 10));
                     currentUserWeightKg = currentLoadKg;
                     currentAssistLevel = 0; // 명시된 무게를 목표 기준 부하로 설정
                     updateLoadDisplay(currentAssistLevel, 'NORMAL', currentUserWeightKg, currentLoadKg);
@@ -4871,7 +4973,7 @@
                     });
                     actionsApplied.push(`목표 무게 ${currentLoadKg.toFixed(1)}kg`);
                 } else if (isDeltaWeight) {
-                    currentLoadKg = Math.max(10, Math.round((currentLoadKg + deltaWeightVal) * 10) / 10);
+                    currentLoadKg = Math.max(1, Math.min(180, Math.round((currentLoadKg + deltaWeightVal) * 10) / 10));
                     currentUserWeightKg = currentLoadKg;
                     currentAssistLevel = 0;
                     updateLoadDisplay(0, 'NORMAL', currentLoadKg, currentLoadKg);
@@ -4883,7 +4985,8 @@
                         targetSets: matchedSets || aiTargetSets,
                         restTime: matchedRest || aiRestTimeSeconds
                     });
-                    actionsApplied.push(`무게 ${Math.abs(deltaWeightVal)}kg ${deltaWeightVal < 0 ? '감소' : '증가'}(현재 ${currentLoadKg.toFixed(1)}kg)`);
+                    const actionLabel = deltaWeightVal < 0 ? '감소' : (lower.includes('추가') ? '추가' : '증가');
+                    actionsApplied.push(`무게 ${Math.abs(deltaWeightVal)}kg ${actionLabel}`);
                 }
 
                 // B. 반복수(Reps) 적용
@@ -4898,6 +5001,8 @@
                 // C. 세트수(Sets) 적용
                 if (matchedSets !== null) {
                     aiTargetSets = matchedSets;
+                    selectedTargetSets = matchedSets;
+                    syncTargetSetsToUI(aiTargetSets);
                     socket.emit('updateSettings', { targetReps: aiTargetReps, targetSets: aiTargetSets, restTime: matchedRest || aiRestTimeSeconds });
                     if (restStateBadgeEl) {
                         restStateBadgeEl.textContent = `목표 ${aiTargetSets}세트 설정 (현재 ${currentSet}세트)`;
@@ -4907,22 +5012,21 @@
 
                 // D. 휴식 시간 적용
                 if (matchedRest !== null) {
-                    aiRestTimeSeconds = matchedRest;
-                    selectedRestTime = matchedRest;
+                    syncRestTimeToUI(matchedRest);
                     socket.emit('updateSettings', { targetReps: aiTargetReps, targetSets: matchedSets || aiTargetSets, restTime: aiRestTimeSeconds });
                     actionsApplied.push(`휴식 시간 ${aiRestTimeSeconds}초`);
                 }
 
-                // 사이드바 서머리 실시간 동기화
-                if (sidebarTargetSummary) {
-                    sidebarTargetSummary.textContent = `목표: ${aiTargetReps}회 · ${aiTargetSets}세트 / 휴식: ${aiRestTimeSeconds}초`;
-                }
-
                 // 3. 상황별 피드백 응답 빌드
+                const isDangerClearCommand = /(?:위험\s*해제|안전\s*해제|해제해줘|해제|다시\s*시작|운동\s*재개|계속해|계속하자|정상\s*복귀|안전\s*풀어|풀어줘)/i.test(lower);
                 const isAcceptProposal = /(?:제안대로|추천대로|제안된|추천된|그렇게\s*해줘|제안\s*적용|추천\s*적용|제안으로)/i.test(lower);
                 const isPatternProposal = /(?:패턴|제안|추천|진단|다음\s*무게|무게\s*어때|무게\s*추천|무게\s*제안)/i.test(lower);
 
-                if (isAcceptProposal && latestProposedWeightKg !== null) {
+                if (isDangerClearCommand) {
+                    performDangerClear(true);
+                    agentReply = "네, [안전 고정 해제]로 설정을 완료했습니다. 자세를 가다듬고 운동을 재개해 주세요.";
+                }
+                else if (isAcceptProposal && latestProposedWeightKg !== null) {
                     currentLoadKg = latestProposedWeightKg;
                     currentUserWeightKg = currentLoadKg;
                     currentAssistLevel = 0;
@@ -4935,10 +5039,21 @@
                         targetSets: aiTargetSets,
                         restTime: aiRestTimeSeconds
                     });
-                    agentReply = `네! 운동 패턴 진단 제안을 반영하여 목표 무게를 [${currentLoadKg.toFixed(1)}kg]으로 설정했습니다! 준비되셨으면 바를 잡고 힘차게 당겨주세요.`;
+                    agentReply = `네, [무게 ${currentLoadKg.toFixed(1)}kg]으로 설정을 완료했습니다.`;
                 }
                 else if (actionsApplied.length > 0) {
-                    agentReply = `네, 음성 명령을 반영하여 [${actionsApplied.join(', ')}]으로 설정을 완료했습니다! 준비되셨으면 바를 당겨 1회를 시작하세요.`;
+                    const cmd = actionsApplied.join(', ');
+                    const lastChar = cmd.trim().slice(-1);
+                    const code = lastChar.charCodeAt(0);
+                    let particle = '으로';
+                    if (code >= 0xac00 && code <= 0xd7a3) {
+                        const jong = (code - 0xac00) % 28;
+                        if (jong === 0 || jong === 8) particle = '로';
+                    }
+                    agentReply = `네, [${cmd}]${particle} 설정을 완료했습니다.`;
+                }
+                else if (isUnitSetting) {
+                    agentReply = `네, 이제 목표 무게를 1kg 단위로 세밀하게 조절하실 수 있습니다! "1kg 줄여줘", "1kg 올려줘", "1 감소"와 같이 편하게 말씀해 주세요. (현재 무게: ${currentLoadKg.toFixed(1)}kg)`;
                 }
                 // AI 운동 패턴 분석 및 무게 제안 요청
                 else if (isPatternProposal) {
@@ -4947,16 +5062,15 @@
                 else if (isAcceptProposal && latestProposedWeightKg === null) {
                     agentReply = `아직 제안된 무게가 없습니다. "내 운동 패턴 분석해서 무게 제안해줘"라고 말씀해 주시면 실제 운동 패턴을 분석해 최적 무게를 제안해 드립니다!`;
                 }
-                // 자세/피드백 요청인 경우
-                else if (/자세|템포|속도|페이스|피드백|어때|상태|모션/.test(lower)) {
-                    const tempoVal = repTempoEl ? repTempoEl.textContent : '2.1s';
-                    const romVal = romBadgeEl ? romBadgeEl.textContent : 'GOOD';
-                    agentReply = `현재 세트 실시간 템포는 ${tempoVal}이며 가동범위는 ${romVal}입니다. 수축 시 팔꿈치를 옆구리로 강하게 당기고, 하강 시 2초간 네거티브를 통제하시면 광배근 자극이 훨씬 높아집니다!`;
+                // 비상 멈춤인 경우
+                else if (/멈춰|스톱|정지|그만|비상/.test(lower)) {
+                    triggerDangerSafetyLift();
+                    agentReply = `즉시 안전 리프트가 활성화되었습니다. 케이블을 안전 위치에 고정하였으니 무리하지 마시고 발을 안전하게 착지하세요.`;
                 }
                 // 힘듦/탈진/도움 요청인 경우 -> 직접 무게 5kg 감소
-                else if (/힘들|지쳐|탈진|도와줘|살려|못하|한계/.test(lower)) {
+                else if (/힘들|지쳐|탈진|살려줘|못하겠/.test(lower)) {
                     const diff = 5.0;
-                    currentLoadKg = Math.max(10, Math.round((currentLoadKg - diff) * 10) / 10);
+                    currentLoadKg = Math.max(1, Math.round((currentLoadKg - diff) * 10) / 10);
                     currentUserWeightKg = currentLoadKg;
                     currentAssistLevel = 0;
                     updateLoadDisplay(0, 'NORMAL', currentLoadKg, currentLoadKg);
@@ -4970,29 +5084,41 @@
                     });
                     agentReply = `체력 저하를 감지하여 즉시 무게를 ${diff}kg 줄여 ${currentLoadKg.toFixed(1)}kg으로 설정했습니다! 무리하지 마시고 완수해 보세요.`;
                 }
-                // 비상 멈춤인 경우
-                else if (/멈춰|스톱|정지|그만|비상/.test(lower)) {
-                    triggerDangerSafetyLift();
-                    agentReply = `즉시 안전 리프트가 활성화되었습니다. 케이블을 안전 위치에 고정하였으니 무리하지 마시고 발을 안전하게 착지하세요.`;
-                }
-                // 일반 인사 및 안내
+                // ⭐ 그 외의 모든 자연어 질문 / 운동 상담 / 코칭 요청 / 자유 대화 -> 로컬 LLM(Ollama) 개입!
                 else {
-                    agentReply = `네, 음성 명령을 확인했습니다. 현재 ${currentSet}세트 수행 중이시며 목표는 ${aiTargetReps}회, ${aiTargetSets}세트, 무게는 ${currentLoadKg.toFixed(1)}kg입니다. 언제든 변경을 원하시면 말씀해 주세요!`;
-                }
-
-                appendAgentMessage(agentReply);
-
-                if (agentOrb) {
-                    agentOrb.setState('composing');
-                    agentOrb.speed = 1.1;
-                    setTimeout(() => {
-                        if (agentOrb && !document.body.classList.contains('danger')) {
-                            agentOrb.setState(isWorkoutResting ? 'breathing' : 'working');
-                            agentOrb.speed = 1.0;
+                    setOrbStateWithCaption('solving', 'AI 코치가 최적의 조언을 생각하는 중...', 1.45);
+                    renderAgentDecision(`"${escapeHtml(text)}"\nAI 코치가 분석하고 답변을 생각하는 중입니다...`);
+                    socket.emit('userChatMessage', {
+                        message: text,
+                        context: {
+                            currentSet: currentSet,
+                            currentSetReps: currentSetReps,
+                            totalReps: totalReps,
+                            currentLoadKg: currentLoadKg,
+                            isWorkoutResting: isWorkoutResting
                         }
-                    }, 1400);
+                    });
+                    return; // 로컬 LLM 응답 대기
                 }
-            }, 450);
+
+                // 2. 답변 및 판단을 입력창 위 작은 Action Box에 업데이트 (내부에서 speakAgentVoice 단일 실행)
+                renderAgentDecision(agentReply);
+
+                // 3. Thinking Orb '답변/코칭 중' 상태 전환: composing (부드럽게 펄스하며 음성 전달)
+                setOrbStateWithCaption('composing', '답변 및 코칭 전달 중', 1.25);
+
+                // 4. 발화 후 4초 뒤 현재 운동 상황에 맞는 상태로 부드럽게 복귀
+                setTimeout(() => {
+                    if (agentOrb && !document.body.classList.contains('danger')) {
+                        updateAgentOrbState(
+                            isWorkoutResting ? 'REST' : (currentVal > 300 ? 'NORMAL' : 'WAITING'),
+                            isWorkoutResting,
+                            false,
+                            false
+                        );
+                    }
+                }, 4000);
+            }, 380);
         }
 
         // 추천 음성 칩 클릭 이벤트 바인딩
@@ -5003,13 +5129,34 @@
             });
         });
 
-        // 폼 제출(Enter or 전송 버튼) 이벤트 바인딩
+        // 폼 제출 & 전송 버튼 & 엔터 키 이벤트 바인딩
+        function sendChatMessage() {
+            const text = voiceChatInput ? voiceChatInput.value.trim() : '';
+            if (text) {
+                handleUserVoiceCommand(text);
+                if (voiceChatInput) voiceChatInput.value = '';
+            } else {
+                toggleSpeechRecognition();
+            }
+        }
+
         if (voiceChatForm) {
             voiceChatForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const text = voiceChatInput ? voiceChatInput.value : '';
-                if (text && text.trim()) {
-                    handleUserVoiceCommand(text);
+                sendChatMessage();
+            });
+        }
+        if (btnVoiceSend) {
+            btnVoiceSend.addEventListener('click', (e) => {
+                e.preventDefault();
+                sendChatMessage();
+            });
+        }
+        if (voiceChatInput) {
+            voiceChatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendChatMessage();
                 }
             });
         }
@@ -5166,10 +5313,30 @@
         const sidebarTargetSummary = document.getElementById('sidebarTargetSummary');
 
         let selectedTargetReps = 10;
+        let selectedTargetSets = 5;
         let selectedRestTime = 60;
 
         function openTargetModal() {
             closeSidebar();
+            // 현재 설정값에 맞게 칩 상태 동기화
+            selectedTargetReps = aiTargetReps;
+            selectedTargetSets = aiTargetSets;
+            selectedRestTime = aiRestTimeSeconds;
+            const repsChips = document.querySelectorAll('#repsChipGroup .setting-chip');
+            repsChips.forEach(chip => {
+                const val = parseInt(chip.getAttribute('data-val'), 10);
+                chip.classList.toggle('active', val === selectedTargetReps);
+            });
+            const setsChips = document.querySelectorAll('#setsChipGroup .setting-chip');
+            setsChips.forEach(chip => {
+                const val = parseInt(chip.getAttribute('data-val'), 10);
+                chip.classList.toggle('active', val === selectedTargetSets);
+            });
+            const restChips = document.querySelectorAll('#restChipGroup .setting-chip');
+            restChips.forEach(chip => {
+                const val = parseInt(chip.getAttribute('data-val'), 10);
+                chip.classList.toggle('active', val === selectedRestTime);
+            });
             if (targetSettingsModal) targetSettingsModal.classList.add('active');
         }
 
@@ -5191,6 +5358,15 @@
             });
         });
 
+        const setsChips = document.querySelectorAll('#setsChipGroup .setting-chip');
+        setsChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                setsChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                selectedTargetSets = parseInt(chip.getAttribute('data-val'), 10);
+            });
+        });
+
         const restChips = document.querySelectorAll('#restChipGroup .setting-chip');
         restChips.forEach(chip => {
             chip.addEventListener('click', () => {
@@ -5204,13 +5380,16 @@
             btnApplyTargetModal.addEventListener('click', () => {
                 socket.emit('updateSettings', {
                     targetReps: selectedTargetReps,
+                    targetSets: selectedTargetSets,
                     restTime: selectedRestTime
                 });
-                if (targetRepsEl) targetRepsEl.textContent = selectedTargetReps;
-                if (sidebarTargetSummary) {
-                    sidebarTargetSummary.textContent = `목표: ${selectedTargetReps}회 / 휴식: ${selectedRestTime}초`;
-                }
+                aiTargetReps = selectedTargetReps;
+                aiTargetSets = selectedTargetSets;
+                syncTargetSetsToUI(selectedTargetSets);
+                syncRestTimeToUI(selectedRestTime);
+                if (targetRepsEl) targetRepsEl.textContent = `${selectedTargetReps}회`;
                 closeTargetModal();
+                speakAgentVoice(`목표 ${selectedTargetSets}세트, 세트당 ${selectedTargetReps}회, 권장 휴식 시간 ${selectedRestTime}초로 설정을 완료했습니다.`);
             });
         }
 

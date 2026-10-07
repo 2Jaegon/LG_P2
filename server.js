@@ -11,6 +11,40 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// =================== High-Quality Neural TTS API (Microsoft Azure SunHi) ===================
+const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
+
+app.get('/api/tts', async (req, res) => {
+    try {
+        const text = (req.query.text || '').trim();
+        if (!text) return res.status(400).send('No text provided');
+        
+        const clean = text
+            .replace(/\[LG Well\]/gi, '')
+            .replace(/[\[\]#*`\n]/g, ' ')
+            .trim();
+
+        if (!clean) return res.status(400).send('Empty text');
+
+        const voice = req.query.voice || 'ko-KR-SunHiNeural';
+        const tts = new MsEdgeTTS();
+        await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+
+        const { audioStream } = tts.toStream(clean);
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        
+        audioStream.pipe(res);
+        audioStream.on('error', (err) => {
+            console.error('TTS stream pipe error:', err.message);
+            if (!res.headersSent) res.status(500).send('TTS error');
+        });
+    } catch (e) {
+        console.error('TTS endpoint error:', e.message);
+        if (!res.headersSent) res.status(500).send('TTS error');
+    }
+});
+
 // Set your Arduino COM port here
 const ARDUINO_PORT = 'COM3'; 
 const BAUD_RATE = 9600;
@@ -23,16 +57,19 @@ let isAnalyzing = false;
 let lastValue = 0;
 let hasUserInteracted = false; // 최초 운동 개시 감지 플래그
 let isDangerActive = false;    // 위험 감지 및 안전 리프트 상태 플래그 (절대 휴식으로 자동 전환되지 않음)
+let dangerCooldownUntil = 0;   // 위험 해제 직후 재트리거 방지 쿨다운 만료 시각 (ms)
 let assistLevel = 0; // 부하 감소 단계 (0: 정상, 1: 1차 감소, 2: 2차 감소...)
-let lastAssistTimestamp = 0; // 마지막 부하 감소 적용 시각 (3초 후 추가 감소용)
+let lastAssistTimestamp = 0; // 마지막 부하 감소 적용 시각 (쿨다운용)
+let currentRepAssistCount = 0; // 현재 1회 반복(Rep) 도중 부하 감경 발동 횟수 (동일 랩 중복 출력 원천 차단)
 let bottomMoveStartTime = 0; // 바텀 범위 내에서 꼼질꼼질 움직인 시작 시각 (6초 후 DANGER)
 let bottomStillStartTime = 0; // 바텀 범위 내에서 완전히 정지한 시작 시각 (7초 후 REST/세트완료)
-let midStallStartTime = 0;    // 바텀-탑 중간 구간 정체 시작 시각 (7초 후 ASSIST)
+let midStallStartTime = 0;    // 바텀-탑 중간 구간 정체 시작 시각 (1.4초 후 ASSIST)
 
 // =================== AI 에이전트 동적 제어 변수 ===================
 let aiTargetReps = 10;
 let aiTargetSets = 5;
 let aiRestTimeSeconds = 60;
+let isUserCustomRestTime = false; // 사용자가 명시적으로 설정한 휴식 시간 보호 플래그
 
 // =================== 운동량 및 VBT 분석 트래킹 상태 ===================
 let currentSet = 1;
@@ -327,9 +364,9 @@ const THRESHOLD_BOTTOM = 280; // 하단 기준 (시작/완료)
 const THRESHOLD_TOP = 740;    // 상단 최고점 기준
 
 // =================== 실시간 안전 및 모션 타이밍 임계치 (단위: ms) ===================
-let DANGER_TRIGGER_MS = 6000;      // 바텀 탈진 꼼질거림 위험 감지 시간: 6.0초 (추가 2초 연장)
-let MID_STALL_TRIGGER_MS = 5000;   // 바텀-탑 중간 정체 부하감소(ASSIST) 시간: 5.0초 (너무 빠른 발동 방지)
-let CONT_STALL_TRIGGER_MS = 4000;  // 정체 지속 시 추가 감경 간격: 4.0초
+let DANGER_TRIGGER_MS = 6000;      // 바텀 탈진 꼼질거림 위험 감지 시간: 6.0초
+let MID_STALL_TRIGGER_MS = 1400;   // 바텀-탑 중간 정체 신속 감지 시간: 1.4초 (신속 반응)
+let CONT_STALL_TRIGGER_MS = 10000; // 연속 정체 추가 감경 간격: 10.0초 (빈번한 반복 출력 방지)
 let SET_COMPLETE_STILL_MS = 3500;  // 세트 완료 완전 정지 판정 시간: 3.5초
 
 function getWorkoutStatePayload() {
@@ -365,6 +402,57 @@ function getWorkoutStatePayload() {
     };
 }
 
+// ⚡ 지침/정체/피로 발생 시 실시간 스마트 무게 부하 감경(다단계 ASSIST) 통합 함수
+function applyAssistWeightReduction(reason = '중간 정체 감지', triggerType = 'mid_stall', sensorVal = lastValue) {
+    // 이미 최저 한계(10kg)에 도달했으면 반복 감량 및 불필요한 출력 전면 차단
+    if (userWeightKg <= 10.0) {
+        return;
+    }
+
+    const now = Date.now();
+    const prevKg = userWeightKg;
+    // 1회당 5kg씩 직접 감소 (최저 10kg)
+    userWeightKg = Math.max(10, Math.round((userWeightKg - 5.0) * 10) / 10);
+    const nextKg = userWeightKg;
+    assistLevel++;
+    currentSetAssistTriggers++;
+    currentRepAssistCount++;
+    lastAssistTimestamp = now;
+    currentStatus = 'ASSIST';
+
+    const hPct = Math.round((sensorVal / 1023) * 100);
+    const baseRef = currentSetStartWeightKg > 0 ? currentSetStartWeightKg : prevKg;
+    currentSetLoadChanges.push({
+        time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        set: currentSet,
+        repAtTrigger: currentSetReps + 1,
+        totalRepsAtTrigger: totalReps + 1,
+        heightPct: hPct,
+        fromKg: prevKg,
+        toKg: nextKg,
+        reductionKg: Math.round((prevKg - nextKg) * 10) / 10,
+        fromPercent: Math.round((prevKg / baseRef) * 100),
+        toPercent: Math.round((nextKg / baseRef) * 100),
+        reductionPercent: Math.round(((prevKg - nextKg) / baseRef) * 100),
+        reason: `${reason} (무게 5kg 직접 감소)`,
+        triggerType: triggerType
+    });
+
+    console.log(`\n[스마트 부하 감경] ${reason} -> 무게 5kg 감소: ${prevKg}kg -> ${nextKg}kg (누적 Lv.${assistLevel})`);
+    if (port && port.isOpen) {
+        port.write('L\n');
+    }
+    io.emit('sensorData', {
+        value: sensorVal,
+        status: 'ASSIST',
+        assistLevel: assistLevel,
+        loadKg: nextKg,
+        userWeightKg: nextKg,
+        decision: `${reason}!\n무게를 5kg 낮췄습니다 (${nextKg}kg).\n페이스를 유지하며 끝까지 당겨보세요!`
+    });
+    io.emit('workoutState', getWorkoutStatePayload());
+}
+
 // 상-하 연속 움직임 감지(Repetition) 및 자동 세트/휴식 판별 알고리즘
 function trackRepetition(value) {
     const now = Date.now();
@@ -375,6 +463,7 @@ function trackRepetition(value) {
             repStage = 'GOING_UP';
             repStartTime = now;
             peakValue = value;
+            currentRepAssistCount = 0; // 새 Rep 시작 시 감량 카운트 리셋
             bottomMoveStartTime = 0;
             bottomStillStartTime = 0;
 
@@ -413,30 +502,30 @@ function trackRepetition(value) {
             if (currentStatus === 'ASSIST') {
                 currentStatus = 'NORMAL';
                 midStallStartTime = 0;
-                lastAssistTimestamp = 0;
-                console.log(`\n[TOP 달성] 상단 도달 -> 무게 부담(ASSIST) 상태 해제 (부하 감소 강도 Lv.${assistLevel} 유지)`);
+                console.log(`\n[TOP 달성] 상단 도달 -> 무게 부담(ASSIST) 상태 해제 (부하 감소 Lv.${assistLevel}, ${userWeightKg}kg 유지)`);
                 if (port && port.isOpen) port.write('N\n');
                 io.emit('sensorData', {
                     value: value,
                     status: 'NORMAL',
                     assistLevel: assistLevel,
-                    decision: `TOP 도달 성공!\n감소된 부하(Lv.${assistLevel})를 유지하며 하강하세요!`
+                    loadKg: userWeightKg,
+                    userWeightKg: userWeightKg,
+                    decision: `TOP 도달 성공!\n줄어든 무게(${userWeightKg}kg)로 안정적으로 하강하세요!`
                 });
             }
         } else if (value <= THRESHOLD_BOTTOM) {
             // 충분히 오르지 못하고 바로 내려온 경우 초기화
             repStage = 'WAITING_START';
             midStallStartTime = 0;
+            currentRepAssistCount = 0;
             if (currentStatus === 'ASSIST') {
                 currentStatus = 'NORMAL';
-                lastAssistTimestamp = 0;
-                assistLevel = 0;
-                console.log(`\n[바텀 복귀] 바텀 도달로 인해 무게 부담(ASSIST) 상태 해제 -> NORMAL`);
+                console.log(`\n[바텀 복귀] 바텀 도달로 인해 임시 ASSIST 해제 -> NORMAL (줄어든 무게 ${userWeightKg}kg 유지)`);
                 if (port && port.isOpen) port.write('N\n');
                 io.emit('sensorData', {
                     value: value,
                     status: 'NORMAL',
-                    assistLevel: 0,
+                    assistLevel: assistLevel,
                     loadKg: userWeightKg,
                     userWeightKg: userWeightKg,
                     decision: "바텀 위치로 복귀했습니다.\n호흡을 가다듬고 준비되시면 다시 당겨주세요."
@@ -472,7 +561,24 @@ function trackRepetition(value) {
                 // Rep 달성 성공 시: 무게 부담 상태(ASSIST)는 해제하되, 감소된 강도(assistLevel)는 쭉 유지!
                 if (currentStatus === 'ASSIST') {
                     currentStatus = 'NORMAL';
+                    midStallStartTime = 0;
                     if (port && port.isOpen) port.write('N\n');
+                }
+                currentRepAssistCount = 0; // 랩 완수 시 감량 카운트 리셋
+
+                // 💡 운동 진행 중 피로 누적(Fatigue / Velocity Loss) 자동 감지 및 선제 부하 감경:
+                // 2회차 이상 수행 중, 이번 랩 수행 시간이 3.8초 이상 걸렸거나 이전 평균 대비 40% 이상 지체된 경우
+                if (currentSetReps >= 2 && durationSec >= 3.8 && (now - lastAssistTimestamp >= 4500)) {
+                    const prevTempos = currentSetTempos.slice(0, -1);
+                    const prevAvg = prevTempos.length > 0 ? (prevTempos.reduce((a, b) => a + b, 0) / prevTempos.length) : 2.4;
+                    if (durationSec >= prevAvg * 1.4 || durationSec >= 4.0) {
+                        console.log(`\n[피로 누적 감지] Rep 템포 지체 (${durationSec.toFixed(1)}s, 이전 평균: ${prevAvg.toFixed(1)}s) -> 다음 반복을 위해 5kg 선제 감량`);
+                        setTimeout(() => {
+                            if (!isResting && currentStatus !== 'DANGER' && !isDangerActive) {
+                                applyAssistWeightReduction(`피로 누적 감지 (${durationSec.toFixed(1)}초 소요)`, 'fatigue_slowdown', lastValue);
+                            }
+                        }, 500);
+                    }
                 }
 
                 console.log(`[Rep 달성] Set ${currentSet} - ${currentSetReps}회 완료! (템포: ${durationSec.toFixed(1)}s, ROM: ${romRatingVal}, 부하: ${getCurrentLoadKg()}kg [Lv.${assistLevel}])`);
@@ -605,7 +711,7 @@ function processSensorValue(value) {
     const rMin = Math.min(...recentDataBuffer);
     const recentDiff = rMax - rMin;
 
-    const BOTTOM_ZONE_LIMIT = THRESHOLD_BOTTOM + 100; // 380 이하를 바텀 구간으로 판별
+    const BOTTOM_ZONE_LIMIT = THRESHOLD_BOTTOM + 140; // 420 이하를 바텀 구간으로 판별
 
     // =========================================================================
     // [구간 1] 바텀 구간 (<= 380) 체류 시 판정: 완전 정지(휴식) vs 꼼질꼼질 움직임(탈진 위험)
@@ -613,19 +719,18 @@ function processSensorValue(value) {
     if (value <= BOTTOM_ZONE_LIMIT) {
         midStallStartTime = 0; // 중간 정체 타이머 리셋
 
-        // ⭐️ 바텀 구간(또는 바텀 아래)에 위치할 때는 무게 부담(ASSIST) 상태를 즉시 NORMAL로 자동 해제!
+        // ⭐️ 바텀 구간(또는 바텀 아래)에 위치할 때는 임시 ASSIST 상태를 NORMAL로 자동 해제! (줄어든 무게는 유지)
         if (currentStatus === 'ASSIST') {
             currentStatus = 'NORMAL';
-            lastAssistTimestamp = 0;
-            assistLevel = 0;
-            console.log(`\n[바텀 구간 진입] 바텀 위치(현재값: ${value} <= ${BOTTOM_ZONE_LIMIT})에 머물고 있으므로 무게 부담(ASSIST) 상태 해제 -> NORMAL 복구`);
+            midStallStartTime = 0;
+            console.log(`\n[바텀 구간 진입] 바텀 위치에 머물고 있으므로 무게 부담(ASSIST) 상태 해제 -> NORMAL 복구 (현재 무게: ${userWeightKg}kg 유지)`);
             if (port && port.isOpen) {
                 port.write('N\n');
             }
             io.emit('sensorData', {
                 value: value,
                 status: 'NORMAL',
-                assistLevel: 0,
+                assistLevel: assistLevel,
                 loadKg: userWeightKg,
                 userWeightKg: userWeightKg,
                 decision: "바텀 위치입니다.\n호흡을 가다듬고 준비되시면 다시 당겨주세요."
@@ -633,36 +738,42 @@ function processSensorValue(value) {
             io.emit('workoutState', getWorkoutStatePayload());
         }
 
-        // 1-A. 바텀 범위 내에서 꼼질꼼질 움직임 (recentDiff > 15) -> 탈진 위험 (DANGER)!
-        if (recentDiff > 15) {
+        // 1-A. 바텀 범위 내에서 꼼질꼼질 움직임 (recentDiff > 25) -> 탈진 위험 (DANGER)! (기존 15에서 25로 상향 조정)
+        if (recentDiff > 25) {
             bottomStillStartTime = 0; // 정지 타이머 리셋
-            if (bottomMoveStartTime === 0) {
-                bottomMoveStartTime = now;
-            }
 
-            const movingDuration = now - bottomMoveStartTime;
-            if (movingDuration >= DANGER_TRIGGER_MS) {
-                if (currentStatus !== 'DANGER') {
-                    currentStatus = 'DANGER';
-                    isDangerActive = true;
-                    assistLevel = 0;
-                    lastAssistTimestamp = 0;
-                    if (isResting) isResting = false; // 휴식 중이었더라도 위험 상황으로 즉각 전환
+            // 위험 해제 직후 쿨다운 중(5초)에는 DANGER 카운트 시작 방지
+            if (now < dangerCooldownUntil) {
+                bottomMoveStartTime = 0;
+            } else {
+                if (bottomMoveStartTime === 0) {
+                    bottomMoveStartTime = now;
+                }
 
-                    console.log(`\n[위험 즉각 감지] 바텀 범위 내 탈진 꼼질거림 감지 -> 위험 (DANGER)! (경과: ${(movingDuration / 1000).toFixed(1)}초, 최근변동폭: ${recentDiff})`);
-                    if (port && port.isOpen) {
-                        port.write('H\n');
+                const movingDuration = now - bottomMoveStartTime;
+                if (movingDuration >= DANGER_TRIGGER_MS) {
+                    if (currentStatus !== 'DANGER') {
+                        currentStatus = 'DANGER';
+                        isDangerActive = true;
+                        assistLevel = 0;
+                        lastAssistTimestamp = 0;
+                        if (isResting) isResting = false; // 휴식 중이었더라도 위험 상황으로 즉각 전환
+
+                        console.log(`\n[위험 즉각 감지] 바텀 범위 내 탈진 꼼질거림 감지 -> 위험 (DANGER)! (경과: ${(movingDuration / 1000).toFixed(1)}초, 최근변동폭: ${recentDiff})`);
+                        if (port && port.isOpen) {
+                            port.write('H\n');
+                        }
+                        io.emit('sensorData', {
+                            value: value,
+                            status: 'DANGER',
+                            decision: "경고: 한계 도달 (탈진 감지)!\n바를 안전 라인에 고정했습니다.\n무리하지 말고 안전하게 내려오세요."
+                        });
+                        io.emit('workoutState', getWorkoutStatePayload());
                     }
-                    io.emit('sensorData', {
-                        value: value,
-                        status: 'DANGER',
-                        decision: "경고: 한계 도달 (바텀 탈진 감지)!\n안전 리프트가 바를 Bottom 라인으로 올립니다.\n무리하지 말고 안전하게 내려오세요."
-                    });
-                    io.emit('workoutState', getWorkoutStatePayload());
                 }
             }
         } 
-        // 1-B. 바텀에서 딱 같은 값으로 완전히 정지 (recentDiff <= 15)
+        // 1-B. 바텀에서 딱 같은 값으로 완전히 정지 (recentDiff <= 25)
         else {
             bottomMoveStartTime = 0; // 움직임 타이머 리셋
 
@@ -698,6 +809,7 @@ function processSensorValue(value) {
         if (currentStatus === 'DANGER' || isDangerActive) {
             currentStatus = 'NORMAL';
             isDangerActive = false;
+            dangerCooldownUntil = Date.now() + 5000;
             console.log(`\n[위험 탈출 감지] 바텀 구간 탈출 상승 (현재값: ${value}) -> NORMAL 정상 복구`);
             if (port && port.isOpen) {
                 port.write('N\n');
@@ -707,104 +819,39 @@ function processSensorValue(value) {
                 status: 'NORMAL',
                 decision: "위험 구간을 탈출했습니다!\n페이스를 유지하며 당겨주세요!"
             });
+            io.emit('workoutState', getWorkoutStatePayload());
         }
 
-        // ⭐️ 바텀과 탑 사이 중간 정체 판별 -> 사용자 무게 부담 (ASSIST)
+        // ⭐️ 바텀과 탑 사이 중간 정체 판별 -> 사용자 무게 부담 (다단계 ASSIST)
         // 조건:
         // 1. 반드시 당겨 올라가는 중(repStage === 'GOING_UP')이어야 함 (대기 중이거나 하강 중에는 발동 금지)
-        // 2. 바텀(280)을 확실히 벗어난 중상단 구간 (value >= THRESHOLD_BOTTOM + 120 = 400 이상)
+        // 2. 바텀을 확실히 벗어난 중상단 구간 (value >= THRESHOLD_BOTTOM + 140 = 420 이상)
         // 3. 탑(740) 도달 직전 미만 (value < THRESHOLD_TOP - 40 = 700 미만)
         // 4. 휴식 상태가 아님
-        const isMidAscentStallZone = (repStage === 'GOING_UP') && (value >= THRESHOLD_BOTTOM + 120) && (value < THRESHOLD_TOP - 40) && !isResting;
+        const isMidAscentStallZone = (repStage === 'GOING_UP') && (value >= THRESHOLD_BOTTOM + 140) && (value < THRESHOLD_TOP - 40) && !isResting;
 
         if (isMidAscentStallZone) {
-            // 실제 정체 상태: 움직임이 거의 정지된 호버링 상태 (recentDiff < 60)
-            if (recentDiff < 60) {
+            // 실제 정체 상태: 상승 중 움직임이 멈칫거림 (손떨림 고려: recentDiff < 95)
+            if (recentDiff < 95) {
                 if (midStallStartTime === 0) {
                     midStallStartTime = now;
                 }
 
-                if (now - midStallStartTime >= MID_STALL_TRIGGER_MS) {
-                    // 최초 정체 시 무게 5kg 직접 감소 적용
-                    if (assistLevel === 0) {
-                        const prevKg = userWeightKg;
-                        userWeightKg = Math.max(10, Math.round((userWeightKg - 5.0) * 10) / 10);
-                        const nextKg = userWeightKg;
-                        const hPct = Math.round((value / 1023) * 100);
-                        currentSetLoadChanges.push({
-                            time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-                            set: currentSet,
-                            repAtTrigger: currentSetReps + 1,
-                            totalRepsAtTrigger: totalReps + 1,
-                            heightPct: hPct,
-                            fromKg: prevKg,
-                            toKg: nextKg,
-                            reductionKg: Math.round((prevKg - nextKg) * 10) / 10,
-                            fromPercent: 100,
-                            toPercent: Math.round((nextKg / prevKg) * 100),
-                            reductionPercent: 100 - Math.round((nextKg / prevKg) * 100),
-                            reason: `중간 정체 ${(MID_STALL_TRIGGER_MS / 1000).toFixed(1)}초 감지 (무게 5kg 직접 감소)`,
-                            triggerType: 'mid_stall_direct_weight'
-                        });
-                        currentSetAssistTriggers++;
-                        lastAssistTimestamp = now;
-                        currentStatus = 'ASSIST';
-                        assistLevel = 1;
-                        console.log(`\n[중간 정체 감지] Set ${currentSet} ${currentSetReps + 1}회차 도중(높이 ${hPct}%) 정체 -> 무게 5kg 감소: ${prevKg}kg -> ${nextKg}kg`);
-                        if (port && port.isOpen) {
-                            port.write('L\n');
-                        }
-                        io.emit('sensorData', {
-                            value: value,
-                            status: 'ASSIST',
-                            assistLevel: 1,
-                            loadKg: nextKg,
-                            userWeightKg: nextKg,
-                            decision: `정체 감지! 부담을 덜기 위해 무게를 5kg 줄였습니다 (${nextKg}kg).\n호흡을 가다듬고 당겨보세요!`
-                        });
-                        io.emit('workoutState', getWorkoutStatePayload());
-                    } 
-                    // 감량 후에도 CONT_STALL_TRIGGER_MS 간 진전이 없으면 또 5kg 감소!
-                    else if (currentStatus === 'ASSIST' && now - lastAssistTimestamp >= CONT_STALL_TRIGGER_MS) {
-                        const prevKg = userWeightKg;
-                        userWeightKg = Math.max(10, Math.round((userWeightKg - 5.0) * 10) / 10);
-                        const nextKg = userWeightKg;
-                        assistLevel++;
-                        const hPct = Math.round((value / 1023) * 100);
-                        currentSetLoadChanges.push({
-                            time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-                            set: currentSet,
-                            repAtTrigger: currentSetReps + 1,
-                            totalRepsAtTrigger: totalReps + 1,
-                            heightPct: hPct,
-                            fromKg: prevKg,
-                            toKg: nextKg,
-                            reductionKg: Math.round((prevKg - nextKg) * 10) / 10,
-                            fromPercent: 100,
-                            toPercent: Math.round((nextKg / prevKg) * 100),
-                            reductionPercent: 100 - Math.round((nextKg / prevKg) * 100),
-                            reason: `정체 ${(CONT_STALL_TRIGGER_MS / 1000).toFixed(1)}초 지속 감지 (무게 추가 5kg 감소)`,
-                            triggerType: 'stall_continuous'
-                        });
-                        currentSetAssistTriggers++;
-                        lastAssistTimestamp = now;
-                        console.log(`\n[정체 지속] 진전 없음 -> 무게 추가 5kg 감소: ${prevKg}kg -> ${nextKg}kg`);
-                        if (port && port.isOpen) {
-                            port.write('L\n');
-                        }
-                        io.emit('sensorData', {
-                            value: value,
-                            status: 'ASSIST',
-                            assistLevel: assistLevel,
-                            loadKg: nextKg,
-                            userWeightKg: nextKg,
-                            decision: `정체가 지속되어 무게를 추가로 5kg 줄였습니다 (${nextKg}kg)!\n끝까지 힘을 내세요!`
-                        });
-                        io.emit('workoutState', getWorkoutStatePayload());
-                    }
+                const stallDuration = now - midStallStartTime;
+                // 1) 1.4초 신속 정체 감지
+                // 2) 동일 Rep 도중에는 단 1회만 감량 (currentRepAssistCount === 0) -> 3초마다 연속 출력 원천 차단!
+                // 3) 직전 감량 후 최소 8초 쿨다운 보장
+                // 4) 최저 무게(10kg) 초과일 때만 발동
+                const canTriggerAssist = (stallDuration >= MID_STALL_TRIGGER_MS) &&
+                    (currentRepAssistCount === 0) &&
+                    (now - lastAssistTimestamp >= 8000) &&
+                    (userWeightKg > 10.0);
+
+                if (canTriggerAssist) {
+                    applyAssistWeightReduction(`지침 정체 감지 (${(stallDuration / 1000).toFixed(1)}초)`, 'mid_stall_direct_weight', value);
                 }
             } 
-            // 움직임이 있을 때는 정체 타이머만 리셋 (ASSIST 상태 해제는 TOP 도달 시에만 수행)
+            // 뚜렷한 움직임이 있을 때는 정체 타이머 리셋
             else {
                 midStallStartTime = 0;
             }
@@ -813,14 +860,12 @@ function processSensorValue(value) {
             // TOP 도달 시 감량된 무게 유지하며 정상 상태 복귀
             if (currentStatus === 'ASSIST' && value >= THRESHOLD_TOP) {
                 currentStatus = 'NORMAL';
-                lastAssistTimestamp = 0;
-                assistLevel = 0;
-                console.log(`\n[TOP 달성] 상단 도달 -> 무게 감량(${userWeightKg}kg) 유지`);
+                console.log(`\n[TOP 달성] 상단 도달 -> 무게 감량(${userWeightKg}kg, Lv.${assistLevel}) 유지`);
                 if (port && port.isOpen) port.write('N\n');
                 io.emit('sensorData', {
                     value: value,
                     status: 'NORMAL',
-                    assistLevel: 0,
+                    assistLevel: assistLevel,
                     loadKg: userWeightKg,
                     userWeightKg: userWeightKg,
                     decision: `TOP 도달 성공!\n줄어든 무게(${userWeightKg}kg)로 페이스를 이어가세요!`
@@ -973,8 +1018,8 @@ ${workoutContext}
   "status": "${systemStatus}",
   "action": "첫 번째 문장입니다.\\n두 번째 문장입니다.",
   "hardware_signal": "${hwSignal}",
-  "nextTargetReps": 10,
-  "restTimeSeconds": 60
+  "nextTargetReps": ${aiTargetReps},
+  "restTimeSeconds": ${aiRestTimeSeconds}
 }`;
 
         // Ollama API 로컬 호출 (Node 18+ fetch 사용)
@@ -1010,7 +1055,8 @@ ${workoutContext}
         if (llmReply.nextTargetReps && !isNaN(llmReply.nextTargetReps)) {
             aiTargetReps = parseInt(llmReply.nextTargetReps, 10);
         }
-        if (llmReply.restTimeSeconds && !isNaN(llmReply.restTimeSeconds)) {
+        // 사용자가 직접 설정한 휴식 시간이 아닐 때만 LLM의 제안을 반영하여 사용자 설정을 영구 보호
+        if (!isUserCustomRestTime && llmReply.restTimeSeconds && !isNaN(llmReply.restTimeSeconds)) {
             aiRestTimeSeconds = parseInt(llmReply.restTimeSeconds, 10);
         }
 
@@ -1077,12 +1123,69 @@ ${workoutContext}
     }
 }
 
+// =================== 로컬 LLM(Ollama) 실시간 대화형 챗 코칭 엔진 ===================
+async function chatWithLLM(userMessage, contextData = {}) {
+    const currentLoad = getCurrentLoadKg();
+    const statusText = currentStatus === 'DANGER' ? '위험 안전 고정 (SAFETY HOLD)' 
+        : (currentStatus === 'ASSIST' ? `무게 보조(부하 감경 Lv.${assistLevel})` 
+        : (isResting ? '세트 간 휴식 중' : '정상 운동 중'));
+
+    const systemPrompt = `당신은 스마트 풀업 머신의 'AI 퍼스널 트레이너 코치'입니다.
+사용자가 운동 중 당신에게 질문을 하거나 대화를 건넸습니다.
+아래의 [실시간 운동 맥락]을 바탕으로, 전문적이고 친절하며 동기부여가 넘치는 코치로서 간결하게 답변하세요.
+반드시 한국어로 1~2문장(최대 3문장) 이내의 짧고 또렷한 구어체로만 답변하세요. 마크다운 기호(*, #, - 등)나 대괄호는 일절 쓰지 마세요.
+
+[실시간 운동 맥락]
+- 현재 진행: ${currentSet}세트 진행 중 (목표: ${aiTargetSets}세트)
+- 세트 내 횟수: ${currentSetReps}회 완료 (목표: ${aiTargetReps}회)
+- 총 누적 반복: ${totalReps}회
+- 현재 운동 부하: ${currentLoad.toFixed(1)}kg (기준 체중: ${userWeightKg.toFixed(1)}kg)
+- 머신 상태: ${statusText}
+- 현재 단계: ${isResting ? '세트 종료 후 휴식 타이머 진행 중' : (repStage === 'GOING_UP' ? '바를 위로 당겨 올리는 중' : '바텀 대기 중')}
+
+사용자 질문: "${userMessage}"`;
+
+    try {
+        const response = await fetch('http://localhost:11434/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'qwen2.5:1.5b',
+                prompt: systemPrompt,
+                stream: false
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Ollama HTTP Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        let reply = (data.response || '').trim();
+        reply = reply.replace(/[#*`\[\]]/g, '').replace(/\n{2,}/g, '\n').trim();
+        return reply || `네! 현재 ${currentSet}세트에서 ${currentLoad.toFixed(1)}kg으로 운동 중이십니다. 페이스를 유지하며 끝까지 완수해 보세요!`;
+    } catch (err) {
+        console.error('[로컬 LLM 챗 오류]:', err.message);
+        return `현재 ${currentSet}세트 목표 ${aiTargetReps}회 달성을 위해 바른 자세와 호흡에 집중해 주세요. 끝까지 힘내세요!`;
+    }
+}
+
 io.on('connection', (socket) => {
     console.log('A web client connected.');
 
     // 클라이언트 접속 시 현재까지의 운동 상태(세트, 횟수, 히스토리 등) 및 하드웨어 연결 상태 즉시 전송
     socket.emit('workoutState', getWorkoutStatePayload());
     socket.emit('arduinoStatus', { connected: Boolean(port && port.isOpen), port: activePortPath });
+
+    // 로컬 LLM 챗 질문 수신 및 실시간 생성 답변 전송
+    socket.on('userChatMessage', async (data) => {
+        const msg = (data && data.message ? data.message : '').trim();
+        if (!msg) return;
+        console.log(`\n[로컬 LLM 챗 질문]: "${msg}"`);
+        const reply = await chatWithLLM(msg, data.context || {});
+        console.log(`[로컬 LLM 챗 답변]: "${reply}"\n`);
+        socket.emit('agentChatResponse', { reply: reply, originalMessage: msg });
+    });
 
     // 클라이언트에서 화살표 키 또는 시뮬레이션 버튼으로 입력된 데이터 수신
     socket.on('manualData', (val) => {
@@ -1095,17 +1198,18 @@ io.on('connection', (socket) => {
     // 위험 상태 수동 해제 (안전 확인 후 정상 복귀)
     socket.on('clearDanger', () => {
         isDangerActive = false;
-        if (currentStatus === 'DANGER') {
-            currentStatus = 'NORMAL';
-            if (port && port.isOpen) port.write('N\n');
-            console.log('[위험 상태 수동 해제됨]');
-            io.emit('sensorData', {
-                value: lastValue,
-                status: 'NORMAL',
-                decision: "위험 상태가 해제되었습니다.\n자세를 가다듬고 바를 당겨 운동을 재개하세요."
-            });
-            io.emit('workoutState', getWorkoutStatePayload());
-        }
+        currentStatus = 'NORMAL';
+        bottomMoveStartTime = 0;
+        bottomStillStartTime = 0;
+        dangerCooldownUntil = Date.now() + 5000; // 해제 후 5초간 재트리거 방지
+        if (port && port.isOpen) port.write('N\n');
+        console.log('[위험 상태 수동 해제됨]');
+        io.emit('sensorData', {
+            value: lastValue,
+            status: 'NORMAL',
+            decision: "위험 상태가 해제되었습니다.\n자세를 가다듬고 바를 당겨 운동을 재개하세요."
+        });
+        io.emit('workoutState', getWorkoutStatePayload());
     });
 
     // 목표 반복수 및 권장 휴식 시간 설정 변경
@@ -1113,7 +1217,10 @@ io.on('connection', (socket) => {
         if (settings) {
             if (settings.targetReps) aiTargetReps = parseInt(settings.targetReps, 10);
             if (settings.targetSets) aiTargetSets = parseInt(settings.targetSets, 10);
-            if (settings.restTime) aiRestTimeSeconds = parseInt(settings.restTime, 10);
+            if (settings.restTime) {
+                aiRestTimeSeconds = parseInt(settings.restTime, 10);
+                isUserCustomRestTime = true;
+            }
             console.log(`[설정 변경] 목표 반복수: ${aiTargetReps}회, 목표 세트: ${aiTargetSets}세트, 권장 휴식: ${aiRestTimeSeconds}초`);
             io.emit('workoutState', getWorkoutStatePayload());
         }
@@ -1124,14 +1231,17 @@ io.on('connection', (socket) => {
         if (data) {
             const w = typeof data.weightKg !== 'undefined' ? data.weightKg : (typeof data.userWeight !== 'undefined' ? data.userWeight : data.weight);
             if (typeof w !== 'undefined') {
-                userWeightKg = Math.max(10, Math.min(180, parseFloat(w) || 70.0));
+                userWeightKg = Math.max(1, Math.min(180, parseFloat(w) || 70.0));
             }
             if (typeof data.assistLevel !== 'undefined') {
                 assistLevel = Math.max(0, parseInt(data.assistLevel, 10));
             }
             if (data.targetReps) aiTargetReps = parseInt(data.targetReps, 10);
             if (data.targetSets) aiTargetSets = parseInt(data.targetSets, 10);
-            if (data.restTime) aiRestTimeSeconds = parseInt(data.restTime, 10);
+            if (data.restTime) {
+                aiRestTimeSeconds = parseInt(data.restTime, 10);
+                isUserCustomRestTime = true;
+            }
 
             currentSetStartWeightKg = getCurrentLoadKg();
             currentSetStartLevel = assistLevel;
@@ -1222,7 +1332,7 @@ io.on('connection', (socket) => {
             status: 'WAITING',
             loadKg: getCurrentLoadKg(),
             userWeightKg: userWeightKg,
-            decision: "운동 준비 완료.\n풀업 바를 끝까지 당겨 1회를 시작하세요."
+            decision: "안녕하세요!\n오늘도 건강하고 활기찬 하루 되세요."
         });
     });
 });
