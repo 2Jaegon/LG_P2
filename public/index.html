@@ -768,10 +768,10 @@
         }
 
         .agent-mode-badge {
-            font-size: 0.7rem;
+            font-size: 0.78rem;
             font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 6px;
+            padding: 4px 10px;
+            border-radius: 8px;
             background: rgba(165, 0, 52, 0.08);
             color: var(--lg-red);
             letter-spacing: 0.04em;
@@ -3474,18 +3474,11 @@
                             </div>
                             <div class="lg-well-titles">
                                 <div class="lg-well-logo-row">
-                                    <span class="lg-well-logo">LG Well</span>
                                     <span class="agent-mode-badge" id="agentModeBadge">ON-DEVICE AI</span>
                                 </div>
-                                <span class="lg-well-subtext" id="agentSubtext">음성 코칭 대기 중</span>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <button type="button" id="btnVoiceAudioToggle" class="voice-audio-toggle active"
-                                title="음성 합성 안내 ON/OFF">
-                                <span id="voiceAudioIcon">🔊</span>
-                                <span id="voiceAudioText">음성 안내</span>
-                            </button>
                             <span id="agentStatus" class="agent-status">WAITING</span>
                         </div>
                     </div>
@@ -3495,10 +3488,10 @@
                         <div class="agent-chat-stream" id="agentChatStream" aria-live="polite">
                             <!-- 초기 에이전트 음성 환영 & 실시간 모션 가이드 메시지 -->
                             <div class="chat-msg chat-msg-agent" id="initialAgentMsg">
-                                <div class="chat-avatar chat-avatar-agent">LG</div>
+                                <div class="chat-avatar chat-avatar-agent">AI</div>
                                 <div class="chat-bubble-wrap">
                                     <div class="chat-meta">
-                                        <span>LG Well AI Coach</span>
+                                        <span>AI Coach</span>
                                         <span class="chat-voice-tag">🎙️ 음성 모드</span>
                                     </div>
                                     <div class="chat-bubble" id="agentDecision">
@@ -4956,10 +4949,10 @@
             const msgEl = document.createElement('div');
             msgEl.className = `chat-msg chat-msg-agent${isLiveCoach ? ' live-coach' : ''}`;
             msgEl.innerHTML = `
-                <div class="chat-avatar chat-avatar-agent">LG</div>
+                <div class="chat-avatar chat-avatar-agent">AI</div>
                 <div class="chat-bubble-wrap">
                     <div class="chat-meta">
-                        <span>LG Well</span>
+                        <span>AI Coach</span>
                         <span class="chat-voice-tag">${isLiveCoach ? '⚡ 실시간 모션 코칭' : '🎙️ 음성 응답'}</span>
                     </div>
                     <div class="chat-bubble">${escapeHtml(text)}</div>
