@@ -326,6 +326,12 @@ let restStartTime = 0;
 const THRESHOLD_BOTTOM = 280; // 하단 기준 (시작/완료)
 const THRESHOLD_TOP = 740;    // 상단 최고점 기준
 
+// =================== 실시간 안전 및 모션 타이밍 임계치 (단위: ms) ===================
+let DANGER_TRIGGER_MS = 2000;      // 바텀 탈진 꼼질거림 위험 감지 시간: 2.0초 (기존 7초에서 대폭 단축)
+let MID_STALL_TRIGGER_MS = 2500;   // 바텀-탑 중간 정체 부하감소(ASSIST) 시간: 2.5초 (기존 7초에서 대폭 단축)
+let CONT_STALL_TRIGGER_MS = 1800;  // 정체 지속 시 추가 감경 간격: 1.8초 (기존 3초에서 단축)
+let SET_COMPLETE_STILL_MS = 3500;  // 세트 완료 완전 정지 판정 시간: 3.5초 (기존 7초에서 단축)
+
 function getWorkoutStatePayload() {
     const avgTempo = recentTempos.length > 0
         ? recentTempos.reduce((a, b) => a + b, 0) / recentTempos.length
@@ -597,7 +603,7 @@ function processSensorValue(value) {
             }
 
             const movingDuration = now - bottomMoveStartTime;
-            if (movingDuration >= 7000) {
+            if (movingDuration >= DANGER_TRIGGER_MS) {
                 if (currentStatus !== 'DANGER') {
                     currentStatus = 'DANGER';
                     isDangerActive = true;
@@ -605,7 +611,7 @@ function processSensorValue(value) {
                     lastAssistTimestamp = 0;
                     if (isResting) isResting = false; // 휴식 중이었더라도 위험 상황으로 즉각 전환
 
-                    console.log(`\n[위험 감지] 바텀 범위 내 7초 장시간 꼼질거림 감지 -> 탈진 위험 (DANGER)! (경과: ${(movingDuration / 1000).toFixed(1)}초, 최근변동폭: ${recentDiff})`);
+                    console.log(`\n[위험 즉각 감지] 바텀 범위 내 탈진 꼼질거림 감지 -> 위험 (DANGER)! (경과: ${(movingDuration / 1000).toFixed(1)}초, 최근변동폭: ${recentDiff})`);
                     if (port && port.isOpen) {
                         port.write('H\n');
                     }
@@ -635,7 +641,7 @@ function processSensorValue(value) {
             }
 
             const stillDuration = now - bottomStillStartTime;
-            if (stillDuration >= 7000) {
+            if (stillDuration >= SET_COMPLETE_STILL_MS) {
                 // 세트 진행 중(1회 이상 성공)이었다면 자동으로 세트 완료 처리 및 휴식 타이머 시작
                 if (currentSetReps >= 1 && !isResting && repStage === 'WAITING_START') {
                     completeCurrentSet(now);
@@ -673,8 +679,8 @@ function processSensorValue(value) {
                     midStallStartTime = now;
                 }
 
-                if (now - midStallStartTime >= 7000) {
-                    // 최초 7초 정체 시 1단계 부하 감소 적용
+                if (now - midStallStartTime >= MID_STALL_TRIGGER_MS) {
+                    // 최초 정체 시 1단계 부하 감소 적용
                     if (assistLevel === 0) {
                         const prevKg = getCurrentLoadKg(userWeightKg, 0);
                         assistLevel = 1;
@@ -692,13 +698,13 @@ function processSensorValue(value) {
                             fromPercent: 100,
                             toPercent: 85,
                             reductionPercent: 15,
-                            reason: `중간 정체 7초 감지 (높이 ${hPct}%에서 부하 -15% 감소 적용)`,
-                            triggerType: 'mid_stall_7s'
+                            reason: `중간 정체 ${(MID_STALL_TRIGGER_MS / 1000).toFixed(1)}초 감지 (높이 ${hPct}%에서 부하 -15% 감소 적용)`,
+                            triggerType: 'mid_stall_fast'
                         });
                         currentSetAssistTriggers++;
                         lastAssistTimestamp = now;
                         currentStatus = 'ASSIST';
-                        console.log(`\n[7초 정체 감지] Set ${currentSet} ${currentSetReps + 1}회차 도중(높이 ${hPct}%) 정체 -> 무게 부담 감지 (1단계 부하 감소 적용: ${prevKg}kg -> ${nextKg}kg)`);
+                        console.log(`\n[중간 정체 감지] Set ${currentSet} ${currentSetReps + 1}회차 도중(높이 ${hPct}%) 정체 -> 무게 부담 감지 (1단계 부하 감소: ${prevKg}kg -> ${nextKg}kg)`);
                         if (port && port.isOpen) {
                             port.write('L\n');
                         }
@@ -708,11 +714,11 @@ function processSensorValue(value) {
                             assistLevel: 1,
                             loadKg: nextKg,
                             userWeightKg: userWeightKg,
-                            decision: `무게 부담 감지 (${currentSetReps + 1}회차 진행 중 정체)!\n1단계 부하를 감소합니다 (${nextKg}kg).\n호흡을 가다듬고 당겨보세요!`
+                            decision: `무게 부담 감지 (${currentSetReps + 1}회차 진행 중 정체)!\n1단계 부하를 즉시 감소합니다 (${nextKg}kg).\n호흡을 가다듬고 당겨보세요!`
                         });
                     } 
-                    // 부하 감소 후에도 3초 간 진전이 없으면 또 추가 감소!
-                    else if (currentStatus === 'ASSIST' && now - lastAssistTimestamp >= 3000) {
+                    // 부하 감소 후에도 CONT_STALL_TRIGGER_MS 간 진전이 없으면 또 추가 감소!
+                    else if (currentStatus === 'ASSIST' && now - lastAssistTimestamp >= CONT_STALL_TRIGGER_MS) {
                         const prevKg = getCurrentLoadKg(userWeightKg, assistLevel);
                         const prevPct = Math.round(Math.max(0.2, 1 - assistLevel * 0.15) * 100);
                         assistLevel++;
@@ -731,12 +737,12 @@ function processSensorValue(value) {
                             fromPercent: prevPct,
                             toPercent: nextPct,
                             reductionPercent: prevPct - nextPct,
-                            reason: `정체 3초 지속 감지 (높이 ${hPct}%에서 Lv.${assistLevel} 추가 부하 감소)`,
-                            triggerType: 'stall_3s_continuous'
+                            reason: `정체 ${(CONT_STALL_TRIGGER_MS / 1000).toFixed(1)}초 지속 감지 (높이 ${hPct}%에서 Lv.${assistLevel} 추가 부하 감소)`,
+                            triggerType: 'stall_continuous'
                         });
                         currentSetAssistTriggers++;
                         lastAssistTimestamp = now;
-                        console.log(`\n[3초 정체 지속] 진전 없음 -> 추가 부하 감소 (${assistLevel}단계: ${prevKg}kg -> ${nextKg}kg)`);
+                        console.log(`\n[정체 지속] 진전 없음 -> 추가 부하 감소 (${assistLevel}단계: ${prevKg}kg -> ${nextKg}kg)`);
                         if (port && port.isOpen) {
                             port.write('L\n');
                         }
@@ -746,7 +752,7 @@ function processSensorValue(value) {
                             assistLevel: assistLevel,
                             loadKg: nextKg,
                             userWeightKg: userWeightKg,
-                            decision: `3초간 진전이 없어 추가 부하를 감소합니다 (${nextKg}kg, ${assistLevel}단계)!\n끝까지 힘을 내세요!`
+                            decision: `정체가 지속되어 추가 부하를 즉시 감소합니다 (${nextKg}kg, ${assistLevel}단계)!\n끝까지 힘을 내세요!`
                         });
                     }
                 }
