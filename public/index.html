@@ -4978,30 +4978,40 @@
                 }
 
                 // 1-3. 무게 / 부하 (Weight/Load) 파싱:
-                // 절대값 무게: "무게는 40kg으로 설정해줘", "무게 40kg", "40kg으로", "부하 40kg", "무게는 40으로"
-                // 상대값 증감: "5kg 줄여줘", "부하 5kg 올려줘", "무게 낮춰줘"
+                // 절대값 무게: "무게는 40kg으로 설정해줘", "무게 40kg", "40kg으로", "부하 40kg"
+                // 상대값 증감: "5kg 줄여줘", "부하 5kg 올려줘", "무게 5kg 늘려줘", "더 가볍게 해줘"
                 let matchedWeight = null;
                 let isDeltaWeight = false;
                 let deltaWeightVal = 0;
 
-                const isDecreasing = /줄여|낮춰|덜어|가볍|깎아|감경/.test(lower);
-                const isIncreasing = /늘려|올려|무겁|더해/.test(lower);
+                // 무게 변경 의도는 문장 내에 '무게', '중량', '부하', 'kg', '킬로', '가볍게', '무겁게' 등 무게 키워드가 명시적으로 있을 때만 인정
+                const hasExplicitWeightKeyword = /(?:무게|중량|부하|\d+\s*(?:kg|킬로)|kg|킬로|가볍|무겁)/i.test(lower);
 
-                const weightExplicitMatch = lower.match(/(?:무게|중량|부하)\s*(?:는|은|가|이|를|을|도)?\s*(\d+(?:\.\d+)?)\s*(?:kg|킬로)?/i)
-                                         || lower.match(/(\d+(?:\.\d+)?)\s*(?:kg|킬로)/i);
+                if (hasExplicitWeightKeyword) {
+                    const weightDecreasing = /(?:무게|중량|부하|부담)?\s*(?:줄여|낮춰|덜어|가볍|깎아|감경)/.test(lower)
+                                          || /(\d+(?:\.\d+)?)\s*(?:kg|킬로)?\s*(?:줄여|낮춰|덜어|깎아|감경)/.test(lower);
+                    const weightIncreasing = /(?:무게|중량|부하)?\s*(?:늘려|올려|무겁|더해)/.test(lower)
+                                          || /(\d+(?:\.\d+)?)\s*(?:kg|킬로)?\s*(?:늘려|올려|더해)/.test(lower);
 
-                if (isDecreasing || isIncreasing) {
-                    isDeltaWeight = true;
-                    deltaWeightVal = weightExplicitMatch ? parseFloat(weightExplicitMatch[1]) : 5.0;
-                    if (isDecreasing) deltaWeightVal = -deltaWeightVal;
-                } else if (weightExplicitMatch && /무게|중량|부하|kg|킬로/.test(lower)) {
-                    matchedWeight = parseFloat(weightExplicitMatch[1]);
+                    const weightExplicitMatch = lower.match(/(?:무게|중량|부하)\s*(?:는|은|가|이|를|을|도)?\s*(\d+(?:\.\d+)?)\s*(?:kg|킬로)?/i)
+                                             || lower.match(/(\d+(?:\.\d+)?)\s*(?:kg|킬로)/i);
+
+                    // A. 상대값 증감 ("5kg 줄여줘", "무게 5kg 늘려줘", "부하 좀 낮춰줘")
+                    if (weightDecreasing || weightIncreasing) {
+                        isDeltaWeight = true;
+                        deltaWeightVal = weightExplicitMatch ? parseFloat(weightExplicitMatch[1]) : 5.0;
+                        if (weightDecreasing) deltaWeightVal = -deltaWeightVal;
+                    }
+                    // B. 절대값 설정 ("무게는 40kg으로 설정해줘", "40kg으로", "부하 45kg")
+                    else if (weightExplicitMatch) {
+                        matchedWeight = parseFloat(weightExplicitMatch[1]);
+                    }
                 }
 
-                // 1-4. 휴식 시간 (Rest) 파싱: "휴식 90초", "휴식은 60초", "2분 휴식"
+                // 1-4. 휴식 시간 (Rest) 파싱: "휴식 90초", "휴식 시간 90초로 늘려줘", "휴식은 60초", "2분 휴식"
                 let matchedRest = null;
-                const restMatch = lower.match(/(?:휴식|쉬는\s*시간|쉬는시간|rest)\s*(?:은|는|이|가|을|를|도)?\s*(\d+)\s*(?:초|분)?/i)
-                               || lower.match(/(\d+)\s*초\s*휴식/i);
+                const restMatch = lower.match(/(?:휴식(?:\s*시간)?|쉬는\s*시간|쉬는시간|rest)\s*(?:은|는|이|가|을|를|도)?\s*(\d+)\s*(?:초|분)?/i)
+                               || lower.match(/(\d+)\s*(?:초|분)?\s*(?:휴식|쉬는)/i);
                 if (restMatch) {
                     const val = parseInt(restMatch[1], 10);
                     matchedRest = lower.includes('분') ? val * 60 : val;
