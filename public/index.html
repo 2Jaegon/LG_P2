@@ -211,31 +211,7 @@
         .metric-box.load-box {
             position: relative;
             overflow: hidden;
-            cursor: pointer;
             transition: all 0.25s ease;
-        }
-
-        .metric-box.load-box:hover {
-            border-color: var(--text-2);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-            transform: translateY(-1px);
-        }
-
-        .load-box-hint {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            background: var(--surface-2);
-            padding: 2px 7px;
-            border-radius: 999px;
-            border: 1px solid var(--line);
-            transition: all 0.2s;
-        }
-
-        .metric-box.load-box:hover .load-box-hint {
-            color: var(--text);
-            border-color: var(--line-strong);
-            background: #fff;
         }
 
         .metric-box.load-box.assisting {
@@ -3258,22 +3234,13 @@
                 <div id="restStateBadge" class="m-sub rest-badge">1세트 진행 중</div>
             </div>
 
-            <div class="metric-box load-box" id="loadBox" title="챗 또는 음성으로 무게 변경을 요청하세요 (클릭 시 챗 입력창으로 이동)">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="m-label" style="margin-bottom: 0;">WEIGHT (운동 무게)</span>
-                    <span class="load-box-hint" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">💬 챗으로 조절</span>
-                </div>
-                <div class="m-val-wrap" style="align-items: baseline;">
+            <div class="metric-box load-box" id="loadBox">
+                <span class="m-label">WEIGHT</span>
+                <div class="m-val-wrap">
                     <span id="loadKgDisplay" class="m-val">70.0</span>
-                    <span class="m-unit" style="font-size: 1.1rem; margin-right: 6px;">kg</span>
-                    <span id="loadIntensityBadge" class="load-pct-badge">SET</span>
+                    <span class="m-unit">kg</span>
                 </div>
-                <div class="load-gauge-track">
-                    <div id="loadGaugeFill" class="load-gauge-fill"></div>
-                </div>
-                <div class="m-sub" id="loadSubText">
-                    설정 무게 <strong id="baseWeightDisplay">70.0kg</strong> (챗으로 조절)
-                </div>
+                <div class="m-sub" id="loadSubText">설정 무게: <strong id="baseWeightDisplay" class="num">70.0kg</strong></div>
             </div>
 
             <div class="metric-box">
@@ -5178,16 +5145,7 @@
             return `📊 [AI 운동 패턴 정밀 진단 결과]\n• 누적 세트: ${history.length}세트 (총 ${totalRepsDone}회 완수)\n• 직전 세트 템포: ${lastTempo}s / ROM: ${lastRom}\n• 피로도 상태: ${hadStall ? '주의 (정체 감지)' : (parseFloat(lastTempo) <= 2.0 ? '최상 (근파워 여유)' : '안정적')}\n\n💡 AI 무게 제안: ${proposalRationale}\n\n제안된 무게로 진행하시려면 "무게 ${proposedKg}kg으로 설정해줘" 또는 "제안대로 설정해줘"라고 말씀해 주세요!`;
         }
 
-        // WEIGHT 지표 박스 클릭 시: 챗 입력창으로 포커스 안내
-        if (loadBox) {
-            loadBox.addEventListener('click', () => {
-                if (voiceChatInput) {
-                    voiceChatInput.focus();
-                    voiceChatInput.placeholder = "무게 변경(예: '무게 40kg으로 설정해줘' 또는 '내 패턴 분석해서 무게 제안해줘')";
-                }
-                appendAgentMessage(`현재 설정 무게는 ${currentLoadKg.toFixed(1)}kg입니다. 직접 무게 변경을 원하시면 "무게 40kg으로 설정해줘", 혹은 AI 패턴 진단을 원하시면 "내 운동 패턴 분석해서 무게 제안해줘"라고 입력해 주세요!`);
-            });
-        }
+
 
         // 사이드바 "AI 운동 패턴 분석 & 무게 제안" 클릭 시: 챗으로 즉시 패턴 분석 실행
         const menuWeightAgent = document.getElementById('menuWeightAgent');
