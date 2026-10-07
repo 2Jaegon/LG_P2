@@ -25,7 +25,7 @@ let hasUserInteracted = false; // 최초 운동 개시 감지 플래그
 let isDangerActive = false;    // 위험 감지 및 안전 리프트 상태 플래그 (절대 휴식으로 자동 전환되지 않음)
 let assistLevel = 0; // 부하 감소 단계 (0: 정상, 1: 1차 감소, 2: 2차 감소...)
 let lastAssistTimestamp = 0; // 마지막 부하 감소 적용 시각 (3초 후 추가 감소용)
-let bottomMoveStartTime = 0; // 바텀 범위 내에서 꼼질꼼질 움직인 시작 시각 (7초 후 DANGER)
+let bottomMoveStartTime = 0; // 바텀 범위 내에서 꼼질꼼질 움직인 시작 시각 (4초 후 DANGER)
 let bottomStillStartTime = 0; // 바텀 범위 내에서 완전히 정지한 시작 시각 (7초 후 REST/세트완료)
 let midStallStartTime = 0;    // 바텀-탑 중간 구간 정체 시작 시각 (7초 후 ASSIST)
 
@@ -327,7 +327,7 @@ const THRESHOLD_BOTTOM = 280; // 하단 기준 (시작/완료)
 const THRESHOLD_TOP = 740;    // 상단 최고점 기준
 
 // =================== 실시간 안전 및 모션 타이밍 임계치 (단위: ms) ===================
-let DANGER_TRIGGER_MS = 2000;      // 바텀 탈진 꼼질거림 위험 감지 시간: 2.0초
+let DANGER_TRIGGER_MS = 4000;      // 바텀 탈진 꼼질거림 위험 감지 시간: 4.0초 (기존 2초에서 2초 연장)
 let MID_STALL_TRIGGER_MS = 5000;   // 바텀-탑 중간 정체 부하감소(ASSIST) 시간: 5.0초 (너무 빠른 발동 방지)
 let CONT_STALL_TRIGGER_MS = 4000;  // 정체 지속 시 추가 감경 간격: 4.0초
 let SET_COMPLETE_STILL_MS = 3500;  // 세트 완료 완전 정지 판정 시간: 3.5초
