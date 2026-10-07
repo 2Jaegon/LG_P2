@@ -353,7 +353,9 @@ function getWorkoutStatePayload() {
         assistLevel,
         userWeightKg,
         currentLoadKg: loadKg,
-        currentLoadPercent: loadPercent
+        currentLoadPercent: loadPercent,
+        isArduinoConnected: Boolean(port && port.isOpen),
+        arduinoPort: typeof activePortPath !== 'undefined' ? activePortPath : ARDUINO_PORT
     };
 }
 
@@ -780,33 +782,88 @@ function processSensorValue(value) {
     });
 }
 
-try {
-    port = new SerialPort({ path: ARDUINO_PORT, baudRate: BAUD_RATE, autoOpen: false });
-    const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
+let activePortPath = ARDUINO_PORT;
+let isPortConnecting = false;
 
-    console.log(`Trying to connect to Arduino on ${ARDUINO_PORT}...`);
-
-    port.open((err) => {
-        if (err) {
-            console.log(`[안내] 아두이노(${ARDUINO_PORT}) 미연결 - 키보드 시뮬레이션 모드로 대기합니다. (${err.message})`);
-        } else {
-            console.log(`Successfully connected to Arduino on ${ARDUINO_PORT}`);
-        }
-    });
-
-    port.on('error', (err) => {
-        console.log('[시리얼 포트 알림]:', err.message);
-    });
-
-    // 아두이노에서 데이터 수신 (버튼이 켜져 있을 때만 데이터가 들어옴)
-    parser.on('data', (data) => {
-        const value = parseInt(data.trim(), 10);
-        processSensorValue(value);
-    });
-
-} catch (error) {
-    console.log("[안내] SerialPort 초기화 건너뜀 (키보드 시뮬레이션 모드 사용 가능):", error.message);
+async function findArduinoPort() {
+    try {
+        const ports = await SerialPort.list();
+        const arduino = ports.find(p => 
+            (p.vendorId && p.vendorId.toLowerCase() === '2341') ||
+            (p.manufacturer && p.manufacturer.toLowerCase().includes('arduino')) ||
+            (p.friendlyName && p.friendlyName.toLowerCase().includes('arduino')) ||
+            (p.path === ARDUINO_PORT)
+        );
+        if (arduino) return arduino.path;
+        const defaultPort = ports.find(p => p.path === ARDUINO_PORT);
+        if (defaultPort) return defaultPort.path;
+    } catch (e) {
+        // scan error fallback
+    }
+    return ARDUINO_PORT;
 }
+
+function initSerialConnection() {
+    if (isPortConnecting || (port && port.isOpen)) return;
+    isPortConnecting = true;
+
+    findArduinoPort().then((targetPath) => {
+        activePortPath = targetPath || ARDUINO_PORT;
+        try {
+            port = new SerialPort({ path: activePortPath, baudRate: BAUD_RATE, autoOpen: false });
+            const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
+
+            console.log(`[하드웨어] 아두이노 포트 연결 시도: ${activePortPath}...`);
+
+            port.open((err) => {
+                isPortConnecting = false;
+                if (err) {
+                    console.log(`[하드웨어 대기] 아두이노(${activePortPath}) 연결 대기 중... (${err.message})`);
+                    io.emit('arduinoStatus', { connected: false, port: activePortPath });
+                } else {
+                    console.log(`\n========================================`);
+                    console.log(`[하드웨어 연결 완료] 아두이노(${activePortPath}) 실시간 VBT 센서 스트리밍 준비됨!`);
+                    console.log(`========================================\n`);
+                    io.emit('arduinoStatus', { connected: true, port: activePortPath });
+                    io.emit('workoutState', getWorkoutStatePayload());
+                }
+            });
+
+            port.on('error', (err) => {
+                console.log('[시리얼 포트 알림]:', err.message);
+                io.emit('arduinoStatus', { connected: false, port: activePortPath });
+            });
+
+            port.on('close', () => {
+                console.log('[시리얼 포트 알림]: 아두이노 연결이 종료되었습니다. 자동 재연결을 시도합니다.');
+                io.emit('arduinoStatus', { connected: false, port: activePortPath });
+            });
+
+            // 아두이노에서 데이터 수신
+            parser.on('data', (data) => {
+                const value = parseInt(data.trim(), 10);
+                if (!isNaN(value)) {
+                    processSensorValue(value);
+                }
+            });
+
+        } catch (error) {
+            isPortConnecting = false;
+            console.log("[안내] SerialPort 초기화 예외:", error.message);
+        }
+    }).catch(() => {
+        isPortConnecting = false;
+    });
+}
+
+initSerialConnection();
+
+// 아두이노 미연결 시 3초 주기로 자동 재연결 시도
+setInterval(() => {
+    if (!port || !port.isOpen) {
+        initSerialConnection();
+    }
+}, 3000);
 
 // 6초마다 버퍼에 쌓인 데이터를 로컬 LLM으로 분석 요청
 setInterval(() => {
@@ -976,8 +1033,9 @@ ${workoutContext}
 io.on('connection', (socket) => {
     console.log('A web client connected.');
 
-    // 클라이언트 접속 시 현재까지의 운동 상태(세트, 횟수, 히스토리 등) 즉시 전송
+    // 클라이언트 접속 시 현재까지의 운동 상태(세트, 횟수, 히스토리 등) 및 하드웨어 연결 상태 즉시 전송
     socket.emit('workoutState', getWorkoutStatePayload());
+    socket.emit('arduinoStatus', { connected: Boolean(port && port.isOpen), port: activePortPath });
 
     // 클라이언트에서 화살표 키 또는 시뮬레이션 버튼으로 입력된 데이터 수신
     socket.on('manualData', (val) => {
