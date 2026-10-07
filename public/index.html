@@ -3340,21 +3340,21 @@
                 <div id="restStateBadge" class="m-sub rest-badge">1세트 진행 중</div>
             </div>
 
-            <div class="metric-box load-box" id="loadBox" title="클릭하여 체중 및 부하 설정 (AI 분석 Agent)">
+            <div class="metric-box load-box" id="loadBox" title="클릭하여 운동 무게 설정">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span class="m-label" style="margin-bottom: 0;">LOAD (부하 강도)</span>
+                    <span class="m-label" style="margin-bottom: 0;">WEIGHT (운동 무게)</span>
                     <span class="load-box-hint">설정 ⚙</span>
                 </div>
                 <div class="m-val-wrap" style="align-items: baseline;">
                     <span id="loadKgDisplay" class="m-val">70.0</span>
                     <span class="m-unit" style="font-size: 1.1rem; margin-right: 6px;">kg</span>
-                    <span id="loadIntensityBadge" class="load-pct-badge">100%</span>
+                    <span id="loadIntensityBadge" class="load-pct-badge">SET</span>
                 </div>
                 <div class="load-gauge-track">
                     <div id="loadGaugeFill" class="load-gauge-fill"></div>
                 </div>
                 <div class="m-sub" id="loadSubText">
-                    체중 <strong id="baseWeightDisplay">70.0kg</strong> · <span id="assistKgDisplay">맨몸 100%</span>
+                    설정 무게 <strong id="baseWeightDisplay">70.0kg</strong>
                 </div>
                 <!-- JS 호환용 히든 버튼 -->
                 <button type="button" id="btnOpenWeightModal" style="display: none;"></button>
@@ -3574,78 +3574,50 @@
         let currentAssistLevel = 0;
 
         function updateLoadDisplay(level, status, weightKg, loadKg) {
-            if (typeof level !== 'undefined') {
-                currentAssistLevel = Number(level) || 0;
-            }
-            if (typeof weightKg === 'number' && weightKg > 0) {
-                currentUserWeightKg = weightKg;
-            }
-            const lv = currentAssistLevel;
-            const reductionPct = Math.min(60, lv * 15);
-            const currentLoadPct = 100 - reductionPct;
-
             if (typeof loadKg === 'number' && loadKg > 0) {
                 currentLoadKg = loadKg;
-            } else {
-                currentLoadKg = Math.round(currentUserWeightKg * (currentLoadPct / 100) * 10) / 10;
+                currentUserWeightKg = loadKg;
+            } else if (typeof weightKg === 'number' && weightKg > 0) {
+                currentLoadKg = weightKg;
+                currentUserWeightKg = weightKg;
             }
-            const assistKg = Math.max(0, Math.round((currentUserWeightKg - currentLoadKg) * 10) / 10);
 
             if (loadKgDisplay) {
                 loadKgDisplay.textContent = currentLoadKg.toFixed(1);
             }
             if (baseWeightDisplay) {
-                baseWeightDisplay.textContent = `${currentUserWeightKg.toFixed(1)}kg`;
+                baseWeightDisplay.textContent = `${currentLoadKg.toFixed(1)}kg`;
             }
             if (loadGaugeFill) {
-                loadGaugeFill.style.width = `${currentLoadPct}%`;
+                const pct = Math.max(10, Math.min(100, Math.round((currentLoadKg / 100) * 100)));
+                loadGaugeFill.style.width = `${pct}%`;
             }
 
-            const isAssistingNow = (status === 'ASSIST' || document.body.classList.contains('assist'));
-
             if (loadIntensityBadge) {
-                if (lv <= 0) {
-                    loadIntensityBadge.textContent = '100%';
-                    loadIntensityBadge.className = 'load-pct-badge';
-                } else {
-                    loadIntensityBadge.textContent = `-${reductionPct}% (Lv.${lv})`;
-                    loadIntensityBadge.className = isAssistingNow ? 'load-pct-badge assist-live' : 'load-pct-badge assisted';
-                }
+                loadIntensityBadge.textContent = 'SET';
+                loadIntensityBadge.className = 'load-pct-badge';
             }
 
             if (assistKgDisplay) {
-                if (lv <= 0) {
-                    assistKgDisplay.innerHTML = '보조 0.0kg (100% 맨몸 부하)';
-                } else {
-                    const statusText = isAssistingNow ? '⚡ 보조 가동 중' : '부하 유지 중';
-                    assistKgDisplay.innerHTML = `<strong style="color: var(--primary);">${statusText}:</strong> 보조 -${assistKg.toFixed(1)}kg (${currentLoadPct}% 부하)`;
-                }
+                assistKgDisplay.innerHTML = `운동 무게: <strong>${currentLoadKg.toFixed(1)}kg</strong>`;
             }
 
             if (loadBox) {
-                loadBox.classList.toggle('assisting', isAssistingNow && lv > 0);
+                loadBox.classList.remove('assisting');
             }
 
-            const sidebarAssistSummary = document.getElementById('sidebarAssistSummary');
-            const sidebarAssistPill = document.getElementById('sidebarAssistPill');
             const sidebarWeightSummary = document.getElementById('sidebarWeightSummary');
             if (sidebarWeightSummary) {
-                sidebarWeightSummary.textContent = `체중 ${currentUserWeightKg.toFixed(1)}kg · 부하 ${currentLoadKg.toFixed(1)}kg (${currentLoadPct}%)`;
+                sidebarWeightSummary.textContent = `운동 무게 ${currentLoadKg.toFixed(1)}kg`;
             }
+            const sidebarAssistSummary = document.getElementById('sidebarAssistSummary');
             if (sidebarAssistSummary) {
-                if (lv <= 0) {
-                    sidebarAssistSummary.textContent = `현재 부하: ${currentLoadKg.toFixed(1)}kg (100% 기준)`;
-                    if (sidebarAssistPill) {
-                        sidebarAssistPill.textContent = 'AUTO';
-                        sidebarAssistPill.className = 'sidebar-pill';
-                    }
-                } else {
-                    sidebarAssistSummary.textContent = `현재 부하: ${currentLoadKg.toFixed(1)}kg (Lv.${lv} -${reductionPct}%)`;
-                    if (sidebarAssistPill) {
-                        sidebarAssistPill.textContent = `-${reductionPct}%`;
-                        sidebarAssistPill.className = 'sidebar-pill live';
-                    }
-                }
+                sidebarAssistSummary.textContent = `현재 무게: ${currentLoadKg.toFixed(1)}kg`;
+            }
+            const sidebarAssistPill = document.getElementById('sidebarAssistPill');
+            if (sidebarAssistPill) {
+                sidebarAssistPill.textContent = 'WEIGHT';
+                sidebarAssistPill.className = 'sidebar-pill';
             }
         }
 
@@ -5037,21 +5009,18 @@
                     actionsApplied.push(`목표 무게 ${currentLoadKg.toFixed(1)}kg`);
                 } else if (isDeltaWeight) {
                     currentLoadKg = Math.max(10, Math.round((currentLoadKg + deltaWeightVal) * 10) / 10);
-                    if (deltaWeightVal < 0) {
-                        currentAssistLevel = Math.min(4, currentAssistLevel + 1);
-                    } else {
-                        if (currentAssistLevel > 0) currentAssistLevel--;
-                    }
-                    updateLoadDisplay(currentAssistLevel, 'ASSIST', currentUserWeightKg, currentLoadKg);
+                    currentUserWeightKg = currentLoadKg;
+                    currentAssistLevel = 0;
+                    updateLoadDisplay(0, 'NORMAL', currentLoadKg, currentLoadKg);
                     socket.emit('updateWeight', {
                         weightKg: currentLoadKg,
-                        userWeight: currentUserWeightKg,
-                        assistLevel: currentAssistLevel,
+                        userWeight: currentLoadKg,
+                        assistLevel: 0,
                         targetReps: matchedReps || aiTargetReps,
                         targetSets: matchedSets || aiTargetSets,
                         restTime: matchedRest || aiRestTimeSeconds
                     });
-                    actionsApplied.push(`부하 ${Math.abs(deltaWeightVal)}kg ${deltaWeightVal < 0 ? '경감' : '증가'}(현재 ${currentLoadKg.toFixed(1)}kg)`);
+                    actionsApplied.push(`무게 ${Math.abs(deltaWeightVal)}kg ${deltaWeightVal < 0 ? '감소' : '증가'}(현재 ${currentLoadKg.toFixed(1)}kg)`);
                 }
 
                 // B. 반복수(Reps) 적용
@@ -5096,21 +5065,22 @@
                     const romVal = romBadgeEl ? romBadgeEl.textContent : 'GOOD';
                     agentReply = `현재 세트 실시간 템포는 ${tempoVal}이며 가동범위는 ${romVal}입니다. 수축 시 팔꿈치를 옆구리로 강하게 당기고, 하강 시 2초간 네거티브를 통제하시면 광배근 자극이 훨씬 높아집니다!`;
                 }
-                // 힘듦/탈진/보조 요청인 경우
+                // 힘듦/탈진/도움 요청인 경우 -> 직접 무게 5kg 감소
                 else if (/힘들|지쳐|탈진|도와줘|살려|못하|한계/.test(lower)) {
-                    currentAssistLevel = Math.min(4, currentAssistLevel + 1);
-                    const reductionPct = Math.min(60, currentAssistLevel * 15);
-                    currentLoadKg = Math.round(currentUserWeightKg * (1 - reductionPct / 100) * 10) / 10;
-                    updateLoadDisplay(currentAssistLevel, 'ASSIST', currentUserWeightKg, currentLoadKg);
+                    const diff = 5.0;
+                    currentLoadKg = Math.max(10, Math.round((currentLoadKg - diff) * 10) / 10);
+                    currentUserWeightKg = currentLoadKg;
+                    currentAssistLevel = 0;
+                    updateLoadDisplay(0, 'NORMAL', currentLoadKg, currentLoadKg);
                     socket.emit('updateWeight', {
                         weightKg: currentLoadKg,
-                        userWeight: currentUserWeightKg,
-                        assistLevel: currentAssistLevel,
+                        userWeight: currentLoadKg,
+                        assistLevel: 0,
                         targetReps: aiTargetReps,
                         targetSets: aiTargetSets,
                         restTime: aiRestTimeSeconds
                     });
-                    agentReply = `체력 저하를 감지하여 즉시 스마트 어시스트 Lv.${currentAssistLevel}을 가동, 부하를 ${currentLoadKg.toFixed(1)}kg(-${reductionPct}%)으로 낮췄습니다! 부상 없이 마지막 1회까지 완수해 보세요.`;
+                    agentReply = `체력 저하를 감지하여 즉시 무게를 ${diff}kg 줄여 ${currentLoadKg.toFixed(1)}kg으로 설정했습니다! 무리하지 마시고 완수해 보세요.`;
                 }
                 // 비상 멈춤인 경우
                 else if (/멈춰|스톱|정지|그만|비상/.test(lower)) {
@@ -5119,7 +5089,7 @@
                 }
                 // 일반 인사 및 안내
                 else {
-                    agentReply = `네, 음성 명령을 확인했습니다. 현재 ${currentSet}세트 수행 중이시며 목표는 ${aiTargetReps}회, ${aiTargetSets}세트, 부하는 ${currentLoadKg.toFixed(1)}kg입니다. 언제든 변경을 원하시면 말씀해 주세요!`;
+                    agentReply = `네, 음성 명령을 확인했습니다. 현재 ${currentSet}세트 수행 중이시며 목표는 ${aiTargetReps}회, ${aiTargetSets}세트, 무게는 ${currentLoadKg.toFixed(1)}kg입니다. 언제든 변경을 원하시면 말씀해 주세요!`;
                 }
 
                 appendAgentMessage(agentReply);

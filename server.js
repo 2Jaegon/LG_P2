@@ -65,8 +65,8 @@ let lastSetRestDurationSec = 0; // 직전 세트 종료 후 이번 세트 시작
 let latestCoachFeedback = ''; // 최신 AI 코치 코멘트
 
 function getCurrentLoadKg(weightKg = userWeightKg, level = assistLevel) {
-    const factor = Math.max(0.2, 1 - level * 0.15);
-    return Math.round(weightKg * factor * 10) / 10;
+    if (typeof weightKg === 'number' && weightKg > 0) return weightKg;
+    return userWeightKg;
 }
 
 function createDetailedSetRecord(data) {
@@ -680,11 +680,11 @@ function processSensorValue(value) {
                 }
 
                 if (now - midStallStartTime >= MID_STALL_TRIGGER_MS) {
-                    // 최초 정체 시 1단계 부하 감소 적용
+                    // 최초 정체 시 무게 5kg 직접 감소 적용
                     if (assistLevel === 0) {
-                        const prevKg = getCurrentLoadKg(userWeightKg, 0);
-                        assistLevel = 1;
-                        const nextKg = getCurrentLoadKg(userWeightKg, 1);
+                        const prevKg = userWeightKg;
+                        userWeightKg = Math.max(10, Math.round((userWeightKg - 5.0) * 10) / 10);
+                        const nextKg = userWeightKg;
                         const hPct = Math.round((value / 1023) * 100);
                         currentSetLoadChanges.push({
                             time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
@@ -696,15 +696,16 @@ function processSensorValue(value) {
                             toKg: nextKg,
                             reductionKg: Math.round((prevKg - nextKg) * 10) / 10,
                             fromPercent: 100,
-                            toPercent: 85,
-                            reductionPercent: 15,
-                            reason: `중간 정체 ${(MID_STALL_TRIGGER_MS / 1000).toFixed(1)}초 감지 (높이 ${hPct}%에서 부하 -15% 감소 적용)`,
-                            triggerType: 'mid_stall_fast'
+                            toPercent: Math.round((nextKg / prevKg) * 100),
+                            reductionPercent: 100 - Math.round((nextKg / prevKg) * 100),
+                            reason: `중간 정체 ${(MID_STALL_TRIGGER_MS / 1000).toFixed(1)}초 감지 (무게 5kg 직접 감소)`,
+                            triggerType: 'mid_stall_direct_weight'
                         });
                         currentSetAssistTriggers++;
                         lastAssistTimestamp = now;
                         currentStatus = 'ASSIST';
-                        console.log(`\n[중간 정체 감지] Set ${currentSet} ${currentSetReps + 1}회차 도중(높이 ${hPct}%) 정체 -> 무게 부담 감지 (1단계 부하 감소: ${prevKg}kg -> ${nextKg}kg)`);
+                        assistLevel = 1;
+                        console.log(`\n[중간 정체 감지] Set ${currentSet} ${currentSetReps + 1}회차 도중(높이 ${hPct}%) 정체 -> 무게 5kg 감소: ${prevKg}kg -> ${nextKg}kg`);
                         if (port && port.isOpen) {
                             port.write('L\n');
                         }
@@ -713,17 +714,17 @@ function processSensorValue(value) {
                             status: 'ASSIST',
                             assistLevel: 1,
                             loadKg: nextKg,
-                            userWeightKg: userWeightKg,
-                            decision: `무게 부담 감지 (${currentSetReps + 1}회차 진행 중 정체)!\n1단계 부하를 즉시 감소합니다 (${nextKg}kg).\n호흡을 가다듬고 당겨보세요!`
+                            userWeightKg: nextKg,
+                            decision: `정체 감지! 부담을 덜기 위해 무게를 5kg 줄였습니다 (${nextKg}kg).\n호흡을 가다듬고 당겨보세요!`
                         });
+                        io.emit('workoutState', getWorkoutStatePayload());
                     } 
-                    // 부하 감소 후에도 CONT_STALL_TRIGGER_MS 간 진전이 없으면 또 추가 감소!
+                    // 감량 후에도 CONT_STALL_TRIGGER_MS 간 진전이 없으면 또 5kg 감소!
                     else if (currentStatus === 'ASSIST' && now - lastAssistTimestamp >= CONT_STALL_TRIGGER_MS) {
-                        const prevKg = getCurrentLoadKg(userWeightKg, assistLevel);
-                        const prevPct = Math.round(Math.max(0.2, 1 - assistLevel * 0.15) * 100);
+                        const prevKg = userWeightKg;
+                        userWeightKg = Math.max(10, Math.round((userWeightKg - 5.0) * 10) / 10);
+                        const nextKg = userWeightKg;
                         assistLevel++;
-                        const nextKg = getCurrentLoadKg(userWeightKg, assistLevel);
-                        const nextPct = Math.round(Math.max(0.2, 1 - assistLevel * 0.15) * 100);
                         const hPct = Math.round((value / 1023) * 100);
                         currentSetLoadChanges.push({
                             time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
@@ -734,15 +735,15 @@ function processSensorValue(value) {
                             fromKg: prevKg,
                             toKg: nextKg,
                             reductionKg: Math.round((prevKg - nextKg) * 10) / 10,
-                            fromPercent: prevPct,
-                            toPercent: nextPct,
-                            reductionPercent: prevPct - nextPct,
-                            reason: `정체 ${(CONT_STALL_TRIGGER_MS / 1000).toFixed(1)}초 지속 감지 (높이 ${hPct}%에서 Lv.${assistLevel} 추가 부하 감소)`,
+                            fromPercent: 100,
+                            toPercent: Math.round((nextKg / prevKg) * 100),
+                            reductionPercent: 100 - Math.round((nextKg / prevKg) * 100),
+                            reason: `정체 ${(CONT_STALL_TRIGGER_MS / 1000).toFixed(1)}초 지속 감지 (무게 추가 5kg 감소)`,
                             triggerType: 'stall_continuous'
                         });
                         currentSetAssistTriggers++;
                         lastAssistTimestamp = now;
-                        console.log(`\n[정체 지속] 진전 없음 -> 추가 부하 감소 (${assistLevel}단계: ${prevKg}kg -> ${nextKg}kg)`);
+                        console.log(`\n[정체 지속] 진전 없음 -> 무게 추가 5kg 감소: ${prevKg}kg -> ${nextKg}kg`);
                         if (port && port.isOpen) {
                             port.write('L\n');
                         }
@@ -751,9 +752,10 @@ function processSensorValue(value) {
                             status: 'ASSIST',
                             assistLevel: assistLevel,
                             loadKg: nextKg,
-                            userWeightKg: userWeightKg,
-                            decision: `정체가 지속되어 추가 부하를 즉시 감소합니다 (${nextKg}kg, ${assistLevel}단계)!\n끝까지 힘을 내세요!`
+                            userWeightKg: nextKg,
+                            decision: `정체가 지속되어 무게를 추가로 5kg 줄였습니다 (${nextKg}kg)!\n끝까지 힘을 내세요!`
                         });
+                        io.emit('workoutState', getWorkoutStatePayload());
                     }
                 }
             } 
@@ -763,20 +765,22 @@ function processSensorValue(value) {
             }
         } else {
             midStallStartTime = 0;
-            // ⭐️ 무게 부담(ASSIST)은 top을 넘어서면 해제! (감소된 부하 강도는 쭉 유지)
+            // TOP 도달 시 감량된 무게 유지하며 정상 상태 복귀
             if (currentStatus === 'ASSIST' && value >= THRESHOLD_TOP) {
                 currentStatus = 'NORMAL';
                 lastAssistTimestamp = 0;
-                console.log(`\n[TOP 달성] 상단 도달 -> 무게 부담(ASSIST) 상태 해제 (부하 감소 강도 Lv.${assistLevel} [${getCurrentLoadKg()}kg] 유지)`);
+                assistLevel = 0;
+                console.log(`\n[TOP 달성] 상단 도달 -> 무게 감량(${userWeightKg}kg) 유지`);
                 if (port && port.isOpen) port.write('N\n');
                 io.emit('sensorData', {
                     value: value,
                     status: 'NORMAL',
-                    assistLevel: assistLevel,
-                    loadKg: getCurrentLoadKg(),
+                    assistLevel: 0,
+                    loadKg: userWeightKg,
                     userWeightKg: userWeightKg,
-                    decision: `TOP 도달 성공!\n감소된 부하(${getCurrentLoadKg()}kg, Lv.${assistLevel})를 유지하며 페이스를 이어가세요!`
+                    decision: `TOP 도달 성공!\n줄어든 무게(${userWeightKg}kg)로 페이스를 이어가세요!`
                 });
+                io.emit('workoutState', getWorkoutStatePayload());
             }
         }
     }
