@@ -3021,10 +3021,10 @@
                 <li>
                     <button type="button" class="sidebar-link-btn" id="menuWeightAgent">
                         <div class="sidebar-link-text">
-                            <span class="title">무게 설정 &amp; AI 분석 Agent</span>
-                            <span class="desc" id="sidebarWeightSummary">체중 70.0kg (100% 부하)</span>
+                            <span class="title">AI 운동 패턴 분석 &amp; 무게 제안</span>
+                            <span class="desc" id="sidebarWeightSummary">챗으로 실시간 패턴 기반 무게 제안</span>
                         </div>
-                        <span class="sidebar-pill">AGENT</span>
+                        <span class="sidebar-pill">AI 제안</span>
                     </button>
                 </li>
                 <li>
@@ -3212,140 +3212,7 @@
         </div>
     </div>
 
-    <!-- 무게 설정 & AI 분석 Agent 모달 -->
-    <div id="weightSettingModal" class="modal-backdrop">
-        <div class="modal-card modal-card-lg">
-            <div class="modal-header">
-                <div>
-                    <h3 class="modal-title">무게 설정 &amp; AI 분석 Agent</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;">원하는 운동 무게(Kg) 직접 설정 또는 맞춤형
-                        AI 진단 처방</p>
-                </div>
-                <button type="button" class="modal-close-btn" id="btnCloseWeightModal" aria-label="닫기">✕</button>
-            </div>
-            <div class="modal-body">
-                <!-- 탭 바 -->
-                <div class="weight-tab-bar">
-                    <button type="button" class="weight-tab-btn active" id="tabBtnDirectWeight">직접 무게(Kg) 설정</button>
-                    <button type="button" class="weight-tab-btn" id="tabBtnAiWeight">🤖 AI 무게 진단 &amp; 추천 Agent</button>
-                </div>
 
-                <!-- 탭 1: 직접 무게 설정 -->
-                <div id="tabContentDirectWeight" class="tab-pane">
-                    <div class="setting-row">
-                        <label class="setting-label" for="inputBodyWeight">체중 / 기준 무게 (Body Weight)</label>
-                        <div class="weight-input-wrap">
-                            <input type="number" id="inputBodyWeight" min="30" max="180" step="0.5" value="70.0"
-                                class="weight-num-input">
-                            <span class="weight-unit-tag">kg</span>
-                        </div>
-                        <div class="quick-step-group">
-                            <button type="button" class="quick-step-btn" data-step="-5">-5kg</button>
-                            <button type="button" class="quick-step-btn" data-step="-1">-1kg</button>
-                            <button type="button" class="quick-step-btn" data-step="1">+1kg</button>
-                            <button type="button" class="quick-step-btn" data-step="5">+5kg</button>
-                        </div>
-                        <input type="range" id="sliderBodyWeight" min="40" max="120" step="0.5" value="70"
-                            class="weight-slider">
-                    </div>
-
-                    <div class="setting-row" style="margin-top: 14px;">
-                        <span class="setting-label">시작 보조 강도 (Initial Assist Level)</span>
-                        <div class="chip-group" id="weightAssistChipGroup">
-                            <button type="button" class="setting-chip active" data-lvl="0">100% 맨몸 (보조 0kg)</button>
-                            <button type="button" class="setting-chip" data-lvl="1">85% 가벼운 보조 (-15%)</button>
-                            <button type="button" class="setting-chip" data-lvl="2">70% 강력 보조 (-30%)</button>
-                        </div>
-                    </div>
-
-                    <div class="weight-calc-card">
-                        <div class="wcc-col">
-                            <span class="wcc-lbl">기준 체중</span>
-                            <span class="wcc-val" id="calcBaseWeight">70.0 kg</span>
-                        </div>
-                        <div class="wcc-sign">-</div>
-                        <div class="wcc-col">
-                            <span class="wcc-lbl">머신 보조 하중</span>
-                            <span class="wcc-val assist" id="calcAssistWeight">0.0 kg</span>
-                        </div>
-                        <div class="wcc-sign">=</div>
-                        <div class="wcc-col">
-                            <span class="wcc-lbl">실제 시작 부하</span>
-                            <span class="wcc-val primary" id="calcTargetLoad">70.0 kg</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 탭 2: AI 무게 진단 & 추천 Agent -->
-                <div id="tabContentAiWeight" class="tab-pane" style="display: none;">
-                    <div class="ai-agent-diag-box">
-                        <div class="setting-row">
-                            <span class="setting-label">1. 현재 풀업 수행 능력 (최대 연속 횟수)</span>
-                            <div class="chip-group" id="aiAbilityChipGroup">
-                                <button type="button" class="setting-chip" data-val="beginner">입문 (0회 · 보조 필수)</button>
-                                <button type="button" class="setting-chip active" data-val="novice">초급 (1~3회 · 보조
-                                    권장)</button>
-                                <button type="button" class="setting-chip" data-val="intermediate">중급 (4~8회 ·
-                                    맨몸)</button>
-                                <button type="button" class="setting-chip" data-val="advanced">고급 (9회 이상 · 파워)</button>
-                            </div>
-                        </div>
-
-                        <div class="setting-row" style="margin-top: 14px;">
-                            <span class="setting-label">2. 오늘 운동 목표</span>
-                            <div class="chip-group" id="aiGoalChipGroup">
-                                <button type="button" class="setting-chip active" data-val="hypertrophy">볼륨 근비대
-                                    (8~10회)</button>
-                                <button type="button" class="setting-chip" data-val="first_pullup">첫 풀업 달성 (기초
-                                    근력)</button>
-                                <button type="button" class="setting-chip" data-val="strength">스트렝스 (3~5회 고중량)</button>
-                                <button type="button" class="setting-chip" data-val="endurance">근지구력 &amp; 템포</button>
-                            </div>
-                        </div>
-
-                        <button type="button" class="btn-run-ai-diag" id="btnRunAiDiagnosis">
-                            <span>🧠 AI Agent VBT 분석 시작</span>
-                        </button>
-
-                        <div id="aiDiagResultArea" class="ai-diag-result-card" style="display: none;">
-                            <div class="ai-diag-header">
-                                <span class="ai-diag-badge">LG Well AI 처방</span>
-                                <span class="ai-diag-sub">Velocity-Based Training 맞춤 부하 분석</span>
-                            </div>
-                            <div class="ai-diag-metrics">
-                                <div class="adm-item">
-                                    <span class="adm-lbl">권장 시작 부하</span>
-                                    <span class="adm-val" id="aiRecLoadKg">59.5 kg</span>
-                                </div>
-                                <div class="adm-item">
-                                    <span class="adm-lbl">권장 보조 하중</span>
-                                    <span class="adm-val assist" id="aiRecAssistKg">-10.5 kg (15%)</span>
-                                </div>
-                                <div class="adm-item">
-                                    <span class="adm-lbl">목표 횟수</span>
-                                    <span class="adm-val" id="aiRecReps">8회</span>
-                                </div>
-                                <div class="adm-item">
-                                    <span class="adm-lbl">세트 간 휴식</span>
-                                    <span class="adm-val" id="aiRecRest">60초</span>
-                                </div>
-                            </div>
-                            <div class="ai-diag-rationale" id="aiRecRationale">
-                                진단 결과가 여기에 표시됩니다.
-                            </div>
-                            <button type="button" class="btn-apply-ai-rec" id="btnApplyAiRec">
-                                💡 이 추천 설정 바로 적용하기
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-modal-cancel" id="btnCancelWeightModal">취소</button>
-                <button type="button" class="btn-modal-apply" id="btnApplyDirectWeight">설정 적용</button>
-            </div>
-        </div>
-    </div>
 
     <!-- 초상세 수집 데이터 & Agent 텔레메트리 뷰어 모달 -->
     <div id="setTelemetryModal" class="modal-backdrop">
@@ -3391,10 +3258,10 @@
                 <div id="restStateBadge" class="m-sub rest-badge">1세트 진행 중</div>
             </div>
 
-            <div class="metric-box load-box" id="loadBox" title="클릭하여 운동 무게 설정">
+            <div class="metric-box load-box" id="loadBox" title="챗 또는 음성으로 무게 변경을 요청하세요 (클릭 시 챗 입력창으로 이동)">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span class="m-label" style="margin-bottom: 0;">WEIGHT (운동 무게)</span>
-                    <span class="load-box-hint">설정 ⚙</span>
+                    <span class="load-box-hint" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">💬 챗으로 조절</span>
                 </div>
                 <div class="m-val-wrap" style="align-items: baseline;">
                     <span id="loadKgDisplay" class="m-val">70.0</span>
@@ -3405,10 +3272,8 @@
                     <div id="loadGaugeFill" class="load-gauge-fill"></div>
                 </div>
                 <div class="m-sub" id="loadSubText">
-                    설정 무게 <strong id="baseWeightDisplay">70.0kg</strong>
+                    설정 무게 <strong id="baseWeightDisplay">70.0kg</strong> (챗으로 조절)
                 </div>
-                <!-- JS 호환용 히든 버튼 -->
-                <button type="button" id="btnOpenWeightModal" style="display: none;"></button>
             </div>
 
             <div class="metric-box">
@@ -3508,10 +3373,10 @@
                         <!-- 추천 음성 명령 칩 (원클릭 음성 발화 시뮬레이션) -->
                         <div class="voice-chips-bar" aria-label="추천 음성 명령">
                             <span class="voice-chips-label">🎙️ 추천:</span>
+                            <button type="button" class="voice-chip" data-cmd="내 운동 패턴 분석해서 무게 제안해줘">"패턴 분석·무게 제안"</button>
                             <button type="button" class="voice-chip" data-cmd="무게 5kg 줄여줘">"무게 5kg 줄여줘"</button>
-                            <button type="button" class="voice-chip" data-cmd="목표 5세트로 변경">"목표 5세트 변경"</button>
+                            <button type="button" class="voice-chip" data-cmd="무게 40kg으로 설정해줘">"무게 40kg 설정"</button>
                             <button type="button" class="voice-chip" data-cmd="자세랑 템포 어때?">"자세·템포 분석"</button>
-                            <button type="button" class="voice-chip" data-cmd="너무 힘들어 보조해줘">"힘들어 보조해줘"</button>
                             <button type="button" class="voice-chip" data-cmd="휴식 90초로 늘려줘">"휴식 90초 설정"</button>
                         </div>
 
@@ -5105,11 +4970,36 @@
                 }
 
                 // 3. 상황별 피드백 응답 빌드
-                if (actionsApplied.length > 0) {
+                const isAcceptProposal = /(?:제안대로|추천대로|제안된|추천된|그렇게\s*해줘|제안\s*적용|추천\s*적용|제안으로)/i.test(lower);
+                const isPatternProposal = /(?:패턴|제안|추천|진단|다음\s*무게|무게\s*어때|무게\s*추천|무게\s*제안)/i.test(lower);
+
+                if (isAcceptProposal && latestProposedWeightKg !== null) {
+                    currentLoadKg = latestProposedWeightKg;
+                    currentUserWeightKg = currentLoadKg;
+                    currentAssistLevel = 0;
+                    updateLoadDisplay(0, 'NORMAL', currentLoadKg, currentLoadKg);
+                    socket.emit('updateWeight', {
+                        weightKg: currentLoadKg,
+                        userWeight: currentLoadKg,
+                        assistLevel: 0,
+                        targetReps: aiTargetReps,
+                        targetSets: aiTargetSets,
+                        restTime: aiRestTimeSeconds
+                    });
+                    agentReply = `네! 운동 패턴 진단 제안을 반영하여 목표 무게를 [${currentLoadKg.toFixed(1)}kg]으로 설정했습니다! 준비되셨으면 바를 잡고 힘차게 당겨주세요.`;
+                }
+                else if (actionsApplied.length > 0) {
                     agentReply = `네, 음성 명령을 반영하여 [${actionsApplied.join(', ')}]으로 설정을 완료했습니다! 준비되셨으면 바를 당겨 1회를 시작하세요.`;
                 }
+                // AI 운동 패턴 분석 및 무게 제안 요청
+                else if (isPatternProposal) {
+                    agentReply = analyzeWorkoutPatternAndProposeWeight();
+                }
+                else if (isAcceptProposal && latestProposedWeightKg === null) {
+                    agentReply = `아직 제안된 무게가 없습니다. "내 운동 패턴 분석해서 무게 제안해줘"라고 말씀해 주시면 실제 운동 패턴을 분석해 최적 무게를 제안해 드립니다!`;
+                }
                 // 자세/피드백 요청인 경우
-                else if (/자세|템포|속도|페이스|피드백|어때|상태|분석|모션/.test(lower)) {
+                else if (/자세|템포|속도|페이스|피드백|어때|상태|모션/.test(lower)) {
                     const tempoVal = repTempoEl ? repTempoEl.textContent : '2.1s';
                     const romVal = romBadgeEl ? romBadgeEl.textContent : 'GOOD';
                     agentReply = `현재 세트 실시간 템포는 ${tempoVal}이며 가동범위는 ${romVal}입니다. 수축 시 팔꿈치를 옆구리로 강하게 당기고, 하강 시 2초간 네거티브를 통제하시면 광배근 자극이 훨씬 높아집니다!`;
@@ -5240,212 +5130,71 @@
             }
         });
 
-        // ------------------ 무게 설정 & AI 분석 Agent 모달 제어 ------------------
-        const weightSettingModal = document.getElementById('weightSettingModal');
-        const btnCloseWeightModal = document.getElementById('btnCloseWeightModal');
-        const btnCancelWeightModal = document.getElementById('btnCancelWeightModal');
-        const btnApplyDirectWeight = document.getElementById('btnApplyDirectWeight');
+        // ------------------ AI 운동 패턴 분석 및 챗 기반 무게 제안 엔진 ------------------
+        let latestProposedWeightKg = null;
+
+        function closeWeightModal() {} // ESC 핸들러 호환용 빈 함수
+
+        function analyzeWorkoutPatternAndProposeWeight() {
+            const history = Array.isArray(setHistory) ? setHistory : [];
+            const baseKg = currentLoadKg || currentUserWeightKg || 70.0;
+
+            // 1. 아직 완료된 세트가 없는 경우 (운동 시작 전)
+            if (history.length === 0) {
+                latestProposedWeightKg = baseKg;
+                return `📊 [AI 운동 패턴 진단]\n아직 완료된 세트 기록이 없습니다.\n\n1세트를 수행하시면 실시간 템포(수축·이완 속도), 가동범위(ROM), 정체 및 피로도 패턴을 다각도로 분석하여 다음 세트 최적 무게를 맞춤 제안해 드립니다.\n현재 설정 무게 [${baseKg.toFixed(1)}kg]으로 1세트를 힘차게 시작해 보세요!\n\n(원하시는 시작 무게가 있으시면 "무게 40kg으로 설정해줘"와 같이 챗으로 말씀해 주세요.)`;
+            }
+
+            // 2. 세트 기록이 있는 경우: 운동 패턴 정밀 분석
+            const lastSet = history[history.length - 1];
+            const totalRepsDone = history.reduce((sum, s) => sum + (s.reps || 0), 0);
+            const avgTempoAcrossSets = (history.reduce((sum, s) => sum + (s.avgTempo || 2.0), 0) / history.length).toFixed(1);
+            const lastTempo = lastSet.avgTempo ? lastSet.avgTempo.toFixed(1) : (lastRepDuration > 0 ? lastRepDuration.toFixed(1) : '2.1');
+            const lastRom = lastSet.romRating || 'GOOD';
+            const hadStall = currentSetAssistTriggers > 0 || (lastSet.loadChanges && lastSet.loadChanges.length > 0);
+
+            let proposalRationale = '';
+            let proposedKg = baseKg;
+
+            // A. 피로 누적/정체 패턴: 직전 세트 목표 미달, 정체 발생, 또는 템포가 3.0초 이상으로 현저히 저하
+            if (hadStall || lastSet.reps < Math.max(1, aiTargetReps - 2) || parseFloat(lastTempo) >= 3.0) {
+                proposedKg = Math.max(10, Math.round((baseKg - 5.0) * 10) / 10);
+                latestProposedWeightKg = proposedKg;
+                proposalRationale = `직전 ${lastSet.set}세트에서 후반 템포 지연(${lastTempo}s)과 피로 누적이 감지되었습니다.\n목표 랩 완수와 관절 부상 방지를 위해 다음 세트는 현재(${baseKg.toFixed(1)}kg)보다 5kg 줄인 [${proposedKg.toFixed(1)}kg]으로 진행하시는 것을 제안합니다.`;
+            }
+            // B. 고출력 파워/안정 패턴: 목표 횟수 완수, 템포 빠름(<= 2.0s), 완벽한 가동범위
+            else if (lastSet.reps >= aiTargetReps && parseFloat(lastTempo) <= 2.0 && (lastRom === 'PERFECT' || lastRom === 'GOOD')) {
+                proposedKg = Math.min(150, Math.round((baseKg + 2.5) * 10) / 10);
+                latestProposedWeightKg = proposedKg;
+                proposalRationale = `직전 ${lastSet.set}세트(${lastSet.reps}회)를 평균 템포 ${lastTempo}s의 폭발적인 파워(ROM: ${lastRom})로 완벽히 소화하셨습니다!\n근력 여유가 충분하므로 과부하 원리에 따라 다음 세트는 +2.5kg 증량한 [${proposedKg.toFixed(1)}kg]을 제안합니다.`;
+            }
+            // C. 최적 페이스 유지 패턴: 목표 횟수 달성 또는 근접, 정상 템포
+            else {
+                proposedKg = baseKg;
+                latestProposedWeightKg = proposedKg;
+                proposalRationale = `현재 누적 ${totalRepsDone}회, 평균 템포 ${avgTempoAcrossSets}s로 이상적인 리듬을 유지하고 계십니다.\n현재 부하 [${baseKg.toFixed(1)}kg]이 목표 볼륨 형성에 가장 적합하므로, 동일한 무게로 페이스 유지를 제안합니다.`;
+            }
+
+            return `📊 [AI 운동 패턴 정밀 진단 결과]\n• 누적 세트: ${history.length}세트 (총 ${totalRepsDone}회 완수)\n• 직전 세트 템포: ${lastTempo}s / ROM: ${lastRom}\n• 피로도 상태: ${hadStall ? '주의 (정체 감지)' : (parseFloat(lastTempo) <= 2.0 ? '최상 (근파워 여유)' : '안정적')}\n\n💡 AI 무게 제안: ${proposalRationale}\n\n제안된 무게로 진행하시려면 "무게 ${proposedKg}kg으로 설정해줘" 또는 "제안대로 설정해줘"라고 말씀해 주세요!`;
+        }
+
+        // WEIGHT 지표 박스 클릭 시: 챗 입력창으로 포커스 안내
+        if (loadBox) {
+            loadBox.addEventListener('click', () => {
+                if (voiceChatInput) {
+                    voiceChatInput.focus();
+                    voiceChatInput.placeholder = "무게 변경(예: '무게 40kg으로 설정해줘' 또는 '내 패턴 분석해서 무게 제안해줘')";
+                }
+                appendAgentMessage(`현재 설정 무게는 ${currentLoadKg.toFixed(1)}kg입니다. 직접 무게 변경을 원하시면 "무게 40kg으로 설정해줘", 혹은 AI 패턴 진단을 원하시면 "내 운동 패턴 분석해서 무게 제안해줘"라고 입력해 주세요!`);
+            });
+        }
+
+        // 사이드바 "AI 운동 패턴 분석 & 무게 제안" 클릭 시: 챗으로 즉시 패턴 분석 실행
         const menuWeightAgent = document.getElementById('menuWeightAgent');
-
-        const tabBtnDirectWeight = document.getElementById('tabBtnDirectWeight');
-        const tabBtnAiWeight = document.getElementById('tabBtnAiWeight');
-        const tabContentDirectWeight = document.getElementById('tabContentDirectWeight');
-        const tabContentAiWeight = document.getElementById('tabContentAiWeight');
-
-        const inputBodyWeight = document.getElementById('inputBodyWeight');
-        const sliderBodyWeight = document.getElementById('sliderBodyWeight');
-        const calcBaseWeight = document.getElementById('calcBaseWeight');
-        const calcAssistWeight = document.getElementById('calcAssistWeight');
-        const calcTargetLoad = document.getElementById('calcTargetLoad');
-
-        let modalAssistLevel = 0;
-        let selectedAiAbility = 'novice';
-        let selectedAiGoal = 'hypertrophy';
-        let latestAiRecommendation = null;
-
-        function openWeightModal(activeTab) {
-            closeSidebar();
-            if (inputBodyWeight) inputBodyWeight.value = currentUserWeightKg.toFixed(1);
-            if (sliderBodyWeight) sliderBodyWeight.value = currentUserWeightKg;
-            modalAssistLevel = currentAssistLevel;
-            updateWeightCalcCard();
-
-            document.querySelectorAll('#weightAssistChipGroup .setting-chip').forEach(c => {
-                c.classList.toggle('active', parseInt(c.getAttribute('data-lvl'), 10) === modalAssistLevel);
-            });
-
-            if (activeTab === 'ai') {
-                switchWeightTab('ai');
-            } else {
-                switchWeightTab('direct');
-            }
-
-            if (weightSettingModal) weightSettingModal.classList.add('active');
-        }
-
-        function closeWeightModal() {
-            if (weightSettingModal) weightSettingModal.classList.remove('active');
-        }
-
-        function switchWeightTab(tab) {
-            if (tab === 'ai') {
-                if (tabBtnAiWeight) tabBtnAiWeight.classList.add('active');
-                if (tabBtnDirectWeight) tabBtnDirectWeight.classList.remove('active');
-                if (tabContentAiWeight) tabContentAiWeight.style.display = 'block';
-                if (tabContentDirectWeight) tabContentDirectWeight.style.display = 'none';
-            } else {
-                if (tabBtnDirectWeight) tabBtnDirectWeight.classList.add('active');
-                if (tabBtnAiWeight) tabBtnAiWeight.classList.remove('active');
-                if (tabContentDirectWeight) tabContentDirectWeight.style.display = 'block';
-                if (tabContentAiWeight) tabContentAiWeight.style.display = 'none';
-            }
-        }
-
-        if (tabBtnDirectWeight) tabBtnDirectWeight.addEventListener('click', () => switchWeightTab('direct'));
-        if (tabBtnAiWeight) tabBtnAiWeight.addEventListener('click', () => switchWeightTab('ai'));
-
-        if (btnOpenWeightModal) btnOpenWeightModal.addEventListener('click', () => openWeightModal('direct'));
-        if (loadBox) loadBox.addEventListener('click', () => openWeightModal('direct'));
-        if (menuWeightAgent) menuWeightAgent.addEventListener('click', () => openWeightModal('direct'));
-        if (btnCloseWeightModal) btnCloseWeightModal.addEventListener('click', closeWeightModal);
-        if (btnCancelWeightModal) btnCancelWeightModal.addEventListener('click', closeWeightModal);
-
-        function updateWeightCalcCard() {
-            const baseKg = parseFloat(inputBodyWeight?.value) || 70.0;
-            const reductionPct = Math.min(60, modalAssistLevel * 15);
-            const targetLoad = Math.round(baseKg * ((100 - reductionPct) / 100) * 10) / 10;
-            const assistKg = Math.max(0, Math.round((baseKg - targetLoad) * 10) / 10);
-
-            if (calcBaseWeight) calcBaseWeight.textContent = `${baseKg.toFixed(1)} kg`;
-            if (calcAssistWeight) calcAssistWeight.textContent = `${assistKg.toFixed(1)} kg (-${reductionPct}%)`;
-            if (calcTargetLoad) calcTargetLoad.textContent = `${targetLoad.toFixed(1)} kg`;
-        }
-
-        if (inputBodyWeight) {
-            inputBodyWeight.addEventListener('input', () => {
-                const val = parseFloat(inputBodyWeight.value) || 70;
-                if (sliderBodyWeight) sliderBodyWeight.value = Math.max(40, Math.min(120, val));
-                updateWeightCalcCard();
-            });
-        }
-        if (sliderBodyWeight) {
-            sliderBodyWeight.addEventListener('input', () => {
-                const val = parseFloat(sliderBodyWeight.value) || 70;
-                if (inputBodyWeight) inputBodyWeight.value = val.toFixed(1);
-                updateWeightCalcCard();
-            });
-        }
-
-        document.querySelectorAll('.quick-step-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const step = parseFloat(btn.getAttribute('data-step')) || 0;
-                const currentVal = parseFloat(inputBodyWeight.value) || 70;
-                const nextVal = Math.max(30, Math.min(180, Math.round((currentVal + step) * 10) / 10));
-                if (inputBodyWeight) inputBodyWeight.value = nextVal.toFixed(1);
-                if (sliderBodyWeight) sliderBodyWeight.value = Math.max(40, Math.min(120, nextVal));
-                updateWeightCalcCard();
-            });
-        });
-
-        document.querySelectorAll('#weightAssistChipGroup .setting-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                document.querySelectorAll('#weightAssistChipGroup .setting-chip').forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-                modalAssistLevel = parseInt(chip.getAttribute('data-lvl'), 10) || 0;
-                updateWeightCalcCard();
-            });
-        });
-
-        if (btnApplyDirectWeight) {
-            btnApplyDirectWeight.addEventListener('click', () => {
-                const baseKg = parseFloat(inputBodyWeight?.value) || 70.0;
-                socket.emit('updateWeight', {
-                    weightKg: baseKg,
-                    assistLevel: modalAssistLevel
-                });
-                closeWeightModal();
-            });
-        }
-
-        // AI Agent 무게 진단 로직
-        document.querySelectorAll('#aiAbilityChipGroup .setting-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                document.querySelectorAll('#aiAbilityChipGroup .setting-chip').forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-                selectedAiAbility = chip.getAttribute('data-val');
-            });
-        });
-
-        document.querySelectorAll('#aiGoalChipGroup .setting-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                document.querySelectorAll('#aiGoalChipGroup .setting-chip').forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-                selectedAiGoal = chip.getAttribute('data-val');
-            });
-        });
-
-        const btnRunAiDiagnosis = document.getElementById('btnRunAiDiagnosis');
-        const aiDiagResultArea = document.getElementById('aiDiagResultArea');
-        const aiRecLoadKg = document.getElementById('aiRecLoadKg');
-        const aiRecAssistKg = document.getElementById('aiRecAssistKg');
-        const aiRecReps = document.getElementById('aiRecReps');
-        const aiRecRest = document.getElementById('aiRecRest');
-        const aiRecRationale = document.getElementById('aiRecRationale');
-        const btnApplyAiRec = document.getElementById('btnApplyAiRec');
-
-        if (btnRunAiDiagnosis) {
-            btnRunAiDiagnosis.addEventListener('click', () => {
-                const baseKg = parseFloat(inputBodyWeight?.value) || currentUserWeightKg || 70.0;
-                btnRunAiDiagnosis.innerHTML = '<span>⏳ AI Agent 바이오메트릭스 분석 중...</span>';
-                btnRunAiDiagnosis.disabled = true;
-
-                socket.emit('analyzeWeight', {
-                    ability: selectedAiAbility,
-                    goal: selectedAiGoal,
-                    weightKg: baseKg
-                });
-            });
-        }
-
-        socket.on('weightAnalysisResult', (data) => {
-            if (btnRunAiDiagnosis) {
-                btnRunAiDiagnosis.innerHTML = '<span>🧠 AI Agent VBT 분석 시작</span>';
-                btnRunAiDiagnosis.disabled = false;
-            }
-            if (!data || !data.analysis) return;
-            const res = data.analysis;
-            latestAiRecommendation = res;
-
-            if (aiRecLoadKg) aiRecLoadKg.textContent = `${res.recommendedLoadKg.toFixed(1)} kg`;
-            if (aiRecAssistKg) {
-                const assistPct = res.assistLevel * 15;
-                aiRecAssistKg.textContent = `-${res.assistKg.toFixed(1)} kg (${assistPct}%)`;
-            }
-            if (aiRecReps) aiRecReps.textContent = `${res.targetReps}회`;
-            if (aiRecRest) aiRecRest.textContent = `${res.restSeconds}초`;
-            if (aiRecRationale) aiRecRationale.textContent = res.rationale;
-
-            if (aiDiagResultArea) {
-                aiDiagResultArea.style.display = 'block';
-                aiDiagResultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        });
-
-        if (btnApplyAiRec) {
-            btnApplyAiRec.addEventListener('click', () => {
-                if (!latestAiRecommendation) return;
-                const rec = latestAiRecommendation;
-                socket.emit('updateWeight', {
-                    weightKg: rec.userWeightKg,
-                    assistLevel: rec.assistLevel
-                });
-                socket.emit('updateSettings', {
-                    targetReps: rec.targetReps,
-                    restTime: rec.restSeconds
-                });
-
-                if (targetRepsEl) targetRepsEl.textContent = rec.targetReps;
-                closeWeightModal();
+        if (menuWeightAgent) {
+            menuWeightAgent.addEventListener('click', () => {
+                closeSidebar();
+                handleUserVoiceCommand('내 운동 패턴 분석해서 무게 제안해줘');
             });
         }
 

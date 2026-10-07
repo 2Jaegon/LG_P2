@@ -1148,56 +1148,50 @@ io.on('connection', (socket) => {
         }
     });
 
-    // AI 무게 진단 & 추천 Agent 요청
+    // AI 무게 진단 & 추천 Agent 요청 (사용자 운동 패턴 분석 기반)
     socket.on('analyzeWeight', async (data) => {
-        const weight = Math.max(30, Math.min(180, parseFloat(data.bodyWeight) || userWeightKg || 70.0));
-        const ability = data.pullupAbility || 'novice';
-        const goal = data.goal || 'hypertrophy';
-
-        let recommendAssistPct = 0;
-        let targetReps = 10;
-        let restTime = 60;
+        const weight = userWeightKg || 70.0;
+        let recommendedLoadKg = weight;
+        let targetReps = aiTargetReps || 10;
+        let restTime = aiRestTimeSeconds || 60;
         let rationale = "";
         let vbtStrategy = "";
 
-        if (ability === 'beginner') { // 0회 입문
-            recommendAssistPct = 30;
-            targetReps = goal === 'strength' ? 5 : 8;
-            restTime = 90;
-            rationale = `현재 맨몸 풀업 0회 상태이므로, 체중(${weight}kg)의 30%를 머신이 감경 보조하여 약 ${(weight * 0.7).toFixed(1)}kg 부하로 시작하는 것을 추천합니다.`;
-            vbtStrategy = "네거티브(하강) 템포 3초를 통제하며 견갑골 패킹과 기본 근신경계를 활성화하는 단계입니다.";
-        } else if (ability === 'novice') { // 1~3회 초급
-            recommendAssistPct = 15;
-            targetReps = goal === 'strength' ? 5 : (goal === 'hypertrophy' ? 8 : 10);
-            restTime = 60;
-            rationale = `맨몸 1~3회 가능 상태에서 충분한 운동 볼륨(8~10회)을 확보하기 위해 15% 감경된 ${(weight * 0.85).toFixed(1)}kg 부하를 제안합니다.`;
-            vbtStrategy = "반복 후반 피로 누적 시 추가 부하 경감(스마트 어시스트)과 연계하여 실패 지점 없이 최적 볼륨을 달성합니다.";
-        } else if (ability === 'intermediate') { // 4~8회 중급
-            recommendAssistPct = 0;
-            targetReps = goal === 'strength' ? 5 : (goal === 'hypertrophy' ? 8 : 12);
-            restTime = goal === 'strength' ? 90 : 60;
-            rationale = `체중(${weight}kg)을 온전히 다룰 수 있는 수준이므로 100% 맨몸 부하(${weight}kg)로 시작하여 고유 템포 유지를 권장합니다.`;
-            vbtStrategy = "세트 중반 속도(템포) 저하 20% 발생 시 머신이 자동으로 부하를 덜어주어 유효 반복수를 끝까지 완수합니다.";
-        } else { // 9회 이상 고급
-            recommendAssistPct = 0;
-            targetReps = goal === 'strength' ? 6 : 12;
-            restTime = 60;
-            rationale = `고급 수행 능력을 갖추셨으므로 기본 100% 체중(${weight}kg) 부하에서 12회 목표 또는 빠른 수축 템포 트레이닝을 권장합니다.`;
-            vbtStrategy = "폭발적인 가속 수축(템포 1.5초 이하)과 완전 가동범위(ROM PERFECT)를 유지하는 파워 VBT 전략입니다.";
+        if (setHistory.length === 0) {
+            recommendedLoadKg = weight;
+            rationale = `아직 완료된 세트 기록이 없습니다. 현재 설정 무게(${weight}kg)로 1세트를 진행하시면 실시간 템포 및 가동범위 패턴을 분석하여 최적 부하를 제안해 드립니다.`;
+            vbtStrategy = "기본 템포 및 자세 정렬 확인 단계입니다.";
+        } else {
+            const lastSet = setHistory[setHistory.length - 1];
+            const avgTempo = lastSet.avgTempo || 2.1;
+            const hadStall = currentSetAssistTriggers > 0 || (lastSet.loadChanges && lastSet.loadChanges.length > 0);
+
+            if (hadStall || lastSet.reps < Math.max(1, aiTargetReps - 2) || avgTempo >= 3.0) {
+                recommendedLoadKg = Math.max(10, Math.round((weight - 5.0) * 10) / 10);
+                rationale = `직전 ${lastSet.set}세트 템포(${avgTempo.toFixed(1)}s) 및 피로 누적 패턴 분석 결과, 유효 반복수 완수를 위해 무게 5kg 감량(${recommendedLoadKg}kg)을 제안합니다.`;
+                vbtStrategy = "피로 완화 및 유효 볼륨 확보 VBT 전략입니다.";
+            } else if (lastSet.reps >= aiTargetReps && avgTempo <= 2.0) {
+                recommendedLoadKg = Math.min(150, Math.round((weight + 2.5) * 10) / 10);
+                rationale = `직전 ${lastSet.set}세트 평균 템포 ${avgTempo.toFixed(1)}s로 폭발적인 파워가 확인되었습니다. 점진적 과부하를 위해 +2.5kg 증량(${recommendedLoadKg}kg)을 제안합니다.`;
+                vbtStrategy = "폭발적 파워 및 근력 강화 VBT 전략입니다.";
+            } else {
+                recommendedLoadKg = weight;
+                rationale = `직전 세트에서 안정적인 페이스(${avgTempo.toFixed(1)}s)를 유지하셨습니다. 현재 무게(${weight}kg) 유지를 제안합니다.`;
+                vbtStrategy = "볼륨 및 페이스 유지 전략입니다.";
+            }
         }
 
-        const calculatedLoadKg = Math.round(weight * (1 - recommendAssistPct / 100) * 10) / 10;
-        const assistLevelNeeded = recommendAssistPct === 30 ? 2 : (recommendAssistPct === 15 ? 1 : 0);
-
         socket.emit('weightAnalysisResult', {
-            bodyWeightKg: weight,
-            recommendedLoadKg: calculatedLoadKg,
-            recommendedAssistPct: recommendAssistPct,
-            assistLevelNeeded: assistLevelNeeded,
-            targetReps: targetReps,
-            restTimeSeconds: restTime,
-            rationale: rationale,
-            vbtStrategy: vbtStrategy
+            analysis: {
+                userWeightKg: weight,
+                recommendedLoadKg: recommendedLoadKg,
+                assistLevel: 0,
+                assistKg: 0,
+                targetReps: targetReps,
+                restSeconds: restTime,
+                rationale: rationale,
+                vbtStrategy: vbtStrategy
+            }
         });
     });
 
