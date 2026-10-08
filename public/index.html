@@ -4372,26 +4372,8 @@
 
         .aic-header {
             display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .aic-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--lg-red-soft);
-            color: var(--lg-red);
-            font-size: 1.1rem;
-            font-weight: 800;
-        }
-
-        .aic-icon.blue {
-            background: rgba(0, 102, 255, 0.08);
-            color: #0066FF;
+            align-items: flex-start;
+            margin-bottom: 4px;
         }
 
         .aic-title-wrap h3 {
@@ -4468,23 +4450,12 @@
 
         .ai-report-item {
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            gap: 4px;
             background: var(--surface-2);
             border: 1px solid var(--line);
             border-radius: 10px;
-            padding: 12px 14px;
-        }
-
-        .air-badge {
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 800;
-            flex-shrink: 0;
+            padding: 13px 16px;
         }
 
         .air-content {
@@ -5181,7 +5152,7 @@
         <header class="analytics-page-header">
             <div class="analytics-header-left">
                 <button type="button" class="analytics-back-btn" id="btnAnalyticsBackToLive" title="실시간 코칭 화면으로 복귀">
-                    ← 실시간 풀업 코칭으로 돌아가기
+                    실시간 풀업 코칭으로 돌아가기
                 </button>
                 <div class="analytics-title-wrap">
                     <h1 class="analytics-title">운동 성장 분석 시각화</h1>
@@ -5197,12 +5168,6 @@
                     <button type="button" class="analytics-range-btn" data-range="1W">최근 1주</button>
                 </div>
                 <button type="button" class="analytics-action-btn" id="btnAnalyticsGoToJournal">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                    </svg>
                     <span>운동 일지 보기</span>
                 </button>
             </div>
@@ -5219,7 +5184,7 @@
                     <span id="heroMaxWeight">75.0</span><small>kg</small>
                 </div>
                 <div class="ah-trend up" id="heroWeightTrend">
-                    <span>▲ +15.0kg (+25.0%)</span>
+                    <span>+15.0kg (+25.0%)</span>
                 </div>
                 <div class="ah-desc" id="heroWeightDesc">시작 60.0kg → 현재 75.0kg 돌파</div>
             </div>
@@ -5233,7 +5198,7 @@
                     <span id="heroAvgTempo">1.77</span><small>초</small>
                 </div>
                 <div class="ah-trend speed" id="heroTempoTrend">
-                    <span>▼ -0.43초 (-19.5%)</span>
+                    <span>-0.43초 (-19.5%)</span>
                 </div>
                 <div class="ah-desc" id="heroTempoDesc">2.20s 대비 1.77s로 수축 가속</div>
             </div>
@@ -5247,7 +5212,7 @@
                     <span id="heroTotalVolume">117,480</span><small>kg</small>
                 </div>
                 <div class="ah-trend blue" id="heroVolumeTrend">
-                    <span>💪 총 2,390 회 완료</span>
+                    <span>총 2,390회 완료</span>
                 </div>
                 <div class="ah-desc" id="heroVolumeDesc">누적 약 117.5톤 작업량 달성</div>
             </div>
@@ -5261,7 +5226,7 @@
                     <span id="heroTotalSets">177</span><small>SETS</small>
                 </div>
                 <div class="ah-trend up" id="heroSetsTrend">
-                    <span>🎯 38일 완주율 100%</span>
+                    <span>38일 완주율 100%</span>
                 </div>
                 <div class="ah-desc" id="heroSetsDesc">워밍업 38세트 + 본세트 139세트</div>
             </div>
@@ -5275,7 +5240,7 @@
                     <span id="heroTotalDuration" style="font-size: 1.55rem;">26시간 56분</span>
                 </div>
                 <div class="ah-trend blue" id="heroDurationTrend">
-                    <span>⏱️ 일평균 42.5분</span>
+                    <span>일평균 42.5분</span>
                 </div>
                 <div class="ah-desc" id="heroDurationDesc">30분미만 8회 · 1시간미만 23회 · 1시간이상 7회</div>
             </div>
@@ -5288,7 +5253,7 @@
                 <div class="acc-header">
                     <div class="acc-title-wrap">
                         <h2 class="acc-title">
-                            <span>📈 점진적 과부하 중량 성장 추이</span>
+                            <span>점진적 과부하 중량 성장 추이</span>
                         </h2>
                         <p class="acc-desc">탑 세트 최고 무게(60kg → 75kg) 및 본 세트 드랍(-10kg), 워밍업(50%) 추이</p>
                     </div>
@@ -5317,7 +5282,7 @@
                 <div class="acc-header">
                     <div class="acc-title-wrap">
                         <h2 class="acc-title">
-                            <span>⚡ VBT 평균 수축 템포 단축 추이</span>
+                            <span>VBT 평균 수축 템포 단축 추이</span>
                         </h2>
                         <p class="acc-desc">반복당 수축 템포 단축(2.20s → 1.77s)으로 측정한 근신경 파워 속도 향상</p>
                     </div>
@@ -5342,22 +5307,22 @@
                 <div class="acc-header">
                     <div class="acc-title-wrap">
                         <h2 class="acc-title">
-                            <span>⏱️ 일별 세션 소요 시간 & 가용 시간대 분포</span>
+                            <span>일별 세션 소요 시간 및 가용 시간대 분포</span>
                         </h2>
                         <p class="acc-desc">사용자 당일 가용 시간에 따른 30분 미만 / 1시간 미만 / 1시간 이상 세션 분류</p>
                     </div>
                     <div class="acc-legend">
                         <span class="acc-legend-item">
                             <span class="acc-legend-dot" style="background: #00857C;"></span>
-                            <span>⚡ 30분 미만 (퀵 3세트)</span>
+                            <span>30분 미만 (퀵 3세트)</span>
                         </span>
                         <span class="acc-legend-item">
                             <span class="acc-legend-dot" style="background: #0066FF;"></span>
-                            <span>⏱️ 1시간 미만 (정규 4세트)</span>
+                            <span>1시간 미만 (정규 4세트)</span>
                         </span>
                         <span class="acc-legend-item">
                             <span class="acc-legend-dot" style="background: var(--lg-red);"></span>
-                            <span>🔥 1시간 이상 (심화 5~7세트)</span>
+                            <span>1시간 이상 (심화 5~7세트)</span>
                         </span>
                     </div>
                 </div>
@@ -5371,7 +5336,7 @@
                 <div class="acc-header">
                     <div class="acc-title-wrap">
                         <h2 class="acc-title">
-                            <span>📊 일별 완료 세트수 & 일일 총 볼륨</span>
+                            <span>일별 완료 세트수 및 일일 총 볼륨</span>
                         </h2>
                         <p class="acc-desc">일자별 총 운동 볼륨(kg) 막대와 완료 세트수(SETS) 추이 곡선</p>
                     </div>
@@ -5397,7 +5362,6 @@
             <!-- 좌측: 가용 시간대별 운동 패턴 매트릭스 -->
             <div class="analytics-insight-card">
                 <div class="aic-header">
-                    <div class="aic-icon">⏱️</div>
                     <div class="aic-title-wrap">
                         <h3>가용 시간대별 운동 패턴 매트릭스</h3>
                         <p>사용자 라이프스타일 일정에 따른 맞춤 운동 시간 분포</p>
@@ -5407,7 +5371,7 @@
                     <div class="tbb-item">
                         <div class="tbb-head">
                             <span class="tbb-title">
-                                <span style="color: #00857C; font-weight: 800;">⚡ 30분 미만 (Quick Express)</span>
+                                <span style="color: #00857C; font-weight: 800;">30분 미만 (Quick Express)</span>
                             </span>
                             <span class="tbb-count" id="tbCountUnder30">8회 (21.1%)</span>
                         </div>
@@ -5420,7 +5384,7 @@
                     <div class="tbb-item">
                         <div class="tbb-head">
                             <span class="tbb-title">
-                                <span style="color: #0066FF; font-weight: 800;">⏱️ 1시간 미만 (Standard Routine)</span>
+                                <span style="color: #0066FF; font-weight: 800;">1시간 미만 (Standard Routine)</span>
                             </span>
                             <span class="tbb-count" id="tbCountUnder60">23회 (60.5%)</span>
                         </div>
@@ -5433,7 +5397,7 @@
                     <div class="tbb-item">
                         <div class="tbb-head">
                             <span class="tbb-title">
-                                <span style="color: var(--lg-red); font-weight: 800;">🔥 1시간 이상 (Intense Hypertrophy)</span>
+                                <span style="color: var(--lg-red); font-weight: 800;">1시간 이상 (Intense Hypertrophy)</span>
                             </span>
                             <span class="tbb-count" id="tbCountOver60">7회 (18.4%)</span>
                         </div>
@@ -5448,7 +5412,6 @@
             <!-- 우측: AI 코칭 에이전트 종합 리포트 -->
             <div class="analytics-insight-card">
                 <div class="aic-header">
-                    <div class="aic-icon blue">🤖</div>
                     <div class="aic-title-wrap">
                         <h3>LG ThinQ AI 코칭 에이전트 종합 진단</h3>
                         <p>38일간의 텔레메트리 데이터 기반 퍼포먼스 분석 총평</p>
@@ -5456,21 +5419,18 @@
                 </div>
                 <div class="ai-report-list">
                     <div class="ai-report-item">
-                        <div class="air-badge" style="background: var(--lg-red-soft); color: var(--lg-red);">📈</div>
                         <div class="air-content">
                             <div class="air-title">완벽한 점진적 과부하 실현 (60kg → 75kg)</div>
                             <div class="air-text">9월 1일 60kg 시작 후 2.5kg 단위의 계단식 주기화로 10월 8일 75kg를 안정적으로 안착시켰습니다. 본 세트의 -10kg 드랍 세트가 볼륨을 채워주며 부상 없는 증량을 견인했습니다.</div>
                         </div>
                     </div>
                     <div class="ai-report-item">
-                        <div class="air-badge" style="background: var(--ok-soft); color: var(--ok);">⚡</div>
                         <div class="air-content">
                             <div class="air-title">중량 증가에도 수축 속도 단축 (2.20s → 1.77s)</div>
                             <div class="air-text">부하가 15kg 증가했음에도 템포가 약 20% 빨라졌습니다. 이는 단순 근력뿐 아니라 근육의 폭발적 동원력(Rate of Force Development)과 VBT 파워가 비약적으로 발달했음을 증명합니다.</div>
                         </div>
                     </div>
                     <div class="ai-report-item">
-                        <div class="air-badge" style="background: rgba(0, 102, 255, 0.08); color: #0066FF;">🎯</div>
                         <div class="air-content">
                             <div class="air-title">향후 추천: 가용 시간 기반 AI 동적 루틴 추천</div>
                             <div class="air-text">운동 전 사용자에게 가용 시간(30분 미만 / 1시간 미만 / 1시간 이상)을 선택받으면, 현재 도달한 75kg 기준에 맞춰 워밍업·탑세트·드랍세트 수와 랩수를 최적 배분해 드립니다.</div>
@@ -8470,7 +8430,7 @@
             const elWeightTrend = document.getElementById('heroWeightTrend');
             const elWeightDesc = document.getElementById('heroWeightDesc');
             if (elMaxWeight) elMaxWeight.textContent = maxWeight.toFixed(1);
-            if (elWeightTrend) elWeightTrend.innerHTML = `<span>▲ +${weightDelta}kg (+${weightDeltaPct}%)</span>`;
+            if (elWeightTrend) elWeightTrend.innerHTML = `<span>+${weightDelta}kg (+${weightDeltaPct}%)</span>`;
             if (elWeightDesc) elWeightDesc.textContent = `시작 ${startWeight.toFixed(1)}kg → 최고 ${maxWeight.toFixed(1)}kg 돌파`;
 
             const elAvgTempo = document.getElementById('heroAvgTempo');
@@ -8480,7 +8440,7 @@
             if (elTempoTrend) {
                 const isFaster = tempoDelta <= 0;
                 elTempoTrend.className = isFaster ? 'ah-trend speed' : 'ah-trend up';
-                elTempoTrend.innerHTML = `<span>${isFaster ? '▼' : '▲'} ${tempoDelta}초 (-${tempoDeltaPct}%)</span>`;
+                elTempoTrend.innerHTML = `<span>${tempoDelta}초 (-${tempoDeltaPct}%)</span>`;
             }
             if (elTempoDesc) elTempoDesc.textContent = `초기 ${startTempo.toFixed(2)}s 대비 ${avgTempo}s로 수축 가속`;
 
@@ -8488,14 +8448,14 @@
             const elVolumeTrend = document.getElementById('heroVolumeTrend');
             const elVolumeDesc = document.getElementById('heroVolumeDesc');
             if (elTotalVolume) elTotalVolume.textContent = totalVolume.toLocaleString();
-            if (elVolumeTrend) elVolumeTrend.innerHTML = `<span>💪 총 ${totalReps.toLocaleString()} 회 완료</span>`;
+            if (elVolumeTrend) elVolumeTrend.innerHTML = `<span>총 ${totalReps.toLocaleString()}회 완료</span>`;
             if (elVolumeDesc) elVolumeDesc.textContent = `누적 약 ${(totalVolume / 1000).toFixed(1)}톤 작업량 달성`;
 
             const elTotalSets = document.getElementById('heroTotalSets');
             const elSetsTrend = document.getElementById('heroSetsTrend');
             const elSetsDesc = document.getElementById('heroSetsDesc');
             if (elTotalSets) elTotalSets.textContent = totalSets;
-            if (elSetsTrend) elSetsTrend.innerHTML = `<span>🎯 ${dataset.length}일 완주율 100%</span>`;
+            if (elSetsTrend) elSetsTrend.innerHTML = `<span>${dataset.length}일 완주율 100%</span>`;
             if (elSetsDesc) elSetsDesc.textContent = `워밍업 ${dataset.length}세트 + 본세트 ${totalSets - dataset.length}세트`;
 
             const elTotalDuration = document.getElementById('heroTotalDuration');
@@ -8504,7 +8464,7 @@
             if (elTotalDuration) {
                 elTotalDuration.textContent = totalHours > 0 ? `${totalHours}시간 ${totalMins}분` : `${totalMins}분`;
             }
-            if (elDurationTrend) elDurationTrend.innerHTML = `<span>⏱️ 일평균 ${avgMinsPerSession}분</span>`;
+            if (elDurationTrend) elDurationTrend.innerHTML = `<span>일평균 ${avgMinsPerSession}분</span>`;
 
             const b30 = dataset.filter(d => d.timeBudget === 'UNDER_30M').length;
             const b60 = dataset.filter(d => d.timeBudget === 'UNDER_60M').length;
