@@ -7085,11 +7085,6 @@
                                             <span class="set-reps"><span class="item-k-label">REPS</span><strong>${item.reps}</strong></span>
                                             <span class="set-load-badge ${typeClass}"><span class="item-k-label">START WEIGHT</span><strong>${startLoadKg}kg</strong></span>
                                             <span class="set-load-badge ${typeClass}"><span class="item-k-label">END WEIGHT</span><strong style="${hasAssist ? 'color: #0066FF;' : ''}">${finalLoadKg}kg</strong></span>
-                                            ${(item.loadChanges && item.loadChanges.length > 0) ? `
-                                                <span class="set-assist-badge" style="font-size: 0.68rem; padding: 1px 6px;">
-                                                    스마트 보조 (-${item.loadChanges[0].reductionKg || 10}kg)
-                                                </span>
-                                            ` : ''}
                                         </div>
                                         <div class="history-item-right">
                                             <span class="set-tempo"><span class="item-k-label">TEMPO</span><strong>${item.avgTempo}s</strong></span>
@@ -7290,11 +7285,6 @@
                                         <span class="set-tempo"><span class="item-k-label">TEMPO</span><strong>${(item.avgTempo || 0).toFixed(1)}s</strong></span>
                                         <span class="rom-mini-badge ${item.romRating || 'GOOD'}">${item.romRating || 'GOOD'}</span>
                                         <span class="set-duration-badge" style="font-size: 0.72rem; padding: 2px 7px; background: rgba(0, 102, 255, 0.08); color: #0066FF; border-radius: 999px; font-weight: 700;"><span class="item-k-label">TIME</span><strong>${item.setDurationSeconds || Math.round((item.avgTempo || 2.0) * (item.reps || 10))}s</strong></span>
-                                        ${(item.loadChanges && item.loadChanges.length > 0) ? `
-                                            <span class="set-assist-badge">
-                                                스마트 보조 (-${item.loadChanges[0].reductionKg || 10}kg)
-                                            </span>
-                                        ` : ''}
                                     </div>
                                     <div class="history-item-right">
                                         <span class="set-time">${item.completedAt || ''}</span>
@@ -7509,7 +7499,7 @@
                     <div class="tmg-item">
                         <span class="tmg-lbl">END WEIGHT</span>
                         <div class="tmg-val" style="${hasLoadReduction ? 'color: #0066FF;' : ''}">${finalLoadKg} <span class="tmg-sub">kg</span></div>
-                        <div class="tmg-sub">${hasLoadReduction && firstReduction ? `보조 개입 (-${firstReduction.reductionKg}kg)` : '초기 부하 100% 완주'}</div>
+                        <div class="tmg-sub">${hasLoadReduction && firstReduction ? `최종 완료 (-${firstReduction.reductionKg}kg)` : '초기 부하 100% 완주'}</div>
                     </div>
                     <div class="tmg-item">
                         <span class="tmg-lbl">VOLUME</span>
