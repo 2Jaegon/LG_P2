@@ -4435,6 +4435,18 @@
 
     <script>
         const socket = io();
+        let setHistory = [];
+        let currentHistoryList = [];
+
+        // 페이지 로드 시 전체 일지 히스토리 즉시 동기화
+        fetch('/api/history')
+            .then(res => res.json())
+            .then(data => {
+                if (data && Array.isArray(data.setHistory) && data.setHistory.length > 0) {
+                    renderHistory(data.setHistory);
+                }
+            })
+            .catch(err => console.warn('초기 히스토리 패치 실패:', err));
 
         const MAX_VAL = 1023;
         const TOP_ZONE = 740;     // 이 값 이상이면 "Top" 구간
@@ -5798,7 +5810,7 @@
             updateArduinoStatusUI(false);
         });
 
-        let currentHistoryList = [];
+        // currentHistoryList는 최상단에 전역 선언됨
         let selectedCardDate = null;
         let selectedModalDate = null;
 
@@ -6198,7 +6210,8 @@
         }
 
         function renderHistory(list) {
-            currentHistoryList = list || [];
+            currentHistoryList = Array.isArray(list) ? list : [];
+            setHistory = currentHistoryList;
             renderCardHistory();
             renderModalHistory();
             renderJournalPageView();
@@ -7111,6 +7124,17 @@
             if (gnbTabJournal) gnbTabJournal.classList.add('active');
             if (menuLive) menuLive.classList.remove('active');
             if (menuJournal) menuJournal.classList.add('active');
+
+            if (!currentHistoryList || currentHistoryList.length === 0) {
+                fetch('/api/history')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && Array.isArray(data.setHistory) && data.setHistory.length > 0) {
+                            renderHistory(data.setHistory);
+                        }
+                    })
+                    .catch(() => {});
+            }
 
             initJournalAgentOrb();
             updateJournalOrbTelemetryStatus();
