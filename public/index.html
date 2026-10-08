@@ -6129,10 +6129,11 @@
                             </span>
                         </div>
                         <div class="history-detail-summary-bar" style="padding: 8px 14px; font-size: 0.82rem;">
-                            <span>총 <strong>${grp.totalSets}</strong>세트 완료</span> · 
-                            <span>누적 <strong>${grp.totalReps}</strong>회 반복</span> · 
-                            <span>평균 템포 <strong>${grp.avgTempo}초</strong></span> · 
-                            <span>총 운동 시간 <strong style="color: #0066FF;">${grp.durationStr}</strong></span>
+                            <span><strong>SET</strong> ${grp.totalSets}</span> · 
+                            <span><strong>REPS</strong> ${grp.totalReps}</span> · 
+                            <span><strong>WEIGHT</strong> ${(grp.maxLoadKg || 70).toFixed(1)}kg</span> · 
+                            <span><strong>TEMPO</strong> ${grp.avgTempo}s</span> · 
+                            <span><strong>TIME</strong> <strong style="color: #0066FF;">${grp.durationStr}</strong></span>
                         </div>
                         <div class="history-sets-wrap" style="max-height: 250px;">
                             ${grp.sets.map((item, idx) => {
@@ -6145,11 +6146,11 @@
                                         <div class="history-item-left">
                                             <span class="set-tag ${typeClass}">SET ${item.set}</span>
                                             <span class="set-type-pill ${typeClass}">${typeLabel}</span>
-                                            <span class="set-reps">${item.reps}회 완료</span>
-                                            <span class="set-load-badge ${typeClass}">${loadKg}kg</span>
+                                            <span class="set-reps"><span class="item-k-label">REPS</span><strong>${item.reps}</strong></span>
+                                            <span class="set-load-badge ${typeClass}"><span class="item-k-label">WEIGHT</span><strong>${loadKg}kg</strong></span>
                                         </div>
                                         <div class="history-item-right">
-                                            <span class="set-tempo">${item.avgTempo}초</span>
+                                            <span class="set-tempo"><span class="item-k-label">TEMPO</span><strong>${item.avgTempo}s</strong></span>
                                             <span class="set-time">${item.completedAt}</span>
                                             <button type="button" class="btn-set-detail" title="초상세 텔레메트리 보기">상세</button>
                                         </div>
@@ -6200,10 +6201,11 @@
                                     <span class="hdc-time-badge ${(grp.timeBudget || 'UNDER_60M').toLowerCase().replace('_', '-')}">${grp.timeBudgetLabel || '1시간 미만'}</span>
                                 </div>
                                 <div class="hdc-meta" style="font-size: 0.82rem; margin-top: 2px;">
-                                    <span>완료 <strong>${grp.totalSets}</strong>세트</span> · 
-                                    <span>누적 <strong>${grp.totalReps}</strong>회</span> · 
-                                    <span>평균 템포 <strong>${grp.avgTempo}초</strong></span> · 
-                                    <span>시간 <strong style="color: #0066FF;">${grp.durationStr}</strong></span>
+                                    <span><strong>SET</strong> ${grp.totalSets}</span> · 
+                                    <span><strong>REPS</strong> ${grp.totalReps}</span> · 
+                                    <span><strong>WEIGHT</strong> ${(grp.maxLoadKg || 70).toFixed(1)}kg</span> · 
+                                    <span><strong>TEMPO</strong> ${grp.avgTempo}s</span> · 
+                                    <span><strong>TIME</strong> <strong style="color: #0066FF;">${grp.durationStr}</strong></span>
                                 </div>
                             </div>
                             <span class="hdc-btn" style="padding: 6px 14px; font-size: 0.8rem;">기록 보기</span>
@@ -6304,23 +6306,23 @@
                         </div>
                         <div class="history-detail-summary-bar">
                             <div class="hds-cell">
-                                <span class="hds-k">완료 세트</span>
-                                <span class="hds-v">${grp.totalSets}세트</span>
+                                <span class="hds-k">SET</span>
+                                <span class="hds-v">${grp.totalSets} SETS</span>
                             </div>
                             <div class="hds-cell">
-                                <span class="hds-k">총 반복수</span>
-                                <span class="hds-v">${grp.totalReps}회</span>
+                                <span class="hds-k">REPS</span>
+                                <span class="hds-v">${grp.totalReps} REPS</span>
                             </div>
                             <div class="hds-cell">
-                                <span class="hds-k">평균 템포</span>
-                                <span class="hds-v">${grp.avgTempo}초</span>
+                                <span class="hds-k">WEIGHT</span>
+                                <span class="hds-v">${(grp.maxLoadKg || 70).toFixed(1)}kg</span>
                             </div>
                             <div class="hds-cell">
-                                <span class="hds-k">추정 볼륨</span>
-                                <span class="hds-v">${Math.round(grp.totalVolumeKg || (grp.totalReps * 70)).toLocaleString()}kg</span>
+                                <span class="hds-k">TEMPO</span>
+                                <span class="hds-v">${grp.avgTempo}s</span>
                             </div>
                             <div class="hds-cell">
-                                <span class="hds-k">총 운동 시간</span>
+                                <span class="hds-k">TIME</span>
                                 <span class="hds-v" style="color: #0066FF;">${grp.durationStr}</span>
                             </div>
                         </div>
@@ -6336,12 +6338,12 @@
                                         <span class="set-tag ${typeClass}">SET ${item.set}</span>
                                         <span class="set-type-pill ${typeClass}">${typeLabel}</span>
                                         <span class="set-reps">
-                                            <strong>${item.reps || 0}</strong>회 <span class="set-reps-target">/ ${item.targetReps || (isWarm ? 25 : 10)}회 목표</span>
+                                            <span class="item-k-label">REPS</span><strong>${item.reps || 0}</strong> <span class="set-reps-target">/ ${item.targetReps || (isWarm ? 25 : 10)}</span>
                                         </span>
-                                        <span class="set-tempo">평균 <strong>${(item.avgTempo || 0).toFixed(1)}초</strong></span>
+                                        <span class="set-load-badge ${typeClass}"><span class="item-k-label">WEIGHT</span><strong>${loadKg}kg</strong></span>
+                                        <span class="set-tempo"><span class="item-k-label">TEMPO</span><strong>${(item.avgTempo || 0).toFixed(1)}s</strong></span>
                                         <span class="rom-mini-badge ${item.romRating || 'GOOD'}">${item.romRating || 'GOOD'}</span>
-                                        <span class="set-load-badge ${typeClass}">부하 ${loadKg}kg</span>
-                                        <span class="set-duration-badge" style="font-size: 0.72rem; padding: 2px 7px; background: rgba(0, 102, 255, 0.08); color: #0066FF; border-radius: 999px; font-weight: 700;">소요 ${item.setDurationSeconds || Math.round((item.avgTempo || 2.0) * (item.reps || 10))}초</span>
+                                        <span class="set-duration-badge" style="font-size: 0.72rem; padding: 2px 7px; background: rgba(0, 102, 255, 0.08); color: #0066FF; border-radius: 999px; font-weight: 700;"><span class="item-k-label">TIME</span><strong>${item.setDurationSeconds || Math.round((item.avgTempo || 2.0) * (item.reps || 10))}s</strong></span>
                                         ${(item.loadChanges && item.loadChanges.length > 0) ? `
                                             <span class="set-assist-badge">
                                                 감경 ${item.loadChanges.length}회 (-${(item.loadChanges.length * 5)}kg)
@@ -6392,23 +6394,23 @@
                             </div>
                             <div class="hdc-metrics-strip">
                                 <div class="hdc-m-cell">
-                                    <span class="hdc-m-k">완료 세트</span>
-                                    <span class="hdc-m-v">${grp.totalSets}세트</span>
+                                    <span class="hdc-m-k">SET</span>
+                                    <span class="hdc-m-v">${grp.totalSets} SETS</span>
                                 </div>
                                 <div class="hdc-m-cell">
-                                    <span class="hdc-m-k">누적 반복</span>
-                                    <span class="hdc-m-v">${grp.totalReps}회</span>
+                                    <span class="hdc-m-k">REPS</span>
+                                    <span class="hdc-m-v">${grp.totalReps} REPS</span>
                                 </div>
                                 <div class="hdc-m-cell">
-                                    <span class="hdc-m-k">평균 템포</span>
-                                    <span class="hdc-m-v">${grp.avgTempo}초</span>
+                                    <span class="hdc-m-k">WEIGHT</span>
+                                    <span class="hdc-m-v">${(grp.maxLoadKg || 70).toFixed(1)}kg</span>
                                 </div>
                                 <div class="hdc-m-cell">
-                                    <span class="hdc-m-k">추정 볼륨</span>
-                                    <span class="hdc-m-v">${Math.round(grp.totalVolumeKg || (grp.totalReps * 70)).toLocaleString()}kg</span>
+                                    <span class="hdc-m-k">TEMPO</span>
+                                    <span class="hdc-m-v">${grp.avgTempo}s</span>
                                 </div>
                                 <div class="hdc-m-cell">
-                                    <span class="hdc-m-k">총 운동 시간</span>
+                                    <span class="hdc-m-k">TIME</span>
                                     <span class="hdc-m-v" style="color: #0066FF;">${grp.durationStr}</span>
                                 </div>
                             </div>
@@ -6546,23 +6548,23 @@
                 <!-- 2. 핵심 메트릭스 -->
                 <div class="tel-metric-grid" style="margin-bottom: 12px;">
                     <div class="tmg-item">
-                        <span class="tmg-lbl">반복 횟수 &amp; 목표 달성</span>
-                        <div class="tmg-val">${item.reps}회 <span class="tmg-sub">/ ${targetReps}회</span></div>
+                        <span class="tmg-lbl">REPS</span>
+                        <div class="tmg-val">${item.reps} <span class="tmg-sub">/ ${targetReps}</span></div>
                         <div class="tmg-sub" style="color: var(--primary); font-weight: 700;">달성률 ${completionPct}%</div>
                     </div>
                     <div class="tmg-item">
-                        <span class="tmg-lbl">운동 부하 (Kg)</span>
+                        <span class="tmg-lbl">WEIGHT</span>
                         <div class="tmg-val">${finalLoadKg} <span class="tmg-sub">kg</span></div>
                         <div class="tmg-sub">체중 ${baseKg}kg (${assistText})</div>
                     </div>
                     <div class="tmg-item">
-                        <span class="tmg-lbl">총 세트 볼륨 (Volume)</span>
+                        <span class="tmg-lbl">VOLUME</span>
                         <div class="tmg-val">${totalVolumeKg} <span class="tmg-sub">kg</span></div>
                         <div class="tmg-sub">누적 운동 부하 합산</div>
                     </div>
                     <div class="tmg-item">
-                        <span class="tmg-lbl">평균 템포 / 수행 시간</span>
-                        <div class="tmg-val">${item.avgTempo}s <span class="tmg-sub">/ ${item.durationSeconds || Math.round(item.reps * item.avgTempo)}s</span></div>
+                        <span class="tmg-lbl">TEMPO</span>
+                        <div class="tmg-val">${item.avgTempo}s <span class="tmg-sub">/ ${item.setDurationSeconds || Math.round(item.reps * item.avgTempo)}s</span></div>
                         <div class="tmg-sub">${tempoData.patternType || '안정적 수축·이완'}</div>
                     </div>
                 </div>
