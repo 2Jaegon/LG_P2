@@ -2361,15 +2361,30 @@
 
         .tel-metric-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             margin-bottom: 14px;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 860px) {
+            .tel-metric-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 560px) {
             .tel-metric-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+        }
+
+        .item-k-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-2, #6B7280);
+            letter-spacing: 0.04em;
+            margin-right: 4px;
+            text-transform: uppercase;
         }
 
         .tmg-item {
@@ -7014,17 +7029,20 @@
                         </div>
                         <div class="history-sets-wrap" style="max-height: 250px;">
                             ${grp.sets.map((item, idx) => {
-                    const loadKg = (item.finalLoadKg || item.baseWeightKg || 70).toFixed(1);
+                    const startLoadKg = (item.startLoadKg !== undefined ? item.startLoadKg : (item.finalLoadKg || item.baseWeightKg || 70)).toFixed(1);
+                    const finalLoadKg = (item.finalLoadKg !== undefined ? item.finalLoadKg : (item.startLoadKg || item.baseWeightKg || 70)).toFixed(1);
                     const isWarm = item.isWarmup || item.setType === 'WARMUP';
                     const typeClass = isWarm ? 'warmup' : 'main';
                     const typeLabel = isWarm ? '워밍업' : '본 세트';
+                    const hasAssist = (item.loadChanges && item.loadChanges.length > 0) || (parseFloat(startLoadKg) > parseFloat(finalLoadKg));
                     return `
                                     <div class="history-item" data-set-id="${item.id || ''}" data-idx="${idx}">
                                         <div class="history-item-left">
                                             <span class="set-tag ${typeClass}">SET ${item.set}</span>
                                             <span class="set-type-pill ${typeClass}">${typeLabel}</span>
                                             <span class="set-reps"><span class="item-k-label">REPS</span><strong>${item.reps}</strong></span>
-                                            <span class="set-load-badge ${typeClass}"><span class="item-k-label">WEIGHT</span><strong>${loadKg}kg</strong></span>
+                                            <span class="set-load-badge ${typeClass}"><span class="item-k-label">START WEIGHT</span><strong>${startLoadKg}kg</strong></span>
+                                            <span class="set-load-badge ${typeClass}"><span class="item-k-label">END WEIGHT</span><strong style="${hasAssist ? 'color: #0066FF;' : ''}">${finalLoadKg}kg</strong></span>
                                             ${(item.loadChanges && item.loadChanges.length > 0) ? `
                                                 <span class="set-assist-badge" style="font-size: 0.68rem; padding: 1px 6px;">
                                                     스마트 보조 (-${item.loadChanges[0].reductionKg || 10}kg)
@@ -7209,7 +7227,9 @@
                                 const isWarm = item.isWarmup || item.setType === 'WARMUP';
                                 const typeClass = isWarm ? 'warmup' : 'main';
                                 const typeLabel = isWarm ? '워밍업' : '본 세트';
-                                const loadKg = (item.finalLoadKg || item.baseWeightKg || 70).toFixed(1);
+                                const startLoadKg = (item.startLoadKg !== undefined ? item.startLoadKg : (item.finalLoadKg || item.baseWeightKg || 70)).toFixed(1);
+                                const finalLoadKg = (item.finalLoadKg !== undefined ? item.finalLoadKg : (item.startLoadKg || item.baseWeightKg || 70)).toFixed(1);
+                                const hasAssist = (item.loadChanges && item.loadChanges.length > 0) || (parseFloat(startLoadKg) > parseFloat(finalLoadKg));
                                 return `
                                 <div class="history-item" data-set-id="${item.id || ''}" data-idx="${idx}">
                                     <div class="history-item-left">
@@ -7218,7 +7238,8 @@
                                         <span class="set-reps">
                                             <span class="item-k-label">REPS</span><strong>${item.reps || 0}</strong> <span class="set-reps-target">/ ${item.targetReps || (isWarm ? 25 : 10)}</span>
                                         </span>
-                                        <span class="set-load-badge ${typeClass}"><span class="item-k-label">WEIGHT</span><strong>${loadKg}kg</strong></span>
+                                        <span class="set-load-badge ${typeClass}"><span class="item-k-label">START WEIGHT</span><strong>${startLoadKg}kg</strong></span>
+                                        <span class="set-load-badge ${typeClass}"><span class="item-k-label">END WEIGHT</span><strong style="${hasAssist ? 'color: #0066FF;' : ''}">${finalLoadKg}kg</strong></span>
                                         <span class="set-tempo"><span class="item-k-label">TEMPO</span><strong>${(item.avgTempo || 0).toFixed(1)}s</strong></span>
                                         <span class="rom-mini-badge ${item.romRating || 'GOOD'}">${item.romRating || 'GOOD'}</span>
                                         <span class="set-duration-badge" style="font-size: 0.72rem; padding: 2px 7px; background: rgba(0, 102, 255, 0.08); color: #0066FF; border-radius: 999px; font-weight: 700;"><span class="item-k-label">TIME</span><strong>${item.setDurationSeconds || Math.round((item.avgTempo || 2.0) * (item.reps || 10))}s</strong></span>
@@ -7327,7 +7348,8 @@
 
             const targetReps = item.targetReps || 10;
             const completionPct = Math.min(100, Math.round(((item.reps || 0) / targetReps) * 100));
-            const finalLoadKg = (item.finalLoadKg || item.baseWeightKg || 70).toFixed(1);
+            const startLoadKg = (item.startLoadKg !== undefined ? item.startLoadKg : (item.finalLoadKg || item.baseWeightKg || 70)).toFixed(1);
+            const finalLoadKg = (item.finalLoadKg !== undefined ? item.finalLoadKg : (item.startLoadKg || item.baseWeightKg || 70)).toFixed(1);
             const totalVolumeKg = (item.totalVolumeKg || (item.reps * (item.finalLoadKg || 70))).toFixed(1);
             const baseKg = (item.baseWeightKg || 70).toFixed(1);
             const assistLvl = item.assistLevel || 0;
@@ -7392,7 +7414,7 @@
                         <div class="pac-sub">
                             ${hasLoadReduction && firstReduction
                     ? `높이 ${firstReduction.heightPct}%에서 정체 · 누적 ${firstReduction.totalRepsAtTrigger}회차`
-                    : `초기 부하 ${finalLoadKg}kg를 자력으로 온전히 유지`}
+                    : `초기 부하 ${startLoadKg}kg를 자력으로 온전히 유지`}
                         </div>
                     </div>
 
@@ -7429,9 +7451,14 @@
                         <div class="tmg-sub" style="color: var(--primary); font-weight: 700;">달성률 ${completionPct}%</div>
                     </div>
                     <div class="tmg-item">
-                        <span class="tmg-lbl">WEIGHT</span>
-                        <div class="tmg-val">${finalLoadKg} <span class="tmg-sub">kg</span></div>
-                        <div class="tmg-sub">체중 ${baseKg}kg (${assistText})</div>
+                        <span class="tmg-lbl">START WEIGHT</span>
+                        <div class="tmg-val">${startLoadKg} <span class="tmg-sub">kg</span></div>
+                        <div class="tmg-sub">세트 진입 부하</div>
+                    </div>
+                    <div class="tmg-item">
+                        <span class="tmg-lbl">END WEIGHT</span>
+                        <div class="tmg-val" style="${hasLoadReduction ? 'color: #0066FF;' : ''}">${finalLoadKg} <span class="tmg-sub">kg</span></div>
+                        <div class="tmg-sub">${hasLoadReduction && firstReduction ? `보조 개입 (-${firstReduction.reductionKg}kg)` : '초기 부하 100% 완주'}</div>
                     </div>
                     <div class="tmg-item">
                         <span class="tmg-lbl">VOLUME</span>
