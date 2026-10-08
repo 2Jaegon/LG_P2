@@ -2972,32 +2972,60 @@
         </div>
 
         <div class="sidebar-content">
+            <div class="sidebar-group-title">운동 모니터링 &amp; 일지</div>
             <ul class="sidebar-menu">
                 <li>
                     <button type="button" class="sidebar-link active" id="menuLiveDashboard">
                         <div class="sidebar-link-text">
                             <span class="title">실시간 풀업 코칭</span>
-                            <span class="desc">메인 화면으로 이동</span>
+                            <span class="desc">메인 VBT 대시보드로 이동</span>
                         </div>
                         <span class="sidebar-pill live">LIVE</span>
                     </button>
                 </li>
                 <li>
+                    <button type="button" class="sidebar-link" id="menuWorkoutJournal">
+                        <div class="sidebar-link-text">
+                            <span class="title">운동 일지 (Workout Journal)</span>
+                            <span class="desc">날짜별 세트 기록 · 템포 · AI 텔레메트리</span>
+                        </div>
+                        <span class="sidebar-pill" style="color: var(--lg-red); border-color: rgba(165,0,52,0.3); background: rgba(165,0,52,0.08); font-weight: 700;">JOURNAL</span>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="sidebar-link" id="menuTargetSettings">
+                        <div class="sidebar-link-text">
+                            <span class="title">목표 &amp; 휴식 시간 설정</span>
+                            <span class="desc">목표 세트/반복 및 AI 권장 휴식</span>
+                        </div>
+                        <span class="sidebar-pill">SETTING</span>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="sidebar-group-title">데이터 관리</div>
+            <ul class="sidebar-menu">
+                <li>
                     <button type="button" class="sidebar-link-btn" id="sidebarResetBtn">
                         <div class="sidebar-link-text">
                             <span class="title" style="color: var(--lg-red);">운동 기록 전체 초기화</span>
-                            <span class="desc">세트/횟수/부하 리셋</span>
+                            <span class="desc">현재 세트/반복/부하 데이터 리셋</span>
                         </div>
                     </button>
                 </li>
-                <li style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);">
-                    <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; padding-left: 6px; letter-spacing: 0.02em;">아두이노 하드웨어 시나리오 (COM3)</div>
+            </ul>
+
+            <div class="sidebar-group-title">아두이노 하드웨어 시나리오 (COM3)</div>
+            <ul class="sidebar-menu">
+                <li>
                     <button type="button" class="sidebar-link-btn" id="btnSimulateBodyDetach" style="margin-bottom: 6px;">
                         <div class="sidebar-link-text">
                             <span class="title" style="color: #FF4D4D;">1번 버튼 (11번 핀)</span>
                             <span class="desc">신체 이탈 감지 &amp; 바 위치 고정 토글</span>
                         </div>
                     </button>
+                </li>
+                <li>
                     <button type="button" class="sidebar-link-btn" id="btnSimulateImbalance">
                         <div class="sidebar-link-text">
                             <span class="title" style="color: #F59F00;">2번 버튼 (12번 핀)</span>
@@ -3098,8 +3126,8 @@
         <div class="modal-card modal-card-lg">
             <div class="modal-header">
                 <div>
-                    <h3 class="modal-title">세트 기록 &amp; 통계</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;">날짜별 세트 기록 및 운동 통계 현황</p>
+                    <h3 class="modal-title">운동 일지 (Workout Journal) &amp; 텔레메트리</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;">날짜별 세트 기록 · 평균 템포 · 부하 감경 내역 및 AI 바이오메트릭스</p>
                 </div>
                 <button type="button" class="modal-close-btn" id="btnCloseHistoryModal" aria-label="닫기">✕</button>
             </div>
@@ -5562,15 +5590,17 @@
             });
         }
 
-        // 메뉴 항목 2: 세트 기록 & 통계 -> 전용 모달 열기 및 HISTORY 카드로 스크롤
+        // 메뉴 항목 2: 운동 일지 & 통계 -> 전용 모달 열기 및 HISTORY 카드로 스크롤
+        const menuWorkoutJournal = document.getElementById('menuWorkoutJournal');
         const menuHistory = document.getElementById('menuHistory');
-        const historyCard = document.querySelector('.history-card');
-        if (menuHistory) {
-            menuHistory.addEventListener('click', () => {
-                closeSidebar();
-                openHistoryModal();
-            });
-        }
+        [menuWorkoutJournal, menuHistory].forEach(btn => {
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    closeSidebar();
+                    openHistoryModal();
+                });
+            }
+        });
 
         // 메뉴 항목 3: 목표 & 휴식 설정 모달
         const menuTargetSettings = document.getElementById('menuTargetSettings');
