@@ -118,24 +118,25 @@ function createDetailedSetRecord(data) {
         triggerType: item.triggerType || 'smart_assist'
     }));
 
-    // 4. 세트 종합 소견 및 워밍업/드랍세트 코칭
-    const setType = data.setType || 'MAIN';
-    const setTypeLabel = data.setTypeLabel || (setType === 'WARMUP' ? '워밍업' : (setType === 'DROP' ? '드랍 세트' : '본 세트'));
-    const isWarmup = setType === 'WARMUP';
-    const isDropSet = setType === 'DROP';
-    const dropDiffKg = typeof data.dropDiffKg === 'number' ? data.dropDiffKg : (isDropSet ? -10.0 : 0);
+    // 4. 세트 종합 소견 (워밍업 vs 본 세트 구분, 본 세트는 드랍 형식 포함)
+    const isWarmup = data.setType === 'WARMUP';
+    const setType = isWarmup ? 'WARMUP' : 'MAIN';
+    const setTypeLabel = isWarmup ? '워밍업' : '본 세트';
 
     let patternKeyFinding = '';
     if (isWarmup) {
-        patternKeyFinding = `[워밍업 세트] 가벼운 부하(${startLoadKg}kg)로 ${reps}회 고반복 예열을 수행하여 관절 윤활액 분비 및 광배근 신경계 활성화 완료.`;
-    } else if (isDropSet) {
-        patternKeyFinding = `[드랍 세트] 본 세트 대비 10kg 감량(${startLoadKg}kg) 후 즉시 ${reps}회 연속 수행. 잔여 근섬유를 한계점까지 완전 소진.`;
+        patternKeyFinding = `[워밍업] 가벼운 부하(${startLoadKg}kg)로 ${reps}회 고반복 예열을 수행하여 관절 윤활액 분비 및 광배근 신경계 활성화 완료.`;
     } else {
-        patternKeyFinding = assistLvl > 0
-            ? `R${enrichedLoadChanges[0] ? enrichedLoadChanges[0].repAtTrigger : 7}회 정체 감지로 스마트 어시스트 발동 (-${startLoadKg - finalLoadKg}kg), 본 세트 목표 랩 안전 완수.`
-            : (avgTempo <= 2.0
-                ? `[본 세트] 최고 부하 ${startLoadKg}kg를 평균 템포 ${avgTempo}초 고출력으로 완수. 완벽 가동범위(PERFECT ROM) 비율 ${Math.round((perfectCount / reps) * 100)}% 달성.`
-                : `[본 세트] 최고 부하 ${startLoadKg}kg에서 안정적인 수축·이완 리듬 유지. 목표 반복 완수.`);
+        const isDroppedLoad = (data.isDroppedLoad || startLoadKg < (data.baseWeightKg || 70));
+        if (isDroppedLoad) {
+            patternKeyFinding = `[본 세트] 부하 10kg 감량(${startLoadKg}kg) 드랍 방식으로 ${reps}회 완수. 지근·속근 섬유 고강도 볼륨 자극 확보.`;
+        } else {
+            patternKeyFinding = assistLvl > 0
+                ? `R${enrichedLoadChanges[0] ? enrichedLoadChanges[0].repAtTrigger : 7}회 정체 감지로 스마트 어시스트 발동 (-${startLoadKg - finalLoadKg}kg), 본 세트 목표 랩 안전 완수.`
+                : (avgTempo <= 2.0
+                    ? `[본 세트] 최고 부하 ${startLoadKg}kg 탑 세트를 평균 템포 ${avgTempo}초 고출력으로 완수. 완벽 가동범위 달성.`
+                    : `[본 세트] 최고 부하 ${startLoadKg}kg 탑 세트에서 안정적인 수축·이완 리듬 유지. 목표 반복 완수.`);
+        }
     }
 
     return {
@@ -145,8 +146,7 @@ function createDetailedSetRecord(data) {
         setType: setType,
         setTypeLabel: setTypeLabel,
         isWarmup: isWarmup,
-        isDropSet: isDropSet,
-        dropDiffKg: dropDiffKg,
+        isDropSet: false,
         reps: reps,
         targetReps: targetReps,
         isCompleted: true,
@@ -443,17 +443,21 @@ function generateWorkoutHistory() {
         const dayOfWeek = (dayIdx + 2) % 7; // 0: 일, 1: 월, ... 6: 토
         const isSunday = (dayOfWeek === 0);
 
-        // 세트 수 결정: 설정에 명시되어 있으면(숏 세션) 우선 적용, 없으면 요일별 기본 규칙
-        let setCount = 3;
-        if (typeof config.setCount === 'number') {
-            setCount = config.setCount;
-        } else if (dayIdx === 37) {
-            setCount = 4; // 오늘 10월 8일은 최고 집중 4세트
+        // 세트 수 결정: 9월 1일은 본 세트 3세트(총 4세트)로 시작하여 10월에는 본 세트 5세트(총 6세트)로 점진적 확장
+        let mainSetCount = 3;
+        if (config.isShortSession) {
+            mainSetCount = 1; // 시간 부족 숏 세션: 워밍업 1 + 본 세트 1 = 총 2세트
         } else if (isSunday) {
-            setCount = 2; // 일요일 가벼운 회복 2세트
-        } else if (dayIdx % 3 === 0) {
-            setCount = 4;
+            mainSetCount = 2; // 일요일 회복일: 워밍업 1 + 본 세트 2 = 총 3세트
+        } else if (dayIdx < 12) {
+            mainSetCount = 3; // 9/1 ~ 9/12: 본 세트 3세트
+        } else if (dayIdx < 26) {
+            mainSetCount = 4; // 9/13 ~ 9/26: 본 세트 4세트
+        } else {
+            mainSetCount = 5; // 9/27 ~ 10/8: 본 세트 5세트 (오늘 10/8은 본 세트 5세트 완성!)
         }
+
+        const setCount = 1 + mainSetCount; // 워밍업 1세트 + 본 세트 N세트
 
         // 총 운동 시간(초) 산출
         const totalDurationSec = Math.round(config.totalMin * 60);
@@ -471,7 +475,6 @@ function generateWorkoutHistory() {
 
             let setType = 'MAIN';
             let setTypeLabel = '본 세트';
-            let dropDiffKg = 0;
             let reps = 10;
             let targetReps = 10;
             let startLoadKg = baseWeight;
@@ -480,125 +483,42 @@ function generateWorkoutHistory() {
             let startIntensityPct = 100;
             let finalIntensityPct = 100;
             let loadChanges = [];
-            let coachFeedback = config.coachFeedback;
+            let isDroppedLoad = false;
+            let coachFeedback = '';
             let repTempos = [];
 
-            // 1. 시간 부족 숏 세션 (2세트: 퀵 워밍업 20회 + 본 세트 8회 집중)
-            if (config.isShortSession) {
-                if (s === 1) {
-                    setType = 'WARMUP';
-                    setTypeLabel = '워밍업';
-                    reps = 20; // 시간 부족 20회 신속 예열
-                    targetReps = 20;
-                    startLoadKg = warmupWeight;
-                    finalLoadKg = warmupWeight;
-                    repTempos = Array.from({ length: 20 }, (_, i) => Number((1.35 + (i % 4) * 0.03).toFixed(1)));
-                    coachFeedback = `시간 제약으로 가벼운 부하(${warmupWeight}kg) 20회 신속 워밍업 진행. 관절 및 회전근개 신속 예열.`;
-                } else {
-                    setType = 'MAIN';
-                    setTypeLabel = '본 세트';
-                    reps = (config.repsList && config.repsList[1]) ? config.repsList[1] : 8;
-                    targetReps = 10;
-                    startLoadKg = baseWeight;
-                    finalLoadKg = baseWeight;
-                    repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo + 0.06 + i * 0.04).toFixed(1)));
-                    coachFeedback = config.coachFeedback || `시간 부족으로 워밍업 후 본 세트(${baseWeight}kg) 1세트만 집중 수행하고 신속 종료했습니다.`;
-                }
-            }
-            // 2. 일요일 가벼운 회복 루틴 (2세트: 워밍업 25회 + 본 세트 10회)
-            else if (isSunday && setCount === 2) {
-                if (s === 1) {
-                    setType = 'WARMUP';
-                    setTypeLabel = '워밍업';
-                    reps = 25;
-                    targetReps = 25;
-                    startLoadKg = warmupWeight;
-                    finalLoadKg = warmupWeight;
-                    repTempos = Array.from({ length: 25 }, (_, i) => Number((1.38 + (i % 5) * 0.03).toFixed(1)));
-                    coachFeedback = `일요일 가벼운 컨디셔닝 워밍업(${warmupWeight}kg, 25회). 혈류 공급 및 가동성 확보.`;
-                } else {
-                    setType = 'MAIN';
-                    setTypeLabel = '본 세트';
-                    reps = 10;
-                    targetReps = 10;
-                    startLoadKg = baseWeight;
-                    finalLoadKg = baseWeight;
-                    repTempos = Array.from({ length: 10 }, (_, i) => Number((baseTempo + i * 0.03).toFixed(1)));
-                    coachFeedback = `회복성 본 세트: ${baseWeight}kg 10회 안정 완수. 과도한 피로 없이 신경계 리듬 유지.`;
-                }
-            }
-            // 3. 일반 평일 3세트 루틴: Set 1(워밍업 25회 가벼운 무게) -> Set 2(본 세트 탑 무게 확 늘림) -> Set 3(드랍 세트 -10kg 감량 12회)
-            else if (setCount === 3) {
-                if (s === 1) {
-                    setType = 'WARMUP';
-                    setTypeLabel = '워밍업';
-                    reps = 25; // 가벼운 무게로 20~30개 (25회)
-                    targetReps = 25;
-                    startLoadKg = warmupWeight;
-                    finalLoadKg = warmupWeight;
-                    repTempos = Array.from({ length: 25 }, (_, i) => Number((1.36 + (i % 5) * 0.03).toFixed(1)));
-                    coachFeedback = `워밍업 세트: 가벼운 부하(${warmupWeight}kg)로 25회 고반복 펌핑 완료. 광배근 신경계 활성화 및 관절 윤활액 분비.`;
-                } else if (s === 2) {
-                    setType = 'MAIN';
-                    setTypeLabel = '본 세트 (탑)';
-                    reps = 10;
-                    targetReps = 10;
-                    startLoadKg = baseWeight; // 무게 확 늘림!
-                    finalLoadKg = baseWeight;
-                    repTempos = Array.from({ length: 10 }, (_, i) => Number((baseTempo + i * 0.03).toFixed(1)));
-                    coachFeedback = `본 세트(탑 세트): 최고 부하 ${baseWeight}kg 진입. 최대 근력으로 10회 목표 완벽 완수.`;
-                } else if (s === 3) {
-                    setType = 'DROP';
-                    setTypeLabel = '드랍 세트 (-10kg)';
-                    dropDiffKg = -10.0;
-                    reps = 12; // 10kg 빼고 12회 한계점까지
-                    targetReps = 12;
-                    startLoadKg = dropWeight; // 10kg 감량!
-                    finalLoadKg = dropWeight;
-                    repTempos = Array.from({ length: 12 }, (_, i) => Number((baseTempo - 0.12 + i * 0.035).toFixed(1)));
-                    coachFeedback = `드랍 세트: 탑 세트 대비 -10kg 감량(${dropWeight}kg) 후 12회 한계 완수. 잔여 근섬유를 끝까지 털어내는 슈퍼 펌핑 완료.`;
-                }
-            }
-            // 4. 고강도 4세트 루틴 (오늘 10/8 신기록일 및 요일별 고볼륨일)
-            else if (setCount === 4) {
-                if (s === 1) {
-                    setType = 'WARMUP';
-                    setTypeLabel = '워밍업';
-                    reps = 25;
-                    targetReps = 25;
-                    startLoadKg = warmupWeight;
-                    finalLoadKg = warmupWeight;
-                    repTempos = Array.from({ length: 25 }, (_, i) => Number((1.35 + (i % 5) * 0.03).toFixed(1)));
-                    coachFeedback = `워밍업 세트: ${warmupWeight}kg 경량 부하 25회 고반복 예열 완료.`;
-                } else if (s === 2) {
-                    setType = 'MAIN';
-                    setTypeLabel = '본 세트 1 (탑)';
-                    reps = 10;
-                    targetReps = 10;
-                    startLoadKg = baseWeight; // 최고 중량!
-                    finalLoadKg = baseWeight;
-                    repTempos = Array.from({ length: 10 }, (_, i) => Number((baseTempo + i * 0.03).toFixed(1)));
-                    coachFeedback = `본 세트 1: 최고 부하 ${baseWeight}kg 고출력 10회 완수.`;
-                } else if (s === 3) {
-                    setType = 'MAIN';
-                    setTypeLabel = '본 세트 2';
-                    reps = 10;
-                    targetReps = 10;
-                    startLoadKg = baseWeight;
-                    finalLoadKg = baseWeight;
-                    repTempos = Array.from({ length: 10 }, (_, i) => Number((baseTempo + 0.04 + i * 0.04).toFixed(1)));
-                    coachFeedback = `본 세트 2: ${baseWeight}kg 2차 탑 세트 유지 완수.`;
-                } else if (s === 4) {
-                    setType = 'DROP';
-                    setTypeLabel = '드랍 세트 (-10kg)';
-                    dropDiffKg = -10.0;
-                    reps = (dayIdx === 37) ? 10 : 12; // 오늘 10/8은 10회 폭발적 마무리
-                    targetReps = (dayIdx === 37) ? 10 : 12;
-                    startLoadKg = dropWeight; // 10kg 감량!
-                    finalLoadKg = dropWeight;
-                    repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo - 0.10 + i * 0.035).toFixed(1)));
-                    coachFeedback = `드랍 세트: -10kg 감량(${dropWeight}kg) 피니셔. 광배근 완전 번아웃 달성.`;
-                }
+            if (s === 1) {
+                // Set 1: 워밍업 세트 (가벼운 무게로 20~30회 고반복 예열)
+                setType = 'WARMUP';
+                setTypeLabel = '워밍업';
+                reps = config.isShortSession ? 20 : 25;
+                targetReps = reps;
+                startLoadKg = warmupWeight;
+                finalLoadKg = warmupWeight;
+                repTempos = Array.from({ length: reps }, (_, i) => Number((1.36 + (i % 5) * 0.03).toFixed(1)));
+                coachFeedback = `[워밍업] 가벼운 부하(${warmupWeight}kg)로 ${reps}회 고반복 예열 완료. 관절 윤활액 분비 및 신경계 활성화.`;
+            } else if (s === 2) {
+                // Set 2: 본 세트 1 (탑 세트) - 최고 부하로 무게 확 늘림!
+                setType = 'MAIN';
+                setTypeLabel = '본 세트';
+                reps = (config.isShortSession && config.repsList && config.repsList[1]) ? config.repsList[1] : 10;
+                targetReps = 10;
+                startLoadKg = baseWeight;
+                finalLoadKg = baseWeight;
+                repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo + i * 0.03).toFixed(1)));
+                coachFeedback = `[본 세트 1] 최고 부하 ${baseWeight}kg 탑 세트 완수. 최대 수축 장력으로 본 세트 유효 반복 달성.`;
+            } else {
+                // Set 3 ~ N: 본 세트 2 ~ N (드랍 형식: 탑 세트에서 10kg 낮춰 고볼륨 소화)
+                setType = 'MAIN';
+                setTypeLabel = '본 세트';
+                isDroppedLoad = true;
+                startLoadKg = dropWeight; // 10kg 감량 드랍 형식!
+                finalLoadKg = dropWeight;
+                reps = (s === 3 ? 12 : (s === 4 ? 11 : 10)); // 감량 부하로 10~12회 수행
+                targetReps = 12;
+                repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo - 0.12 + (i % 6) * 0.03).toFixed(1)));
+                const mainSetIdx = s - 1;
+                coachFeedback = `[본 세트 ${mainSetIdx}] 부하 10kg 감량(${dropWeight}kg) 드랍 방식으로 ${reps}회 완수. 잔여 근섬유 완전 소진.`;
             }
 
             const setDurationSec = Math.max(15, Math.round(repTempos.reduce((a, b) => a + b, 0)));
@@ -611,8 +531,8 @@ function generateWorkoutHistory() {
             }
             const completeStr = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
 
-            // 세트 간 휴식 시간 경과 (워밍업 후 휴식은 45초, 드랍세트 전 휴식은 짧게 40초 등)
-            const restSecThisSet = s === 1 ? 0 : (setType === 'DROP' ? Math.min(45, config.restSec) : config.restSec);
+            // 세트 간 휴식 시간 경과
+            const restSecThisSet = s === 1 ? 0 : (s >= 3 ? Math.min(50, config.restSec) : config.restSec);
             currentSeconds += restSecThisSet;
             while (currentSeconds >= 60) {
                 currentMinutes += 1;
@@ -624,7 +544,7 @@ function generateWorkoutHistory() {
                 set: s,
                 setType: setType,
                 setTypeLabel: setTypeLabel,
-                dropDiffKg: dropDiffKg,
+                isDroppedLoad: isDroppedLoad,
                 reps: reps,
                 targetReps: targetReps,
                 baseWeightKg: baseWeight,

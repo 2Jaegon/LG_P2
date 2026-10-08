@@ -3727,21 +3727,11 @@
             color: var(--lg-red);
             border: 1px solid var(--lg-red-line);
         }
-        .set-type-pill.drop {
-            background: rgba(147, 51, 234, 0.12);
-            color: #9333EA;
-            border: 1px solid rgba(147, 51, 234, 0.3);
-        }
 
         .set-tag.warmup {
             background: rgba(255, 149, 0, 0.12) !important;
             color: #FF9500 !important;
             border-color: rgba(255, 149, 0, 0.3) !important;
-        }
-        .set-tag.drop {
-            background: rgba(147, 51, 234, 0.12) !important;
-            color: #9333EA !important;
-            border-color: rgba(147, 51, 234, 0.3) !important;
         }
 
         .set-load-badge.warmup {
@@ -3750,23 +3740,6 @@
             border: 1px solid rgba(255, 149, 0, 0.25);
             padding: 2px 7px;
             border-radius: 999px;
-        }
-        .set-load-badge.drop {
-            background: rgba(147, 51, 234, 0.08);
-            color: #9333EA;
-            border: 1px solid rgba(147, 51, 234, 0.25);
-            padding: 2px 7px;
-            border-radius: 999px;
-        }
-        .set-drop-tag {
-            font-size: 0.70rem;
-            font-weight: 800;
-            color: #9333EA;
-            background: rgba(147, 51, 234, 0.12);
-            border: 1px solid rgba(147, 51, 234, 0.25);
-            padding: 2px 7px;
-            border-radius: 999px;
-            margin-left: 4px;
         }
 
         .history-item-right {
@@ -6006,13 +5979,11 @@
                 const remS = dayDurationSec % 60;
                 const durationStr = firstSet.workoutDurationFormatted || (m > 0 ? `${m}분${remS > 0 ? ' ' + remS + '초' : ''}` : `${remS}초`);
 
-                // 워밍업 / 본세트 / 드랍세트 구성 분석
+                // 워밍업 vs 본 세트 구성 분석
                 const warmupSet = sets.find(s => s.isWarmup || s.setType === 'WARMUP');
-                const mainSets = sets.filter(s => (!s.isWarmup && !s.isDropSet && s.setType !== 'WARMUP' && s.setType !== 'DROP'));
-                const dropSets = sets.filter(s => s.isDropSet || s.setType === 'DROP');
+                const mainSets = sets.filter(s => !s.isWarmup && s.setType !== 'WARMUP');
                 const maxLoadKg = Math.max(...sets.map(s => s.finalLoadKg || s.baseWeightKg || 0));
                 const warmupKg = warmupSet ? (warmupSet.finalLoadKg || warmupSet.startLoadKg) : 0;
-                const dropKg = dropSets.length > 0 ? (dropSets[0].finalLoadKg || dropSets[0].startLoadKg) : 0;
 
                 return {
                     date: d,
@@ -6026,10 +5997,8 @@
                     durationStr: durationStr,
                     warmupSet: warmupSet,
                     mainSets: mainSets,
-                    dropSets: dropSets,
                     maxLoadKg: maxLoadKg,
-                    warmupKg: warmupKg,
-                    dropKg: dropKg
+                    warmupKg: warmupKg
                 };
             });
         }
@@ -6132,18 +6101,16 @@
                         <div class="history-sets-wrap" style="max-height: 250px;">
                             ${grp.sets.map((item, idx) => {
                     const loadKg = (item.finalLoadKg || item.baseWeightKg || 70).toFixed(1);
-                    const typeClass = item.setType ? item.setType.toLowerCase() : (item.isWarmup ? 'warmup' : (item.isDropSet ? 'drop' : 'main'));
-                    const typeLabel = item.setTypeLabel || (item.isWarmup ? '워밍업' : (item.isDropSet ? '드랍 세트' : '본 세트'));
+                    const isWarm = item.isWarmup || item.setType === 'WARMUP';
+                    const typeClass = isWarm ? 'warmup' : 'main';
+                    const typeLabel = isWarm ? '워밍업' : '본 세트';
                     return `
                                     <div class="history-item" data-set-id="${item.id || ''}" data-idx="${idx}">
                                         <div class="history-item-left">
                                             <span class="set-tag ${typeClass}">SET ${item.set}</span>
                                             <span class="set-type-pill ${typeClass}">${typeLabel}</span>
                                             <span class="set-reps">${item.reps}회 완료</span>
-                                            <span class="set-load-badge ${typeClass}">
-                                                ${loadKg}kg
-                                                ${item.isDropSet ? '<span class="set-drop-tag">-10kg 드랍</span>' : ''}
-                                            </span>
+                                            <span class="set-load-badge ${typeClass}">${loadKg}kg</span>
                                         </div>
                                         <div class="history-item-right">
                                             <span class="set-tempo">${item.avgTempo}초</span>
@@ -6321,8 +6288,9 @@
                         </div>
                         <div class="history-sets-wrap">
                             ${grp.sets.map((item, idx) => {
-                                const typeClass = item.setType ? item.setType.toLowerCase() : (item.isWarmup ? 'warmup' : (item.isDropSet ? 'drop' : 'main'));
-                                const typeLabel = item.setTypeLabel || (item.isWarmup ? '워밍업' : (item.isDropSet ? '드랍 세트' : '본 세트'));
+                                const isWarm = item.isWarmup || item.setType === 'WARMUP';
+                                const typeClass = isWarm ? 'warmup' : 'main';
+                                const typeLabel = isWarm ? '워밍업' : '본 세트';
                                 const loadKg = (item.finalLoadKg || item.baseWeightKg || 70).toFixed(1);
                                 return `
                                 <div class="history-item" data-set-id="${item.id || ''}" data-idx="${idx}">
@@ -6330,14 +6298,11 @@
                                         <span class="set-tag ${typeClass}">SET ${item.set}</span>
                                         <span class="set-type-pill ${typeClass}">${typeLabel}</span>
                                         <span class="set-reps">
-                                            <strong>${item.reps || 0}</strong>회 <span class="set-reps-target">/ ${item.targetReps || (item.isWarmup ? 25 : 10)}회 목표</span>
+                                            <strong>${item.reps || 0}</strong>회 <span class="set-reps-target">/ ${item.targetReps || (isWarm ? 25 : 10)}회 목표</span>
                                         </span>
                                         <span class="set-tempo">평균 <strong>${(item.avgTempo || 0).toFixed(1)}초</strong></span>
                                         <span class="rom-mini-badge ${item.romRating || 'GOOD'}">${item.romRating || 'GOOD'}</span>
-                                        <span class="set-load-badge ${typeClass}">
-                                            부하 ${loadKg}kg
-                                            ${item.isDropSet ? '<span class="set-drop-tag">-10kg 드랍</span>' : ''}
-                                        </span>
+                                        <span class="set-load-badge ${typeClass}">부하 ${loadKg}kg</span>
                                         <span class="set-duration-badge" style="font-size: 0.72rem; padding: 2px 7px; background: rgba(0, 102, 255, 0.08); color: #0066FF; border-radius: 999px; font-weight: 700;">소요 ${item.setDurationSeconds || Math.round((item.avgTempo || 2.0) * (item.reps || 10))}초</span>
                                         ${(item.loadChanges && item.loadChanges.length > 0) ? `
                                             <span class="set-assist-badge">
@@ -6451,13 +6416,14 @@
             const assistLvl = item.assistLevel || 0;
             const assistText = assistLvl > 0 ? `Lv.${assistLvl} (-${Math.min(60, assistLvl * 15)}%)` : '맨몸 100%';
 
-            const typeName = item.setTypeLabel || (item.isWarmup ? '워밍업' : (item.isDropSet ? '드랍 세트' : '본 세트'));
+            const isWarm = item.isWarmup || item.setType === 'WARMUP';
+            const typeName = isWarm ? '워밍업' : '본 세트';
             if (titleEl) {
                 titleEl.textContent = `SET ${item.set} [${typeName}] 상세 텔레메트리`;
             }
             if (subEl) {
-                const dropTagStr = item.isDropSet ? ' · 10kg 감량 드랍 세트' : (item.isWarmup ? ' · 경량 고반복 예열' : ' · 최고 중량 탑 세트');
-                subEl.textContent = `${formatDisplayDate(item.date)} ${item.completedAt || ''} 완수 기록 (${typeName}${dropTagStr})`;
+                const subDesc = isWarm ? ' · 경량 고반복 예열' : ' · 부하 세트 완수';
+                subEl.textContent = `${formatDisplayDate(item.date)} ${item.completedAt || ''} 완수 기록 (${typeName}${subDesc})`;
             }
 
             const tempos = item.repTempos && item.repTempos.length > 0

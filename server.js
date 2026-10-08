@@ -75,10 +75,14 @@ app.get('/api/history', (req, res) => {
     try {
         delete require.cache[require.resolve('./workoutHistoryData')];
         const fresh = require('./workoutHistoryData');
-        if (fresh && fresh.initialSetHistory) {
+        if (fresh && typeof fresh.generateWorkoutHistory === 'function') {
+            setHistory = fresh.generateWorkoutHistory();
+        } else if (fresh && fresh.initialSetHistory) {
             setHistory = fresh.initialSetHistory;
         }
-    } catch (e) {}
+    } catch (e) {
+        console.error('Failed to reload workoutHistoryData:', e);
+    }
     res.json({ success: true, count: setHistory.length, setHistory });
 });
 
