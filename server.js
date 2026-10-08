@@ -14,6 +14,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // =================== High-Quality Neural TTS API (Microsoft Azure SunHi) ===================
 const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
 
+// 반복 안내 음성 메모리 캐시 (0ms 초고속 반응)
+const ttsCache = new Map();
+
 app.get('/api/tts', async (req, res) => {
     try {
         const text = (req.query.text || '').trim();
@@ -26,13 +29,35 @@ app.get('/api/tts', async (req, res) => {
 
         if (!clean) return res.status(400).send('Empty text');
 
-        const voice = req.query.voice || 'ko-KR-SunHiNeural';
+        // 기본 음성: ko-KR-InJoonNeural (전문 스포츠 아나운서 스타일)
+        // 기본 속도: +20% (경쾌하고 빠른 전달력)
+        const voice = req.query.voice || 'ko-KR-InJoonNeural';
+        const rate = req.query.rate || '+20%';
+        const pitch = req.query.pitch || '+0Hz';
+
+        const cacheKey = `${voice}_${rate}_${pitch}_${clean}`;
+        if (ttsCache.has(cacheKey)) {
+            const cachedBuf = ttsCache.get(cacheKey);
+            res.setHeader('Content-Type', 'audio/mpeg');
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            return res.end(cachedBuf);
+        }
+
         const tts = new MsEdgeTTS();
         await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
 
-        const { audioStream } = tts.toStream(clean);
+        const { audioStream } = tts.toStream(clean, { rate, pitch });
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Cache-Control', 'public, max-age=86400');
+
+        const chunks = [];
+        audioStream.on('data', chunk => chunks.push(chunk));
+        audioStream.on('end', () => {
+            const buf = Buffer.concat(chunks);
+            if (ttsCache.size < 300) {
+                ttsCache.set(cacheKey, buf);
+            }
+        });
 
         audioStream.pipe(res);
         audioStream.on('error', (err) => {

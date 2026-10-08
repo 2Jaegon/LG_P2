@@ -3445,8 +3445,8 @@
                 <li>
                     <button type="button" class="sidebar-link" id="menuTargetSettings">
                         <div class="sidebar-link-text">
-                            <span class="title">목표 &amp; 휴식 시간 설정</span>
-                            <span class="desc">목표 세트/반복 및 AI 권장 휴식</span>
+                            <span class="title">목표 · 휴식 · 음성 설정</span>
+                            <span class="desc">목표 세트/반복 및 아나운서 음성/속도 설정</span>
                         </div>
                         <span class="sidebar-pill">SETTING</span>
                     </button>
@@ -3528,6 +3528,31 @@
                         <button type="button" class="setting-chip" data-val="90">90초</button>
                         <button type="button" class="setting-chip" data-val="120">120초</button>
                     </div>
+                </div>
+
+                <div class="setting-row">
+                    <span class="setting-label">아나운서 음성 보이스 (TTS Voice)</span>
+                    <div class="chip-group" id="voiceChipGroup">
+                        <button type="button" class="setting-chip active" data-val="ko-KR-InJoonNeural">🎙️ 인준 (스포츠 아나운서 · 추천)</button>
+                        <button type="button" class="setting-chip" data-val="ko-KR-HyunsuMultilingualNeural">🎙️ 현수 (자연스러운 코치)</button>
+                        <button type="button" class="setting-chip" data-val="ko-KR-SunHiNeural">🎙️ 선희 (기존 여성 안내원)</button>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <span class="setting-label">음성 안내 속도 (Voice Speed)</span>
+                    <div class="chip-group" id="voiceRateChipGroup">
+                        <button type="button" class="setting-chip" data-val="+0%">보통 (1.0x)</button>
+                        <button type="button" class="setting-chip" data-val="+15%">빠름 (1.15x)</button>
+                        <button type="button" class="setting-chip active" data-val="+20%">아나운서 속도 (1.2x · 추천)</button>
+                        <button type="button" class="setting-chip" data-val="+25%">매우 빠름 (1.25x)</button>
+                    </div>
+                </div>
+
+                <div class="setting-row" style="margin-top: 6px;">
+                    <button type="button" class="setting-chip" id="btnPreviewVoice" style="border-color: #0066FF; color: #0066FF; font-weight: 700; width: 100%; justify-content: center; padding: 9px 12px; background: rgba(0, 102, 255, 0.06); cursor: pointer;">
+                        🔊 선택한 음성 미리듣기 ("정체 감지. 무게 5kg 감소합니다.")
+                    </button>
                 </div>
             </div>
             <div class="modal-footer">
@@ -4012,6 +4037,8 @@
         let isSpeechListening = false;
         let speechRecognition = null;
         let lastSpokenDecision = '';
+        let currentSelectedVoice = localStorage.getItem('lg_well_tts_voice') || 'ko-KR-InJoonNeural';
+        let currentSelectedRate = localStorage.getItem('lg_well_tts_rate') || '+20%';
         let koreanVoice = null;
         let currentTtsAudio = null;
 
@@ -4019,10 +4046,13 @@
             if (typeof window === 'undefined' || !window.speechSynthesis) return;
             try {
                 const voices = window.speechSynthesis.getVoices();
-                // 1순위: Natural / Neural / Online / SunHi / InJoon / Google 고품질 신경망 보이스
+                // 1순위: Natural / Neural / Online / InJoon / Hyunsu / Google 고품질 신경망 보이스
                 let best = voices.find(v => (v.lang.startsWith('ko') || v.lang.includes('KR')) &&
-                    (/natural|neural|online|sunhi|injoon|google/i.test(v.name)));
-                // 2순위: 기타 한국어 보이스 (기본 로컬 보이스)
+                    (/injoon|hyunsu|natural|neural|online|google/i.test(v.name)));
+                // 2순위: 기타 한국어 보이스 (로봇 같은 Heami 제외 우선)
+                if (!best) {
+                    best = voices.find(v => (v.lang === 'ko-KR' || v.lang.startsWith('ko')) && !/heami/i.test(v.name));
+                }
                 if (!best) {
                     best = voices.find(v => v.lang === 'ko-KR' || v.lang === 'ko_KR' || v.lang.startsWith('ko'));
                 }
@@ -4061,7 +4091,7 @@
             }
         }
 
-        // 고품질 자연스러운 신경망 음성 (Microsoft Azure SunHi Neural) 단일 발화 제어기
+        // 고품질 자연스러운 신경망 음성 (Microsoft Azure InJoon / Hyunsu Neural) 단일 발화 제어기
         function speakAgentVoice(text) {
             if (!isVoiceAudioEnabled) return;
             try {
@@ -4077,8 +4107,10 @@
                 stopAllSpeech();
                 const thisToken = currentSpeechToken;
 
-                // 1. 고품질 신경망 AI TTS 서비스 시도 (SunHi Neural: 생생하고 활기찬 코칭 보이스)
-                const ttsUrl = `/api/tts?text=${encodeURIComponent(cleanText)}&v=${Date.now()}`;
+                // 1. 고품질 신경망 AI TTS 서비스 시도 (InJoon Neural: 생생하고 활기찬 전문 아나운서 보이스, +20% 빠른 템포)
+                const voice = currentSelectedVoice || 'ko-KR-InJoonNeural';
+                const rate = currentSelectedRate || '+20%';
+                const ttsUrl = `/api/tts?text=${encodeURIComponent(cleanText)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(rate)}&v=${Date.now()}`;
                 const audio = new Audio(ttsUrl);
                 currentTtsAudio = audio;
 
@@ -4091,8 +4123,8 @@
                         window.speechSynthesis.cancel();
                         const utter = new SpeechSynthesisUtterance(cleanText);
                         utter.lang = 'ko-KR';
-                        utter.rate = 1.05;
-                        utter.pitch = 1.05;
+                        utter.rate = 1.25; // 빠르고 또렷한 아나운서 템포
+                        utter.pitch = 1.0;
                         if (!koreanVoice) loadKoreanVoice();
                         if (koreanVoice) utter.voice = koreanVoice;
                         window.speechSynthesis.speak(utter);
@@ -4808,7 +4840,7 @@
                     window.speechSynthesis.cancel();
                     const utter = new SpeechSynthesisUtterance(speechText);
                     utter.lang = 'ko-KR';
-                    utter.rate = 1.15; // 힘차고 명확한 카운트 템포
+                    utter.rate = 1.25; // 힘차고 명확한 아나운서 카운트 템포
                     utter.pitch = 1.05;
                     if (!koreanVoice) loadKoreanVoice();
                     if (koreanVoice) utter.voice = koreanVoice;
@@ -6489,6 +6521,16 @@
                 const val = parseInt(chip.getAttribute('data-val'), 10);
                 chip.classList.toggle('active', val === selectedRestTime);
             });
+            const voiceChips = document.querySelectorAll('#voiceChipGroup .setting-chip');
+            voiceChips.forEach(chip => {
+                const val = chip.getAttribute('data-val');
+                chip.classList.toggle('active', val === currentSelectedVoice);
+            });
+            const voiceRateChips = document.querySelectorAll('#voiceRateChipGroup .setting-chip');
+            voiceRateChips.forEach(chip => {
+                const val = chip.getAttribute('data-val');
+                chip.classList.toggle('active', val === currentSelectedRate);
+            });
             if (targetSettingsModal) targetSettingsModal.classList.add('active');
         }
 
@@ -6528,8 +6570,36 @@
             });
         });
 
+        const voiceChips = document.querySelectorAll('#voiceChipGroup .setting-chip');
+        voiceChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                voiceChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                currentSelectedVoice = chip.getAttribute('data-val') || 'ko-KR-InJoonNeural';
+            });
+        });
+
+        const voiceRateChips = document.querySelectorAll('#voiceRateChipGroup .setting-chip');
+        voiceRateChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                voiceRateChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                currentSelectedRate = chip.getAttribute('data-val') || '+20%';
+            });
+        });
+
+        const btnPreviewVoice = document.getElementById('btnPreviewVoice');
+        if (btnPreviewVoice) {
+            btnPreviewVoice.addEventListener('click', () => {
+                speakAgentVoice("정체 감지. 무게 5kg 감소합니다.");
+            });
+        }
+
         if (btnApplyTargetModal) {
             btnApplyTargetModal.addEventListener('click', () => {
+                localStorage.setItem('lg_well_tts_voice', currentSelectedVoice);
+                localStorage.setItem('lg_well_tts_rate', currentSelectedRate);
+
                 socket.emit('updateSettings', {
                     targetReps: selectedTargetReps,
                     targetSets: selectedTargetSets,
@@ -6541,7 +6611,7 @@
                 syncRestTimeToUI(selectedRestTime);
                 if (targetRepsEl) targetRepsEl.textContent = `${selectedTargetReps}회`;
                 closeTargetModal();
-                speakAgentVoice(`목표 ${selectedTargetSets}세트, 세트당 ${selectedTargetReps}회, 권장 휴식 시간 ${selectedRestTime}초로 설정을 완료했습니다.`);
+                speakAgentVoice(`설정이 저장되었습니다.`);
             });
         }
 
