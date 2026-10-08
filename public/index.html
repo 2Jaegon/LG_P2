@@ -715,11 +715,9 @@
         }
 
         .agent-status.ASSIST {
-            background: linear-gradient(135deg, #0066FF 0%, #0047BA 100%);
-            border-color: transparent;
-            color: #fff;
-            font-weight: 800;
-            box-shadow: 0 4px 14px rgba(0, 102, 255, 0.45);
+            background: rgba(0, 102, 255, 0.12);
+            border-color: rgba(0, 102, 255, 0.25);
+            color: #0066FF;
         }
 
         /* ---------- Hero Thinking Orb Showcase & Compact Action Box ---------- */
@@ -798,8 +796,17 @@
         }
 
         @keyframes orbPulse {
-            0%, 100% { opacity: 0.4; transform: scale(0.9); }
-            50% { opacity: 1; transform: scale(1.2); }
+
+            0%,
+            100% {
+                opacity: 0.4;
+                transform: scale(0.9);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
         }
 
         /* Bottom Control & Action Area */
@@ -1055,119 +1062,73 @@
         }
 
         @keyframes dangerVignetteGlow {
-            0%, 100% {
+
+            0%,
+            100% {
                 box-shadow: inset 0 0 70px 12px rgba(235, 10, 40, 0.25);
             }
+
             50% {
                 box-shadow: inset 0 0 120px 30px rgba(235, 10, 40, 0.55);
             }
         }
 
-        /* =================== 정체 감지 (ASSIST) 파란색 그라데이션 UI =================== */
-        /* 1. 화면 전체 가장자리 & 배경 네온 블루 비네트 방사형 그라데이션 */
         body.assist::before {
             content: '';
             position: fixed;
             inset: 0;
             pointer-events: none;
             z-index: 9990;
-            background: radial-gradient(circle at 50% 50%, rgba(0, 102, 255, 0) 30%, rgba(0, 102, 255, 0.14) 72%, rgba(0, 75, 220, 0.32) 100%);
-            box-shadow: inset 0 0 110px 30px rgba(0, 102, 255, 0.48), inset 0 0 200px 70px rgba(0, 150, 255, 0.22);
+            box-shadow: inset 0 0 90px 18px rgba(0, 102, 255, 0.4);
             animation: assistVignetteGlow 1.6s ease-in-out infinite;
         }
 
         @keyframes assistVignetteGlow {
-            0%, 100% {
-                opacity: 0.85;
-                box-shadow: inset 0 0 90px 22px rgba(0, 102, 255, 0.38), inset 0 0 170px 50px rgba(0, 150, 255, 0.18);
+
+            0%,
+            100% {
+                box-shadow: inset 0 0 70px 12px rgba(0, 102, 255, 0.25);
             }
+
             50% {
-                opacity: 1;
-                box-shadow: inset 0 0 140px 45px rgba(0, 102, 255, 0.65), inset 0 0 240px 90px rgba(0, 150, 255, 0.35);
+                box-shadow: inset 0 0 120px 30px rgba(0, 102, 255, 0.55);
             }
         }
 
-        /* 2. 메인 AI 에이전트 카드 파란색 그라데이션 & 네온 글로우 */
+        /* assist state (정체 감지 & 스마트 부하 감소) */
         body.assist .agent-card {
-            background: linear-gradient(135deg, rgba(0, 102, 255, 0.12) 0%, rgba(0, 70, 200, 0.04) 100%) !important;
-            border-color: rgba(0, 102, 255, 0.65) !important;
-            box-shadow: 0 0 36px rgba(0, 102, 255, 0.28), inset 0 0 20px rgba(0, 102, 255, 0.08) !important;
+            background: rgba(0, 102, 255, 0.08) !important;
+            border-color: rgba(0, 102, 255, 0.5) !important;
+            box-shadow: 0 0 30px rgba(0, 102, 255, 0.25) !important;
         }
 
         body.assist .agent-decision {
-            background: linear-gradient(135deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.06) 100%) !important;
+            background: rgba(0, 102, 255, 0.1) !important;
             color: #0066FF !important;
-            border: 1.5px solid rgba(0, 102, 255, 0.45) !important;
+            border: 1px solid rgba(0, 102, 255, 0.3) !important;
             font-weight: 700 !important;
-            box-shadow: 0 2px 14px rgba(0, 102, 255, 0.2) !important;
         }
 
-        /* 3. 풀업 무대(Stage) 블루 그라데이션 오버레이 & 바/필 파란색 변환 */
         body.assist .stage {
             border-color: #0066FF !important;
-            background: 
-                radial-gradient(ellipse at 50% 50%, rgba(0, 102, 255, 0.16) 0%, rgba(0, 70, 200, 0.05) 60%, transparent 100%),
-                repeating-linear-gradient(0deg, rgba(0, 102, 255, 0.06) 0 1px, transparent 1px 54px),
-                var(--surface-2) !important;
-            box-shadow: 0 0 38px rgba(0, 102, 255, 0.45), inset 0 0 30px rgba(0, 102, 255, 0.18) !important;
+            box-shadow: 0 0 28px rgba(0, 102, 255, 0.35) !important;
             animation: assistPulse 1.2s ease-in-out infinite !important;
         }
 
-        body.assist .fill {
-            background: linear-gradient(180deg, rgba(0, 102, 255, 0.45) 0%, rgba(0, 198, 255, 0.12) 100%) !important;
-            box-shadow: 0 0 22px rgba(0, 102, 255, 0.35) !important;
-        }
-
-        body.assist .grip {
-            background: #0066FF !important;
-            box-shadow: 0 4px 18px rgba(0, 102, 255, 0.8) !important;
-        }
-
-        body.assist .bar-rod {
-            background: linear-gradient(180deg, #1A4480, #0B254A) !important;
-        }
-
-        body.assist .agent-hero-orb-backdrop {
-            background: radial-gradient(circle, rgba(0, 102, 255, 0.28) 0%, rgba(0, 102, 255, 0) 70%) !important;
-        }
-
-        body.assist .agent-hero-orb-container {
-            border-color: #0066FF !important;
-            box-shadow: 0 0 32px rgba(0, 102, 255, 0.55) !important;
-        }
-
-        /* 4. 부하(무게) 표시 박스 블루 그라데이션 */
-        body.assist .metric-box.load-box,
-        .metric-box.load-box.assisting {
-            border-color: #0066FF !important;
-            background: linear-gradient(180deg, var(--surface) 35%, rgba(0, 102, 255, 0.14) 100%) !important;
-            box-shadow: 0 4px 24px rgba(0, 102, 255, 0.28) !important;
-        }
-
-        body.assist .metric-box.load-box .m-val,
-        .metric-box.load-box.assisting .m-val {
-            color: #0066FF !important;
-            text-shadow: 0 0 12px rgba(0, 102, 255, 0.35) !important;
-        }
-
-        body.assist .metric-box.load-box .load-gauge-fill,
-        .metric-box.load-box.assisting .load-gauge-fill {
-            background: linear-gradient(90deg, #00E5FF, #0066FF) !important;
-            box-shadow: 0 0 12px rgba(0, 102, 255, 0.75) !important;
-        }
-
         @keyframes assistPulse {
+
             0%,
             100% {
-                box-shadow: inset 0 0 0 0 rgba(0, 102, 255, 0), 0 0 18px rgba(0, 102, 255, 0.25);
+                box-shadow: inset 0 0 0 0 rgba(0, 102, 255, 0), 0 0 15px rgba(0, 102, 255, 0.2);
             }
 
             50% {
-                box-shadow: inset 0 0 0 8px rgba(0, 102, 255, 0.25), 0 0 38px rgba(0, 102, 255, 0.55);
+                box-shadow: inset 0 0 0 8px rgba(0, 102, 255, 0.22), 0 0 30px rgba(0, 102, 255, 0.45);
             }
         }
 
         @keyframes pulse {
+
             0%,
             100% {
                 box-shadow: inset 0 0 0 0 rgba(165, 0, 52, 0), 0 0 15px rgba(165, 0, 52, 0.2);
@@ -1328,10 +1289,13 @@
         }
 
         @keyframes dangerPulseBox {
-            0%, 100% {
+
+            0%,
+            100% {
                 border-color: rgba(235, 10, 40, 0.45);
                 box-shadow: 0 8px 24px rgba(235, 10, 40, 0.15);
             }
+
             50% {
                 border-color: rgba(235, 10, 40, 0.85);
                 box-shadow: 0 10px 32px rgba(235, 10, 40, 0.35);
@@ -1408,9 +1372,17 @@
             box-shadow: 0 8px 24px rgba(255, 77, 77, 0.2) !important;
             animation: detachPulseBox 2s infinite ease-in-out !important;
         }
+
         @keyframes detachPulseBox {
-            0%, 100% { border-color: rgba(255, 77, 77, 0.45); }
-            50% { border-color: rgba(255, 77, 77, 0.9); }
+
+            0%,
+            100% {
+                border-color: rgba(255, 77, 77, 0.45);
+            }
+
+            50% {
+                border-color: rgba(255, 77, 77, 0.9);
+            }
         }
 
         /* 2. 좌우 불균형 배너 스타일 */
@@ -1420,9 +1392,17 @@
             box-shadow: 0 8px 24px rgba(245, 159, 0, 0.2) !important;
             animation: imbalancePulseBox 2s infinite ease-in-out !important;
         }
+
         @keyframes imbalancePulseBox {
-            0%, 100% { border-color: rgba(245, 159, 0, 0.45); }
-            50% { border-color: rgba(245, 159, 0, 0.9); }
+
+            0%,
+            100% {
+                border-color: rgba(245, 159, 0, 0.45);
+            }
+
+            50% {
+                border-color: rgba(245, 159, 0, 0.9);
+            }
         }
 
         /* 3. 본 운동 재돌입 확인 배너 스타일 */
@@ -1432,29 +1412,26 @@
             box-shadow: 0 8px 24px rgba(32, 201, 151, 0.2) !important;
             animation: confirmPulseBox 2s infinite ease-in-out !important;
         }
-        /* 4. 중간 정체 감지 스마트 감량 배너 스타일 (파란색 네온 그라데이션 UI) */
+
+        /* 4. 중간 정체 감지 스마트 감량 배너 스타일 (파란색 네온 UI) */
         .main-assist-alert {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            background: linear-gradient(135deg, rgba(0, 102, 255, 0.22) 0%, rgba(0, 140, 255, 0.10) 100%) !important;
-            border: 1.5px solid rgba(0, 102, 255, 0.8) !important;
-            border-radius: var(--radius-md);
-            padding: 13px 18px;
-            margin-bottom: 12px;
-            box-shadow: 0 8px 30px rgba(0, 102, 255, 0.35) !important;
-            animation: assistPulseBox 1.6s infinite ease-in-out !important;
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.18) 0%, rgba(0, 82, 204, 0.08) 100%) !important;
+            border: 1.5px solid rgba(0, 102, 255, 0.65) !important;
+            box-shadow: 0 8px 24px rgba(0, 102, 255, 0.25) !important;
+            animation: assistPulseBox 1.8s infinite ease-in-out !important;
         }
 
         @keyframes assistPulseBox {
-            0%, 100% {
-                border-color: rgba(0, 102, 255, 0.55);
-                box-shadow: 0 8px 26px rgba(0, 102, 255, 0.25);
+
+            0%,
+            100% {
+                border-color: rgba(0, 102, 255, 0.45);
+                box-shadow: 0 8px 24px rgba(0, 102, 255, 0.2);
             }
+
             50% {
-                border-color: rgba(0, 102, 255, 1);
-                box-shadow: 0 10px 38px rgba(0, 102, 255, 0.55);
+                border-color: rgba(0, 102, 255, 0.95);
+                box-shadow: 0 10px 32px rgba(0, 102, 255, 0.45);
             }
         }
 
@@ -1464,14 +1441,14 @@
             gap: 6px;
             font-size: 0.82rem;
             font-weight: 800;
-            color: #fff;
-            background: linear-gradient(135deg, #0066FF 0%, #0044CC 100%);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #0066FF;
+            background: rgba(0, 102, 255, 0.12);
+            border: 1px solid rgba(0, 102, 255, 0.35);
             border-radius: 999px;
             padding: 6px 14px;
             white-space: nowrap;
             flex-shrink: 0;
-            box-shadow: 0 4px 14px rgba(0, 102, 255, 0.45);
+            box-shadow: 0 0 12px rgba(0, 102, 255, 0.2);
         }
 
         /* 무게 증량 잠금 뱃지 */
@@ -3033,6 +3010,7 @@
                 opacity: 0;
                 transform: translateY(6px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -3410,7 +3388,8 @@
                     <span>실시간 코칭</span>
                 </button>
                 <button type="button" class="gnb-tab-btn" id="gnbTabJournal">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                         <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -3459,7 +3438,8 @@
                             <span class="title">운동 일지 (Workout Journal)</span>
                             <span class="desc">날짜별 세트 기록 · 템포 · AI 텔레메트리</span>
                         </div>
-                        <span class="sidebar-pill" style="color: var(--lg-red); border-color: rgba(165,0,52,0.3); background: rgba(165,0,52,0.08); font-weight: 700;">JOURNAL</span>
+                        <span class="sidebar-pill"
+                            style="color: var(--lg-red); border-color: rgba(165,0,52,0.3); background: rgba(165,0,52,0.08); font-weight: 700;">JOURNAL</span>
                     </button>
                 </li>
                 <li>
@@ -3488,7 +3468,8 @@
             <div class="sidebar-group-title">아두이노 하드웨어 시나리오 (COM3)</div>
             <ul class="sidebar-menu">
                 <li>
-                    <button type="button" class="sidebar-link-btn" id="btnSimulateBodyDetach" style="margin-bottom: 6px;">
+                    <button type="button" class="sidebar-link-btn" id="btnSimulateBodyDetach"
+                        style="margin-bottom: 6px;">
                         <div class="sidebar-link-text">
                             <span class="title" style="color: #FF4D4D;">1번 버튼 (11번 핀)</span>
                             <span class="desc">신체 이탈 감지 &amp; 바 위치 고정 토글</span>
@@ -3496,18 +3477,10 @@
                     </button>
                 </li>
                 <li>
-                    <button type="button" class="sidebar-link-btn" id="btnSimulateImbalance" style="margin-bottom: 6px;">
+                    <button type="button" class="sidebar-link-btn" id="btnSimulateImbalance">
                         <div class="sidebar-link-text">
                             <span class="title" style="color: #F59F00;">2번 버튼 (12번 핀)</span>
                             <span class="desc">좌우 불균형 감지 &amp; 20kg 설정/잠금 토글</span>
-                        </div>
-                    </button>
-                </li>
-                <li>
-                    <button type="button" class="sidebar-link-btn" id="btnSimulateStall">
-                        <div class="sidebar-link-text">
-                            <span class="title" style="color: #0066FF;">중간 정체 감지 (스마트 ASSIST)</span>
-                            <span class="desc">3초 정체 시뮬레이션 · 파란색 그라데이션 UI</span>
                         </div>
                     </button>
                 </li>
@@ -3605,7 +3578,8 @@
             <div class="modal-header">
                 <div>
                     <h3 class="modal-title">운동 일지 (Workout Journal) &amp; 텔레메트리</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;">날짜별 세트 기록 · 평균 템포 · 부하 감경 내역 및 AI 바이오메트릭스</p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;">날짜별 세트 기록 · 평균 템포 · 부하 감경
+                        내역 및 AI 바이오메트릭스</p>
                 </div>
                 <button type="button" class="modal-close-btn" id="btnCloseHistoryModal" aria-label="닫기">✕</button>
             </div>
@@ -3681,7 +3655,9 @@
                 <span class="m-label">SET</span>
                 <div class="m-val-wrap">
                     <span id="setNumber" class="m-val">1</span>
-                    <span class="m-unit" style="font-size: 1.15rem; color: var(--text-muted); margin-left: 3px; font-weight: 600;">/ <strong id="targetSetsDisplay" style="color: var(--text-main);">5</strong></span>
+                    <span class="m-unit"
+                        style="font-size: 1.15rem; color: var(--text-muted); margin-left: 3px; font-weight: 600;">/
+                        <strong id="targetSetsDisplay" style="color: var(--text-main);">5</strong></span>
                 </div>
                 <div id="restStateBadge" class="m-sub rest-badge">1세트 진행 중</div>
             </div>
@@ -3692,7 +3668,8 @@
                     <span id="loadKgDisplay" class="m-val">70.0</span>
                     <span class="m-unit">kg</span>
                 </div>
-                <div class="m-sub" id="loadSubText">설정 무게: <strong id="baseWeightDisplay" class="num">70.0kg</strong></div>
+                <div class="m-sub" id="loadSubText">설정 무게: <strong id="baseWeightDisplay" class="num">70.0kg</strong>
+                </div>
             </div>
 
             <div class="metric-box">
@@ -3753,34 +3730,40 @@
                     <!-- 하단: 판단/행동 시각화 박스 & 명령 입력창 -->
                     <div class="agent-control-area">
                         <!-- 1. 신체 이탈 경고 배너 & 해제 버튼 (1번 버튼 / 11번 핀) -->
-                        <div id="mainBodyDetachAlertBanner" class="main-danger-alert main-detach-alert" style="display: none;">
+                        <div id="mainBodyDetachAlertBanner" class="main-danger-alert main-detach-alert"
+                            style="display: none;">
                             <div class="danger-alert-text">
                                 <span class="danger-alert-badge" style="background: #FF4D4D;">BODY DETACHED</span>
                                 <strong>바 위치 고정 (신체 이탈)</strong>
                             </div>
-                            <button type="button" id="btnMainBodyDetachClear" class="main-danger-clear-btn" style="background: #E03131;">
+                            <button type="button" id="btnMainBodyDetachClear" class="main-danger-clear-btn"
+                                style="background: #E03131;">
                                 <span>고정 해제</span>
                             </button>
                         </div>
 
                         <!-- 2. 좌우 힘 불균형 감지 배너 (2번 버튼 / 12번 핀) -->
-                        <div id="mainImbalanceAlertBanner" class="main-danger-alert main-imbalance-alert" style="display: none;">
+                        <div id="mainImbalanceAlertBanner" class="main-danger-alert main-imbalance-alert"
+                            style="display: none;">
                             <div class="danger-alert-text">
                                 <span class="danger-alert-badge" style="background: #F59F00;">IMBALANCE</span>
                                 <strong>좌우 불균형 (20kg 설정)</strong>
                             </div>
-                            <button type="button" id="btnMainImbalanceClear" class="main-danger-clear-btn" style="background: #E67700;">
+                            <button type="button" id="btnMainImbalanceClear" class="main-danger-clear-btn"
+                                style="background: #E67700;">
                                 <span>교정 완료</span>
                             </button>
                         </div>
 
                         <!-- 3. 본 운동 재돌입 확인 배너 (2번 버튼 해제 후 승인 질문) -->
-                        <div id="mainWorkoutConfirmBanner" class="main-danger-alert main-workout-confirm-alert" style="display: none;">
+                        <div id="mainWorkoutConfirmBanner" class="main-danger-alert main-workout-confirm-alert"
+                            style="display: none;">
                             <div class="danger-alert-text">
                                 <span class="danger-alert-badge" style="background: #20C997;">BALANCED</span>
                                 <strong>자세 교정 완료 · 본 운동을 시작하시겠습니까?</strong>
                             </div>
-                            <button type="button" id="btnConfirmMainWorkout" class="main-danger-clear-btn" style="background: #0CA678;">
+                            <button type="button" id="btnConfirmMainWorkout" class="main-danger-clear-btn"
+                                style="background: #0CA678;">
                                 <span>본 운동 시작</span>
                             </button>
                         </div>
@@ -3797,10 +3780,11 @@
                         </div>
 
                         <!-- 5. 정체 감지 스마트 감량 배너 (파란색 네온 UI) -->
-                        <div id="mainAssistAlertBanner" class="main-danger-alert main-assist-alert" style="display: none;">
+                        <div id="mainAssistAlertBanner" class="main-danger-alert main-assist-alert"
+                            style="display: none;">
                             <div class="danger-alert-text">
                                 <span class="danger-alert-badge" style="background: #0066FF;">STALL ASSIST</span>
-                                <strong id="mainAssistAlertTitle" style="color: #0066FF;">정체 감지: 스마트 부하 5kg 감소</strong>
+                                <strong id="mainAssistAlertTitle" style="color: #0066FF;">정체 감지. 무게 5kg 감소합니다.</strong>
                             </div>
                             <div class="main-assist-pill" id="mainAssistAlertLevel">
                                 Lv.1 (-5kg)
@@ -4001,10 +3985,6 @@
         const btnConfirmMainWorkout = document.getElementById('btnConfirmMainWorkout');
         const btnSimulateBodyDetach = document.getElementById('btnSimulateBodyDetach');
         const btnSimulateImbalance = document.getElementById('btnSimulateImbalance');
-        const btnSimulateStall = document.getElementById('btnSimulateStall');
-        const mainAssistAlertBanner = document.getElementById('mainAssistAlertBanner');
-        const mainAssistAlertTitle = document.getElementById('mainAssistAlertTitle');
-        const mainAssistAlertLevel = document.getElementById('mainAssistAlertLevel');
 
         let isDangerAlertActive = false; // 위험 감지 활성 상태 및 긴급 음성 알림 발화 제어 플래그
         let isBodyDetachedState = false;
@@ -4012,9 +3992,6 @@
         let isCurrentWeightLocked = false;
         let isAwaitingMainWorkoutConfirm = false;
         let isAwaitingDangerEscapeConfirm = false;
-        let assistStickyTimer = null;
-        let isAssistVisualActive = false;
-        let lastReceivedStatus = 'WAITING';
 
         // 무게 강도 & Kg 부하 디스플레이 요소
         const loadBox = document.getElementById('loadBox');
@@ -4043,14 +4020,14 @@
             try {
                 const voices = window.speechSynthesis.getVoices();
                 // 1순위: Natural / Neural / Online / SunHi / InJoon / Google 고품질 신경망 보이스
-                let best = voices.find(v => (v.lang.startsWith('ko') || v.lang.includes('KR')) && 
+                let best = voices.find(v => (v.lang.startsWith('ko') || v.lang.includes('KR')) &&
                     (/natural|neural|online|sunhi|injoon|google/i.test(v.name)));
                 // 2순위: 기타 한국어 보이스 (기본 로컬 보이스)
                 if (!best) {
                     best = voices.find(v => v.lang === 'ko-KR' || v.lang === 'ko_KR' || v.lang.startsWith('ko'));
                 }
                 koreanVoice = best || null;
-            } catch (e) {}
+            } catch (e) { }
         }
 
         if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -4074,13 +4051,13 @@
                     currentTtsAudio.pause();
                     currentTtsAudio.currentTime = 0;
                     currentTtsAudio.src = '';
-                } catch (e) {}
+                } catch (e) { }
                 currentTtsAudio = null;
             }
             if (typeof window !== 'undefined' && window.speechSynthesis) {
                 try {
                     window.speechSynthesis.cancel();
-                } catch (e) {}
+                } catch (e) { }
             }
         }
 
@@ -4119,7 +4096,7 @@
                         if (!koreanVoice) loadKoreanVoice();
                         if (koreanVoice) utter.voice = koreanVoice;
                         window.speechSynthesis.speak(utter);
-                    } catch (e) {}
+                    } catch (e) { }
                 };
 
                 audio.onerror = () => {
@@ -4130,7 +4107,7 @@
 
                 audio.onplay = () => {
                     if (thisToken !== currentSpeechToken) {
-                        try { audio.pause(); } catch (e) {}
+                        try { audio.pause(); } catch (e) { }
                         return;
                     }
                     if (agentOrb && !document.body.classList.contains('danger') && !isWorkoutResting) {
@@ -4193,7 +4170,7 @@
             }
 
             if (loadBox) {
-                loadBox.classList.toggle('assisting', isAssistVisualActive || status === 'ASSIST');
+                loadBox.classList.remove('assisting');
             }
 
             const sidebarWeightSummary = document.getElementById('sidebarWeightSummary');
@@ -4208,41 +4185,6 @@
             if (sidebarAssistPill) {
                 sidebarAssistPill.textContent = 'WEIGHT';
                 sidebarAssistPill.className = 'sidebar-pill';
-            }
-        }
-
-        // ⭐️ 정체 감지 (ASSIST) 파란색 그라데이션 UI 및 배너 제어 통합 함수
-        function setAssistUI(active, payload = {}) {
-            isAssistVisualActive = Boolean(active);
-            document.body.classList.toggle('assist', isAssistVisualActive);
-
-            if (loadBox) {
-                loadBox.classList.toggle('assisting', isAssistVisualActive);
-            }
-
-            if (mainAssistAlertBanner) {
-                mainAssistAlertBanner.style.display = isAssistVisualActive ? 'flex' : 'none';
-                if (isAssistVisualActive) {
-                    const curKg = (typeof payload.loadKg === 'number') ? payload.loadKg : ((typeof payload.userWeightKg === 'number') ? payload.userWeightKg : currentLoadKg);
-                    const lv = payload.assistLevel || currentAssistLevel || 1;
-                    if (mainAssistAlertTitle) {
-                        mainAssistAlertTitle.textContent = `정체 감지: 스마트 부하 5kg 감소 (${curKg}kg)`;
-                    }
-                    if (mainAssistAlertLevel) {
-                        mainAssistAlertLevel.textContent = `Lv.${lv} (-${lv * 5}kg)`;
-                    }
-                }
-            }
-
-            if (agentOrb) {
-                if (isAssistVisualActive) {
-                    if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#0066FF');
-                    agentOrb.setState('connecting');
-                    const captionEl = document.getElementById('agentOrbStatusText');
-                    if (captionEl) captionEl.textContent = '스마트 부하 어시스트 작동 중 (-5kg 감량)';
-                } else if (!document.body.classList.contains('danger')) {
-                    if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#A50034');
-                }
             }
         }
 
@@ -4517,7 +4459,6 @@
                 renderAgentDecision(data.decision);
             }
             if (data.status) {
-                lastReceivedStatus = data.status;
                 if (data.status === 'ASSIST') {
                     const lv = data.assistLevel ? ` Lv.${data.assistLevel}` : '';
                     statusBadge.textContent = 'ASSIST' + lv;
@@ -4529,11 +4470,12 @@
                     statusBadge.textContent = data.status;
                 }
                 statusBadge.className = 'agent-status ' + (data.status === 'BODY_DETACHED' ? 'DANGER' : data.status);
+                document.body.classList.toggle('danger', isDanger || isDetach);
+                document.body.classList.toggle('assist', data.status === 'ASSIST' || isImbalanceState);
+                updateAgentOrbState(data.status, isWorkoutResting, isDanger || isDetach, data.status === 'ASSIST');
             }
 
             if (isDanger) {
-                if (assistStickyTimer) clearTimeout(assistStickyTimer);
-                setAssistUI(false);
                 isWorkoutResting = false;
                 triggerDangerSafetyLift();
                 if (mainDangerAlertBanner) mainDangerAlertBanner.style.display = 'flex';
@@ -4572,28 +4514,34 @@
                 resetDangerUI();
             }
 
-            // ⭐️ 정체 감지 (ASSIST) 상태 처리: 파란색 그라데이션 UI 및 배너 제어 (최소 4.5초 확실한 유지)
+            // ⭐️ 정체 감지 (ASSIST) 상태 처리: 위험 시 빨간색 UI가 뜨듯 파란색 UI 효과 및 배너 제어
+            const mainAssistAlertBanner = document.getElementById('mainAssistAlertBanner');
+            const mainAssistAlertTitle = document.getElementById('mainAssistAlertTitle');
+            const mainAssistAlertLevel = document.getElementById('mainAssistAlertLevel');
+
             const isAssisting = (data.status === 'ASSIST') && !isDanger && !isDetach;
 
             if (isAssisting) {
-                setAssistUI(true, data);
-                if (assistStickyTimer) clearTimeout(assistStickyTimer);
-                assistStickyTimer = setTimeout(() => {
-                    if (lastReceivedStatus !== 'ASSIST') {
-                        setAssistUI(false);
-                        updateAgentOrbState(lastReceivedStatus, isWorkoutResting, isDanger || isDetach, false);
+                document.body.classList.add('assist');
+                if (mainAssistAlertBanner) {
+                    mainAssistAlertBanner.style.display = 'flex';
+                    const curKg = data.loadKg || data.userWeightKg || 65;
+                    const lv = data.assistLevel || 1;
+                    if (mainAssistAlertTitle) {
+                        mainAssistAlertTitle.textContent = `정체 감지. 무게 5kg 감소합니다.`;
                     }
-                }, 4500);
-            } else if (isDanger || isDetach) {
-                if (assistStickyTimer) clearTimeout(assistStickyTimer);
-                setAssistUI(false);
-            } else if (!isAssistVisualActive) {
-                setAssistUI(false);
+                    if (mainAssistAlertLevel) {
+                        mainAssistAlertLevel.textContent = `-5kg`;
+                    }
+                }
+            } else {
+                if (mainAssistAlertBanner) {
+                    mainAssistAlertBanner.style.display = 'none';
+                }
+                if (!isImbalanceState) {
+                    document.body.classList.remove('assist');
+                }
             }
-
-            document.body.classList.toggle('danger', isDanger || isDetach);
-            document.body.classList.toggle('assist', isAssistVisualActive || isAssisting);
-            updateAgentOrbState(data.status, isWorkoutResting, isDanger || isDetach, isAssistVisualActive || isAssisting);
 
             if (typeof data.assistLevel !== 'undefined') {
                 updateLoadDisplay(data.assistLevel, data.status, data.userWeightKg, data.currentLoadKg);
@@ -4646,23 +4594,18 @@
             const captionEl = document.getElementById('agentOrbStatusText');
 
             if (isDanger) {
-                if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#EB0A28');
                 agentOrb.setState('solving');
                 if (captionEl) captionEl.textContent = '위험 감지 긴급 안전 고정';
             } else if (isAssisting) {
-                if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#0066FF');
                 agentOrb.setState('connecting');
-                if (captionEl) captionEl.textContent = '스마트 부하 어시스트 작동 중 (-5kg)';
+                if (captionEl) captionEl.textContent = '스마트 부하 어시스트 작동 중';
             } else if (isRest) {
-                if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#A50034');
                 agentOrb.setState('breathing');
                 if (captionEl) captionEl.textContent = '세트 간 휴식 회복 중';
             } else if (status === 'NORMAL' && !isRest) {
-                if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#A50034');
                 agentOrb.setState('working');
                 if (captionEl) captionEl.textContent = '실시간 풀업 궤적 분석 중';
             } else {
-                if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#A50034');
                 agentOrb.setState('listening');
                 if (captionEl) captionEl.textContent = '음성 대화 및 풀업 동작 대기 중';
             }
@@ -4958,7 +4901,7 @@
                 syncTargetSetsToUI(state.aiTargetSets);
             }
 
-            updateLoadDisplay(state.assistLevel || 0, state.status || (isAssistVisualActive ? 'ASSIST' : 'NORMAL'), state.userWeightKg, state.currentLoadKg);
+            updateLoadDisplay(state.assistLevel || 0, 'NORMAL', state.userWeightKg, state.currentLoadKg);
 
             // 시나리오 상태 동기화
             isBodyDetachedState = Boolean(state.isBodyDetached);
@@ -5786,9 +5729,6 @@
         if (btnSimulateImbalance) {
             btnSimulateImbalance.addEventListener('click', () => socket.emit('toggleImbalance'));
         }
-        if (btnSimulateStall) {
-            btnSimulateStall.addEventListener('click', () => socket.emit('triggerStallAssist'));
-        }
 
         // 서버에서 전달되는 실시간 에이전트 음성 안내 발화
         socket.on('agentSpeech', (data) => {
@@ -6423,7 +6363,7 @@
         // ------------------ AI 운동 패턴 분석 및 챗 기반 무게 제안 엔진 ------------------
         let latestProposedWeightKg = null;
 
-        function closeWeightModal() {} // ESC 핸들러 호환용 빈 함수
+        function closeWeightModal() { } // ESC 핸들러 호환용 빈 함수
 
         function analyzeWorkoutPatternAndProposeWeight() {
             const history = Array.isArray(setHistory) ? setHistory : [];
