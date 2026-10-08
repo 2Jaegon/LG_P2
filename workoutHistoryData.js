@@ -130,16 +130,17 @@ function createDetailedSetRecord(data) {
     let patternKeyFinding = '';
     if (isWarmup) {
         patternKeyFinding = `[워밍업] 가벼운 부하(${startLoadKg}kg)로 ${reps}회 고반복 예열을 수행하여 관절 윤활액 분비 및 광배근 신경계 활성화 완료.`;
+    } else if (assistLvl > 0 && enrichedLoadChanges.length > 0) {
+        const ev = enrichedLoadChanges[0];
+        patternKeyFinding = `R${ev.repAtTrigger}회 정체 감지로 스마트 보조 발동(-${ev.reductionKg}kg, 높이 ${ev.heightPct}%), ${ev.toKg}kg로 목표 반복 안전 완수.`;
     } else {
         const isDroppedLoad = (data.isDroppedLoad || startLoadKg < (data.baseWeightKg || 70));
         if (isDroppedLoad) {
             patternKeyFinding = `[본 세트] 부하 10kg 감량(${startLoadKg}kg) 드랍 방식으로 ${reps}회 완수. 지근·속근 섬유 고강도 볼륨 자극 확보.`;
         } else {
-            patternKeyFinding = assistLvl > 0
-                ? `R${enrichedLoadChanges[0] ? enrichedLoadChanges[0].repAtTrigger : 7}회 정체 감지로 스마트 어시스트 발동 (-${startLoadKg - finalLoadKg}kg), 본 세트 목표 랩 안전 완수.`
-                : (avgTempo <= 2.0
-                    ? `[본 세트] 최고 부하 ${startLoadKg}kg 탑 세트를 평균 템포 ${avgTempo}초 고출력으로 완수. 완벽 가동범위 달성.`
-                    : `[본 세트] 최고 부하 ${startLoadKg}kg 탑 세트에서 안정적인 수축·이완 리듬 유지. 목표 반복 완수.`);
+            patternKeyFinding = avgTempo <= 2.0
+                ? `[본 세트] 최고 부하 ${startLoadKg}kg 탑 세트를 평균 템포 ${avgTempo}초 고출력으로 완수. 완벽 가동범위 달성.`
+                : `[본 세트] 최고 부하 ${startLoadKg}kg 탑 세트에서 안정적인 수축·이완 리듬 유지. 목표 반복 완수.`;
         }
     }
 
@@ -483,6 +484,58 @@ function generateWorkoutHistory() {
 
     const history = [];
 
+    // 특정 날짜 및 고중량/피로 세트에서의 현실적인 스마트 보조 개입 이벤트 설정
+    const assistEventMap = {
+        // 1. 2026-09-08: 첫 주말 직후 4세트 마지막 드랍세트 9회차 시도 중
+        '2026-09-08_4': {
+            repAtTrigger: 9,
+            reductionKg: 5.0,
+            heightPct: 42,
+            reason: '중간 정체 1.4초 감지 (-5.0kg 감경 보조)',
+            feedback: '[본 세트 3] 9회차 수축 지연으로 스마트 보조(-5.0kg) 개입. 안전하게 목표 반복 완수.'
+        },
+        // 2. 2026-09-15: 첫 65kg 증량 탑세트 7회차 시도 중
+        '2026-09-15_2': {
+            repAtTrigger: 7,
+            reductionKg: 10.0,
+            heightPct: 52,
+            reason: '첫 65kg 증량 구간 7회차 정체 감지 (-10.0kg 감경 보조)',
+            feedback: '[본 세트 1] 첫 65kg 탑 세트 7회차에서 정체 감지되어 스마트 보조(-10kg) 개입. 실패 지점 없이 목표 10회 안전 완수.'
+        },
+        // 3. 2026-09-22: 1시간 이상 고볼륨 세션 마지막 세트 8회차
+        '2026-09-22_5': {
+            repAtTrigger: 8,
+            reductionKg: 7.5,
+            heightPct: 46,
+            reason: '후반 속도 급감 및 1.4초 정체 감지 (-7.5kg 부하 감경)',
+            feedback: '[본 세트 4] 5세트 누적 피로 도달 시점에 스마트 감경(-7.5kg) 가동. 잔여 근섬유 안전 완수.'
+        },
+        // 4. 2026-09-29: 70kg 증량 탑세트 8회차 시도 중
+        '2026-09-29_2': {
+            repAtTrigger: 8,
+            reductionKg: 10.0,
+            heightPct: 55,
+            reason: '70kg 고부하 중간 정체 1.4초 감지 (-10.0kg 감경 보조)',
+            feedback: '[본 세트 1] 70kg 신기록 도전 탑세트 8회차에서 부하 한계 도달, 스마트 보조(-10kg)로 10회 돌파.'
+        },
+        // 5. 2026-10-04: 주말 고볼륨 4세트 9회차 시도 중
+        '2026-10-04_4': {
+            repAtTrigger: 9,
+            reductionKg: 7.5,
+            heightPct: 38,
+            reason: '바텀 2.5초 지연 탈진 위험 감지 (-7.5kg 안전 리프트 보조)',
+            feedback: '[본 세트 3] 바텀 피로 정체 감지 즉시 안전 보조(-7.5kg) 개입. 부상 방지 및 세트 완수.'
+        },
+        // 6. 2026-10-08: 오늘 75kg 최고 부하 도전 탑세트 8회차 시도 중!
+        '2026-10-08_2': {
+            repAtTrigger: 8,
+            reductionKg: 10.0,
+            heightPct: 54,
+            reason: '최고 부하 75kg 구간 8회차 정체 감지 (-10.0kg 스마트 감경)',
+            feedback: '[본 세트 1] 오늘 75kg 최고 부하 도전 중 8회차에서 스마트 보조(-10kg)가 즉시 개입하여 안전하게 10회 유효 수축을 완성했습니다.'
+        }
+    };
+
     dates.forEach((dateStr, dayIdx) => {
         const config = getDayBlockConfig(dayIdx);
         const baseWeight = config.baseWeight;
@@ -553,6 +606,43 @@ function generateWorkoutHistory() {
                 repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo - 0.12 + (i % 6) * 0.03).toFixed(1)));
                 const mainSetIdx = s - 1;
                 coachFeedback = `[본 세트 ${mainSetIdx}] 부하 10kg 감량(${dropWeight}kg) 드랍 방식으로 ${reps}회 완수. 잔여 근섬유 완전 소진.`;
+            }
+
+            // 특정 핵심 고부하/피로 세트에 대한 스마트 보조 개입 이벤트 적용
+            const assistKey = `${dateStr}_${s}`;
+            const assistEvent = assistEventMap[assistKey];
+
+            if (assistEvent) {
+                assistLvl = 1;
+                finalLoadKg = Math.max(20, Math.round((startLoadKg - assistEvent.reductionKg) * 10) / 10);
+                startIntensityPct = 100;
+                finalIntensityPct = Math.round((finalLoadKg / startLoadKg) * 100);
+                
+                const triggerTimeStr = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
+                loadChanges = [{
+                    time: triggerTimeStr,
+                    set: s,
+                    repAtTrigger: assistEvent.repAtTrigger,
+                    totalRepsAtTrigger: reps,
+                    heightPct: assistEvent.heightPct,
+                    fromKg: startLoadKg,
+                    toKg: finalLoadKg,
+                    reductionKg: assistEvent.reductionKg,
+                    fromPercent: 100,
+                    toPercent: finalIntensityPct,
+                    reductionPercent: 100 - finalIntensityPct,
+                    reason: assistEvent.reason,
+                    triggerType: 'smart_assist'
+                }];
+                coachFeedback = assistEvent.feedback;
+
+                // 해당 변곡 랩에서 템포 지연 및 감경 후 속도 회복 모델링
+                if (repTempos.length >= assistEvent.repAtTrigger) {
+                    repTempos[assistEvent.repAtTrigger - 1] = Number((repTempos[assistEvent.repAtTrigger - 1] + 1.2).toFixed(1));
+                    for (let r = assistEvent.repAtTrigger; r < repTempos.length; r++) {
+                        repTempos[r] = Number((baseTempo - 0.1).toFixed(1));
+                    }
+                }
             }
 
             const setDurationSec = Math.max(15, Math.round(repTempos.reduce((a, b) => a + b, 0)));

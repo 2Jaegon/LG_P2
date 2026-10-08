@@ -5228,7 +5228,7 @@
                 <div class="ah-trend up" id="heroSetsTrend">
                     <span>38일 완주율 100%</span>
                 </div>
-                <div class="ah-desc" id="heroSetsDesc">워밍업 38세트 + 본세트 139세트</div>
+                <div class="ah-desc" id="heroSetsDesc">워밍업 38세트 + 본세트 139세트 (보조 개입 6회)</div>
             </div>
 
             <div class="analytics-hero-card">
@@ -5432,8 +5432,8 @@
                     </div>
                     <div class="ai-report-item">
                         <div class="air-content">
-                            <div class="air-title">향후 추천: 가용 시간 기반 AI 동적 루틴 추천</div>
-                            <div class="air-text">운동 전 사용자에게 가용 시간(30분 미만 / 1시간 미만 / 1시간 이상)을 선택받으면, 현재 도달한 75kg 기준에 맞춰 워밍업·탑세트·드랍세트 수와 랩수를 최적 배분해 드립니다.</div>
+                            <div class="air-title">스마트 보조 개입 및 동적 루틴 최적화 (보조 6회 안전 완수)</div>
+                            <div class="air-text">고부하 임계 구간 6개 세트(75kg 탑세트 포함)에서 스마트 보조(-10kg 감경)가 적시 개입하여 탈진이나 부상 없이 100% 유효 랩을 완수했습니다. 당일 가용 시간에 맞춘 최적 부하 배분을 지원합니다.</div>
                         </div>
                     </div>
                 </div>
@@ -7025,6 +7025,11 @@
                                             <span class="set-type-pill ${typeClass}">${typeLabel}</span>
                                             <span class="set-reps"><span class="item-k-label">REPS</span><strong>${item.reps}</strong></span>
                                             <span class="set-load-badge ${typeClass}"><span class="item-k-label">WEIGHT</span><strong>${loadKg}kg</strong></span>
+                                            ${(item.loadChanges && item.loadChanges.length > 0) ? `
+                                                <span class="set-assist-badge" style="font-size: 0.68rem; padding: 1px 6px;">
+                                                    스마트 보조 (-${item.loadChanges[0].reductionKg || 10}kg)
+                                                </span>
+                                            ` : ''}
                                         </div>
                                         <div class="history-item-right">
                                             <span class="set-tempo"><span class="item-k-label">TEMPO</span><strong>${item.avgTempo}s</strong></span>
@@ -7219,7 +7224,7 @@
                                         <span class="set-duration-badge" style="font-size: 0.72rem; padding: 2px 7px; background: rgba(0, 102, 255, 0.08); color: #0066FF; border-radius: 999px; font-weight: 700;"><span class="item-k-label">TIME</span><strong>${item.setDurationSeconds || Math.round((item.avgTempo || 2.0) * (item.reps || 10))}s</strong></span>
                                         ${(item.loadChanges && item.loadChanges.length > 0) ? `
                                             <span class="set-assist-badge">
-                                                감경 ${item.loadChanges.length}회 (-${(item.loadChanges.length * 5)}kg)
+                                                스마트 보조 (-${item.loadChanges[0].reductionKg || 10}kg)
                                             </span>
                                         ` : ''}
                                     </div>
@@ -8456,7 +8461,11 @@
             const elSetsDesc = document.getElementById('heroSetsDesc');
             if (elTotalSets) elTotalSets.textContent = totalSets;
             if (elSetsTrend) elSetsTrend.innerHTML = `<span>${dataset.length}일 완주율 100%</span>`;
-            if (elSetsDesc) elSetsDesc.textContent = `워밍업 ${dataset.length}세트 + 본세트 ${totalSets - dataset.length}세트`;
+            const totalAssists = dataset.reduce((acc, d) => {
+                const daySets = (currentHistoryList || []).filter(s => s.date === d.date);
+                return acc + daySets.filter(s => s.loadChanges && s.loadChanges.length > 0).length;
+            }, 0);
+            if (elSetsDesc) elSetsDesc.textContent = `워밍업 ${dataset.length}세트 + 본세트 ${totalSets - dataset.length}세트 (보조 개입 ${totalAssists}회)`;
 
             const elTotalDuration = document.getElementById('heroTotalDuration');
             const elDurationTrend = document.getElementById('heroDurationTrend');
