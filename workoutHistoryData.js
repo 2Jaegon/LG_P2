@@ -1,7 +1,18 @@
 /**
  * workoutHistoryData.js
- * 2026년 9월 1일부터 2026년 10월 7일(어제)까지의 실감형 AI 운동 일지 데이터 생성 모듈
+ * 2026년 9월 1일부터 2026년 10월 8일(오늘)까지의 실감형 AI 운동 일지 데이터 생성 모듈
+ * 점진적 과부하(Progressive Overload) 및 계단식 주기화 적응(Staircase Periodization) 모델 적용
  */
+
+function formatDurationSec(totalSeconds) {
+    const sec = Math.max(0, Math.round(totalSeconds || 0));
+    const m = Math.floor(sec / 60);
+    const rem = sec % 60;
+    if (m > 0) {
+        return `${m}분${rem > 0 ? ' ' + rem + '초' : ''}`;
+    }
+    return `${sec}초`;
+}
 
 function createDetailedSetRecord(data) {
     const reps = data.reps || 10;
@@ -22,6 +33,11 @@ function createDetailedSetRecord(data) {
     const roms = (data.repRoms && data.repRoms.length > 0) ? data.repRoms : Array.from({ length: reps }, (_, i) => i === 0 || i === 1 ? 'PERFECT' : (i === reps - 1 && dropRate > 20 ? 'PARTIAL' : 'GOOD'));
     const perfectCount = roms.filter(r => r === 'PERFECT').length;
     const totalVolume = Math.round(reps * finalLoadKg * 10) / 10;
+
+    // 세트 소요 시간 및 일별 총 운동 시간
+    const setDurationSeconds = data.setDurationSeconds || Math.max(15, Math.round(tempos.reduce((a, b) => a + b, 0)));
+    const totalDayDurationSeconds = data.workoutDurationSeconds || data.totalDayDurationSeconds || 740;
+    const dayDurationFormatted = data.workoutDurationFormatted || data.dayDurationFormatted || formatDurationSec(totalDayDurationSeconds);
 
     // 1. 템포 변곡점 (Tempo Inflection Point) & 속도 저하(Velocity Loss) 분석
     let tempoInflectionRep = null;
@@ -47,7 +63,7 @@ function createDetailedSetRecord(data) {
 
     // 2. 휴식 사이클 및 회복 지표 (Rest Cycle & Recovery Analysis)
     const setNum = data.set || 1;
-    const actualRestSec = typeof data.restBeforeSetSeconds === 'number' ? data.restBeforeSetSeconds : (setNum > 1 ? 58 : 0);
+    const actualRestSec = typeof data.restBeforeSetSeconds === 'number' ? data.restBeforeSetSeconds : (setNum > 1 ? 60 : 0);
     const recRestSec = data.recommendedRestSeconds || 60;
     let restQuality = '첫 세트 (휴식 주기 해당 없음)';
     let restRecoveryScore = 100;
@@ -70,7 +86,7 @@ function createDetailedSetRecord(data) {
 
     // 3. 부하 감경 이력 (Load Reduction Context History)
     const rawHistory = data.loadChangeHistory || (assistLvl > 0 ? [{
-        time: data.completedAt || '12:00:00',
+        time: data.completedAt || '18:15:30',
         set: setNum,
         repAtTrigger: Math.max(1, reps),
         totalRepsAtTrigger: reps,
@@ -81,12 +97,12 @@ function createDetailedSetRecord(data) {
         fromPercent: startIntensityPct,
         toPercent: finalIntensityPct,
         reductionPercent: startIntensityPct - finalIntensityPct,
-        reason: '중간 정체 7초 감지 (-15% 부하 감소 적용)',
+        reason: '중간 정체 7초 감지 (-5.0kg 부하 감소 적용)',
         triggerType: 'mid_stall_7s'
     }] : []);
 
     const enrichedLoadChanges = rawHistory.map(item => ({
-        time: item.time || data.completedAt || '12:00:00',
+        time: item.time || data.completedAt || '18:15:30',
         set: item.set || setNum,
         repAtTrigger: item.repAtTrigger || (item.rep ? parseInt(item.rep, 10) : reps),
         totalRepsAtTrigger: item.totalRepsAtTrigger || reps,
@@ -98,55 +114,48 @@ function createDetailedSetRecord(data) {
         toPercent: item.toPercent || finalIntensityPct,
         reductionPercent: Math.max(0, (item.fromPercent || startIntensityPct) - (item.toPercent || finalIntensityPct)),
         reason: item.reason || '무게 부담 감지 자동 감경',
-        triggerType: item.triggerType || (item.reason && item.reason.includes('3초') ? 'stall_3s_continuous' : 'mid_stall_7s')
+        triggerType: item.triggerType || 'smart_assist'
     }));
 
-    // 4. 종합 운동 패턴 진단 (Comprehensive Workout Pattern Insight)
-    let patternKeyFinding = '';
-    if (enrichedLoadChanges.length > 0) {
-        const firstEv = enrichedLoadChanges[0];
-        patternKeyFinding = `Set ${setNum} ${firstEv.repAtTrigger}회차 시도 중(${firstEv.reductionKg}kg 감경) 부하 한계 도달 및 스마트 보조 가동`;
-    } else if (velocityLossPercent > 25) {
-        patternKeyFinding = `감경 없이 완주했으나 R${tempoInflectionRep || fastestRepIndex} 이후 템포 ${velocityLossPercent}% 저하되며 후반 저항 발생`;
-    } else {
-        patternKeyFinding = `부하 감경 없이 균일한 속도(템포 저하율 ${velocityLossPercent}%)로 전 구간 파워 완벽 유지`;
-    }
+    // 4. 세트 종합 소견
+    const patternKeyFinding = assistLvl > 0
+        ? `R${enrichedLoadChanges[0] ? enrichedLoadChanges[0].repAtTrigger : 7}회 정체 감지로 스마트 어시스트 발동 (-${startLoadKg - finalLoadKg}kg), 목표 랩 안전 완수.`
+        : (avgTempo <= 2.0
+            ? `평균 템포 ${avgTempo}초 고출력 완수. 완벽 가동범위(PERFECT ROM) 비율 ${Math.round((perfectCount / reps) * 100)}% 달성.`
+            : `평균 템포 ${avgTempo}초로 안정적인 수축·이완 리듬 유지. 목표 반복 완수.`);
 
     return {
-        setId: data.setId || `set_${data.date || '2026-10-06'}_${setNum}`,
+        id: `set-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         date: data.date,
         set: setNum,
-        startTime: data.startTime || '18:00:00',
-        completedAt: data.completedAt,
-        durationSeconds: data.durationSeconds || Math.round(reps * avgTempo + 4),
-
         reps: reps,
         targetReps: targetReps,
-        targetAchievementRate: Math.round((reps / targetReps) * 100),
+        isCompleted: true,
+        startTime: data.startTime || '18:10:00',
+        completedAt: data.completedAt || '18:10:30',
+
+        // 운동 시간 관련 핵심 필드
+        setDurationSeconds: setDurationSeconds,
+        workoutDurationSeconds: totalDayDurationSeconds,
+        totalDayDurationSeconds: totalDayDurationSeconds,
+        workoutDurationFormatted: dayDurationFormatted,
+        dayDurationFormatted: dayDurationFormatted,
 
         baseWeightKg: baseWeightKg,
         startLoadKg: startLoadKg,
-        startIntensityPercent: startIntensityPct,
         finalLoadKg: finalLoadKg,
+        startIntensityPercent: startIntensityPct,
         finalIntensityPercent: finalIntensityPct,
+        loadReductionKg: Math.max(0, Math.round((startLoadKg - finalLoadKg) * 10) / 10),
         assistLevel: assistLvl,
+        assistCount: assistLvl > 0 ? enrichedLoadChanges.length : 0,
+
         totalVolumeKg: totalVolume,
-
-        loadReductionContext: {
-            isAssisted: assistLvl > 0,
-            assistTriggersCount: enrichedLoadChanges.length,
-            totalReductionKg: Math.max(0, Math.round((startLoadKg - finalLoadKg) * 10) / 10),
-            totalReductionPercent: Math.max(0, startIntensityPct - finalIntensityPct),
-            firstReductionPoint: enrichedLoadChanges.length > 0
-                ? `Set ${setNum} · ${enrichedLoadChanges[0].repAtTrigger}회차 수행 중 (높이 ${enrichedLoadChanges[0].heightPct}%)`
-                : '부하 감경 없음 (100% 자력 수행)',
-            events: enrichedLoadChanges
-        },
+        romRating: perfectCount >= reps * 0.7 ? 'PERFECT' : (perfectCount >= 3 ? 'GOOD' : 'PARTIAL'),
+        loadChanges: enrichedLoadChanges,
         loadChangeHistory: enrichedLoadChanges,
-        assistCount: data.assistCount || enrichedLoadChanges.length,
-        dangerCount: data.dangerCount || 0,
 
-        tempoPatterns: {
+        tempoTelemetry: {
             tempos: tempos,
             avgTempo: avgTempo,
             fastestRep: { rep: fastestRepIndex, tempo: fastestTempo },
@@ -195,46 +204,144 @@ function createDetailedSetRecord(data) {
                 ? `부하 감경(${enrichedLoadChanges[0].reductionKg}kg) 지점을 분석하여 다음 세트는 시작부터 ${finalLoadKg}kg로 세팅 시 유효 반복 10회 달성 확률 87%`
                 : (velocityLossPercent > 25
                     ? `템포 변곡점(R${tempoInflectionRep || 4}) 이후 피로 누적 -> 휴식 시간을 +15초 연장하여 ATP-PCr 완전 충전 권장`
-                    : `높은 속도 일관성 유지 -> 다음 세트 동일 부하 유지 또는 목표 1회 증량 도전 추천`)
+                    : `높은 속도 일관성 유지 -> 다음 세트 동일 부하 유지 또는 점진적 증량 추천`)
         }
     };
 }
 
 /**
- * 2026-09-01부터 2026-10-07(어제)까지의 일지 데이터 생성기
+ * 2026-09-01부터 2026-10-08(오늘)까지의 일지 데이터 생성기
+ * 계단식 주기화 적응 모델(Staircase Adaptation):
+ * 같은 무게를 며칠간 반복 수행하면서 템포가 단축되고 운동 시간이 줄어든 후 다음 단계로 점진적 증량
  */
+function getDayBlockConfig(dayIdx) {
+    // dayIdx: 0 (2026-09-01) ~ 37 (2026-10-08)
+    if (dayIdx <= 5) {
+        // [블록 1] 60.0kg 적응 (6일간: 9/1 ~ 9/6)
+        const step = dayIdx;
+        return {
+            phaseName: '60.0kg 기초 VBT 리듬 적응기',
+            baseWeight: 60.0,
+            baseTempo: Number((2.50 - step * 0.03).toFixed(2)), // 2.50s -> 2.35s
+            restSec: Math.round(85 - step * 2.0), // 85s -> 75s
+            totalMin: Number((18.75 - step * 0.30).toFixed(2)), // 18분 45초 -> 17분 15초
+            assistOnSet3: (dayIdx === 0 || dayIdx === 2), // 9/1, 9/3 정체 감량 개입
+            coachFeedback: step < 3
+                ? '60.0kg 부하 적응 중. 3세트 후반 템포 지연에 맞춰 스마트 감량이 안전하게 개입했습니다.'
+                : '60.0kg 완벽 적응! 세트당 평균 템포가 빨라지고 총 운동 시간이 1분 30초 단축되었습니다.'
+        };
+    } else if (dayIdx <= 12) {
+        // [블록 2] 62.5kg 1차 증량 및 적응 (7일간: 9/7 ~ 9/13)
+        const step = dayIdx - 6;
+        return {
+            phaseName: '62.5kg 1차 점진적 과부하 증량기',
+            baseWeight: 62.5,
+            baseTempo: Number((2.42 - step * 0.032).toFixed(2)), // 2.42s -> 2.22s
+            restSec: Math.round(80 - step * 2.2), // 80s -> 66s
+            totalMin: Number((17.80 - step * 0.30).toFixed(2)), // 17분 48초 -> 15분 55초
+            assistOnSet3: (step === 0), // 9/7 증량 첫날만 1회 보조
+            coachFeedback: step === 0
+                ? '+2.5kg 최초 증량(62.5kg) 도전. 부하 증가에 따라 템포가 일시 조정되었으나 가동범위는 우수합니다.'
+                : '62.5kg 부하에 신경근이 완전히 적응했습니다. 동일 3세트 소요 시간이 17분대에서 15분대로 단축되었습니다.'
+        };
+    } else if (dayIdx <= 19) {
+        // [블록 3] 65.0kg 2차 증량 및 근지구력 확장 (7일간: 9/14 ~ 9/20)
+        const step = dayIdx - 13;
+        return {
+            phaseName: '65.0kg 2차 증량 및 근지구력 확장기',
+            baseWeight: 65.0,
+            baseTempo: Number((2.32 - step * 0.035).toFixed(2)), // 2.32s -> 2.11s
+            restSec: Math.round(76 - step * 2.0), // 76s -> 64s
+            totalMin: Number((16.70 - step * 0.28).toFixed(2)), // 16분 42초 -> 14분 55초
+            assistOnSet3: (step === 0), // 9/14 1회
+            coachFeedback: step === 0
+                ? '65.0kg 진입. 목표 10회 반복을 달성하며 새로운 중량에서 안정적인 수축 리듬을 형성하고 있습니다.'
+                : '65.0kg 완벽 소화! 총 운동 시간이 15분 미만으로 단축되었으며 세트 간 빠른 회복력을 보였습니다.'
+        };
+    } else if (dayIdx <= 26) {
+        // [블록 4] 67.5kg 3차 증량 및 고출력화 (7일간: 9/21 ~ 9/27)
+        const step = dayIdx - 20;
+        return {
+            phaseName: '67.5kg 3차 증량 및 고출력 VBT 파워화',
+            baseWeight: 67.5,
+            baseTempo: Number((2.22 - step * 0.038).toFixed(2)), // 2.22s -> 1.99s
+            restSec: Math.round(72 - step * 1.8), // 72s -> 61s
+            totalMin: Number((15.60 - step * 0.27).toFixed(2)), // 15분 36초 -> 13분 50초
+            assistOnSet3: (step === 0), // 9/21 1회
+            coachFeedback: step === 0
+                ? '67.5kg 고중량 도전기. 템포 손실률 15% 미만으로 근지구력이 견고하게 뒷받침됩니다.'
+                : '67.5kg 적응 완료! 평균 템포 1.9초대 진입, 폭발적인 풀업 추진력으로 총 운동 시간을 13분대로 단축했습니다.'
+        };
+    } else if (dayIdx <= 32) {
+        // [블록 5] 70.0kg 목표 체중 완전 도달 및 고속 수축 (6일간: 9/28 ~ 10/3)
+        const step = dayIdx - 27;
+        return {
+            phaseName: '70.0kg 목표 체중 완전 도달 및 고속 수축기',
+            baseWeight: 70.0,
+            baseTempo: Number((2.12 - step * 0.042).toFixed(2)), // 2.12s -> 1.91s
+            restSec: Math.round(68 - step * 1.8), // 68s -> 59s
+            totalMin: Number((14.50 - step * 0.28).toFixed(2)), // 14분 30초 -> 13분 00초
+            assistOnSet3: (step === 0), // 9/28 1회
+            coachFeedback: step === 0
+                ? '성인 표준 목표 체중 70.0kg 달성! 무보조 10회 풀업을 안정적인 궤적으로 완수했습니다.'
+                : '70.0kg 완전 마스터! 초기 60kg 대비 총 운동 시간이 약 6분 단축되었으며 VBT 출력 효율이 정점에 도달했습니다.'
+        };
+    } else if (dayIdx <= 35) {
+        // [블록 6] 72.5kg 초과 과부하 훈련 (3일간: 10/4 ~ 10/6)
+        const step = dayIdx - 33;
+        return {
+            phaseName: '72.5kg 초과 과부하 도전기',
+            baseWeight: 72.5,
+            baseTempo: Number((1.95 - step * 0.045).toFixed(2)), // 1.95s -> 1.86s
+            restSec: Math.round(64 - step * 2.0), // 64s -> 60s
+            totalMin: Number((13.30 - step * 0.25).toFixed(2)), // 13분 18초 -> 12분 45초
+            assistOnSet3: false,
+            coachFeedback: '72.5kg 초과 과부하 훈련. 강력한 광배근 수축 속도로 템포 1.8초대를 안정적으로 견인했습니다.'
+        };
+    } else {
+        // [블록 7] 75.0kg 정점 VBT 파워 신기록 (2일간: 10/7 ~ 10/8 오늘)
+        const step = dayIdx - 36;
+        return {
+            phaseName: '75.0kg 정점 VBT 파워 신기록 및 마스터',
+            baseWeight: 75.0,
+            baseTempo: Number((1.88 - step * 0.06).toFixed(2)), // 1.88s -> 1.82s
+            restSec: Math.round(60 - step * 3.0), // 60s -> 57s
+            totalMin: Number((12.80 - step * 0.45).toFixed(2)), // 12분 48초 -> 12분 21초
+            assistOnSet3: false,
+            coachFeedback: dayIdx === 37
+                ? '오늘 75.0kg 4세트 완벽 완수! 평균 템포 1.82초, 총 운동 시간 12분 21초로 9월 1일(60kg, 18분 45초) 대비 34% 효율 단축 및 역대 최고 VBT 파워 신기록 달성!'
+                : '75.0kg 최고 부하 갱신! 템포 1.88초로 고중량-고속 수축 능력을 입증했습니다.'
+        };
+    }
+}
+
 function generateWorkoutHistory() {
     const dates = [];
     // 9월 1일 ~ 9월 30일 (30일)
     for (let d = 1; d <= 30; d++) {
         dates.push(`2026-09-${String(d).padStart(2, '0')}`);
     }
-    // 10월 1일 ~ 10월 7일 (7일)
-    for (let d = 1; d <= 7; d++) {
+    // 10월 1일 ~ 10월 8일 (8일)
+    for (let d = 1; d <= 8; d++) {
         dates.push(`2026-10-${String(d).padStart(2, '0')}`);
     }
 
     const history = [];
 
     dates.forEach((dateStr, dayIdx) => {
-        // 점진적 과부하(Progressive Overload) 곡선
-        // 9월 초: 60.0kg ~ 62.0kg -> 9월 중순: 63.0kg ~ 66.0kg -> 9월 말: 67.0kg ~ 69.0kg -> 10월: 70.0kg
-        let baseWeight = 60.0;
-        if (dayIdx < 10) {
-            baseWeight = 60.0 + (dayIdx * 0.25);
-        } else if (dayIdx < 20) {
-            baseWeight = 62.5 + ((dayIdx - 10) * 0.35);
-        } else if (dayIdx < 30) {
-            baseWeight = 66.0 + ((dayIdx - 20) * 0.35);
-        } else {
-            baseWeight = 70.0;
-        }
-        baseWeight = Math.round(baseWeight * 10) / 10;
+        const config = getDayBlockConfig(dayIdx);
+        const baseWeight = config.baseWeight;
+        const baseTempo = config.baseTempo;
 
         // 요일 계산 (2026-09-01은 화요일)
         const dayOfWeek = (dayIdx + 2) % 7; // 0: 일, 1: 월, ... 6: 토
         const isSunday = (dayOfWeek === 0);
-        const setCount = isSunday ? 2 : (dayIdx % 3 === 0 ? 4 : 3);
+        // 오늘(10월 8일)은 최고 성과 4세트 완수, 일요일은 가벼운 2세트 회복, 평일은 3~4세트
+        const setCount = dayIdx === 37 ? 4 : (isSunday ? 2 : (dayIdx % 3 === 0 ? 4 : 3));
+
+        // 총 운동 시간(초) 산출
+        const totalDurationSec = Math.round(config.totalMin * 60);
+        const durationFormatted = formatDurationSec(totalDurationSec);
 
         const startHour = 18 + (dayIdx % 3); // 18시, 19시, 20시
         let currentMinutes = 10 + (dayIdx % 15);
@@ -242,17 +349,6 @@ function generateWorkoutHistory() {
 
         for (let s = 1; s <= setCount; s++) {
             const startStr = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
-            
-            // 세트 수행 시간 약 28~35초
-            currentSeconds += 30;
-            if (currentSeconds >= 60) {
-                currentMinutes += 1;
-                currentSeconds -= 60;
-            }
-            const completeStr = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
-            
-            // 세트 간 휴식 시간 (약 60초)
-            currentMinutes += 1;
 
             let reps = 10;
             let assistLvl = 0;
@@ -261,31 +357,26 @@ function generateWorkoutHistory() {
             let startIntensityPct = 100;
             let finalIntensityPct = 100;
             let loadChanges = [];
-            let coachFeedback = '';
+            let coachFeedback = config.coachFeedback;
 
-            // 점진적 VBT 템포 개선 (9월 2.4s -> 10월 1.9s)
-            const baseTempo = Math.max(1.85, 2.45 - (dayIdx * 0.016));
             let repTempos = [];
 
             if (s === 1) {
                 reps = 10;
                 assistLvl = 0;
-                repTempos = Array.from({ length: 10 }, (_, i) => Number((baseTempo + i * 0.04).toFixed(1)));
-                coachFeedback = "첫 세트 가동범위와 템포가 매우 균일하고 안정적이었습니다.";
+                repTempos = Array.from({ length: 10 }, (_, i) => Number((baseTempo + i * 0.03).toFixed(1)));
             } else if (s === 2) {
                 reps = 10;
                 assistLvl = 0;
-                repTempos = Array.from({ length: 10 }, (_, i) => Number((baseTempo + 0.08 + i * 0.06).toFixed(1)));
-                coachFeedback = "2세트 연속 목표 반복 완수. 최상의 VBT 파워 출력을 유지했습니다.";
+                repTempos = Array.from({ length: 10 }, (_, i) => Number((baseTempo + 0.05 + i * 0.04).toFixed(1)));
             } else if (s === 3) {
-                // 이틀에 한 번꼴로 3세트 후반에 피로 감지 -> 5kg 스마트 어시스트 감량 발동
-                if (dayIdx % 2 === 1 && !isSunday) {
+                if (config.assistOnSet3 && !isSunday) {
                     reps = 9;
                     assistLvl = 1;
                     finalLoadKg = Math.max(10, Math.round((baseWeight - 5.0) * 10) / 10);
                     finalIntensityPct = 85;
                     loadChanges = [{
-                        time: completeStr,
+                        time: `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds + 18).padStart(2, '0')}`,
                         fromKg: baseWeight,
                         toKg: finalLoadKg,
                         fromPercent: 100,
@@ -294,30 +385,34 @@ function generateWorkoutHistory() {
                         repAtTrigger: 7,
                         heightPct: 52
                     }];
-                    repTempos = Array.from({ length: 9 }, (_, i) => Number((baseTempo + 0.15 + (i >= 7 ? -0.1 : i * 0.08)).toFixed(1)));
-                    coachFeedback = "7회차 정체 발생 시 스마트 어시스트가 개입하여 목표 랩을 안전하게 소화했습니다.";
+                    repTempos = Array.from({ length: 9 }, (_, i) => Number((baseTempo + 0.12 + (i >= 7 ? -0.08 : i * 0.06)).toFixed(1)));
                 } else {
-                    reps = 9;
+                    reps = (dayIdx > 20) ? 10 : 9;
                     assistLvl = 0;
-                    repTempos = Array.from({ length: 9 }, (_, i) => Number((baseTempo + 0.12 + i * 0.07).toFixed(1)));
-                    coachFeedback = "누적 피로 속에서도 감경 없이 끝까지 집중하여 안정된 리듬을 유지했습니다.";
+                    repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo + 0.08 + i * 0.05).toFixed(1)));
                 }
             } else if (s === 4) {
-                if (dayIdx % 2 === 1) {
-                    reps = 8;
-                    assistLvl = 1;
-                    startLoadKg = Math.max(10, Math.round((baseWeight - 5.0) * 10) / 10);
-                    finalLoadKg = startLoadKg;
-                    startIntensityPct = 85;
-                    finalIntensityPct = 85;
-                    repTempos = Array.from({ length: 8 }, (_, i) => Number((baseTempo + 0.22 + i * 0.07).toFixed(1)));
-                    coachFeedback = "마지막 세트 피로 누적 상황에서도 감경된 부하로 목표 볼륨을 안전하게 달성했습니다.";
-                } else {
-                    reps = 9;
-                    assistLvl = 0;
-                    repTempos = Array.from({ length: 9 }, (_, i) => Number((baseTempo + 0.18 + i * 0.06).toFixed(1)));
-                    coachFeedback = "강한 정신력으로 4세트 전 구간 고출력 파워를 유지하며 오늘 운동을 마쳤습니다.";
-                }
+                reps = (dayIdx === 37) ? 10 : (dayIdx > 25 ? 9 : 8);
+                assistLvl = 0;
+                repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo + 0.10 + i * 0.05).toFixed(1)));
+            }
+
+            const setDurationSec = Math.max(15, Math.round(repTempos.reduce((a, b) => a + b, 0)));
+
+            // 시계 진행 (세트 소요 시간만큼 경과)
+            currentSeconds += setDurationSec;
+            while (currentSeconds >= 60) {
+                currentMinutes += 1;
+                currentSeconds -= 60;
+            }
+            const completeStr = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
+
+            // 세트 간 휴식 시간 경과
+            const restSecThisSet = s === 1 ? 0 : config.restSec;
+            currentSeconds += restSecThisSet;
+            while (currentSeconds >= 60) {
+                currentMinutes += 1;
+                currentSeconds -= 60;
             }
 
             const rec = createDetailedSetRecord({
@@ -335,7 +430,12 @@ function generateWorkoutHistory() {
                 repTempos: repTempos,
                 completedAt: completeStr,
                 startTime: startStr,
-                restBeforeSetSeconds: s === 1 ? 0 : (58 + (dayIdx % 8)),
+                setDurationSeconds: setDurationSec,
+                workoutDurationSeconds: totalDurationSec,
+                totalDayDurationSeconds: totalDurationSec,
+                workoutDurationFormatted: durationFormatted,
+                dayDurationFormatted: durationFormatted,
+                restBeforeSetSeconds: restSecThisSet,
                 coachFeedbackSnippet: coachFeedback
             });
 
@@ -349,6 +449,7 @@ function generateWorkoutHistory() {
 const initialSetHistory = generateWorkoutHistory();
 
 module.exports = {
+    formatDurationSec,
     createDetailedSetRecord,
     generateWorkoutHistory,
     initialSetHistory

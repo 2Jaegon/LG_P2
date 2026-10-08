@@ -3246,17 +3246,17 @@
             background: var(--lg-red-dark);
         }
 
-        /* 6-KPI 통계 카드 그리드 */
+        /* 7-KPI 통계 카드 그리드 (총 운동 시간 추가) */
         .journal-kpi-grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 14px;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
             margin-bottom: 28px;
         }
 
-        @media (max-width: 1200px) {
+        @media (max-width: 1280px) {
             .journal-kpi-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, 1fr);
             }
         }
 
@@ -4424,6 +4424,13 @@
                     <span class="jk-code">VOLUME</span>
                 </div>
                 <div class="jk-val" id="pageStatVolume">0<span>kg</span></div>
+            </div>
+            <div class="journal-kpi-card">
+                <div class="jk-head-row">
+                    <span class="jk-label">총 운동 시간</span>
+                    <span class="jk-code">TIME</span>
+                </div>
+                <div class="jk-val" id="pageStatDuration" style="color: #0066FF;">0<span>분</span></div>
             </div>
             <div class="journal-kpi-card highlight-assist">
                 <div class="jk-head-row">
@@ -5920,6 +5927,21 @@
                     ? (sets.reduce((acc, s) => acc + (s.avgTempo || 0), 0) / sets.length).toFixed(1)
                     : '0.0';
                 const totalVolumeKg = sets.reduce((acc, s) => acc + (s.totalVolumeKg || ((s.reps || 0) * (s.finalLoadKg || 70))), 0);
+
+                // 일별 총 운동 시간 산출
+                const firstSet = sets[0] || {};
+                let dayDurationSec = firstSet.workoutDurationSeconds || firstSet.totalDayDurationSeconds;
+                if (!dayDurationSec) {
+                    dayDurationSec = sets.reduce((sum, s) => {
+                        const setTime = s.setDurationSeconds || Math.round((s.avgTempo || 2.0) * (s.reps || 10));
+                        const restTime = s.restBeforeSetSeconds || (s.set > 1 ? 60 : 0);
+                        return sum + setTime + restTime;
+                    }, 0);
+                }
+                const m = Math.floor(dayDurationSec / 60);
+                const remS = dayDurationSec % 60;
+                const durationStr = firstSet.workoutDurationFormatted || (m > 0 ? `${m}분${remS > 0 ? ' ' + remS + '초' : ''}` : `${remS}초`);
+
                 return {
                     date: d,
                     isToday: d === today,
@@ -5927,7 +5949,9 @@
                     totalSets: sets.length,
                     totalReps: totalReps,
                     avgTempo: avgTempo,
-                    totalVolumeKg: totalVolumeKg
+                    totalVolumeKg: totalVolumeKg,
+                    totalDurationSeconds: dayDurationSec,
+                    durationStr: durationStr
                 };
             });
         }
@@ -6024,7 +6048,8 @@
                         <div class="history-detail-summary-bar" style="padding: 8px 14px; font-size: 0.82rem;">
                             <span>총 <strong>${grp.totalSets}</strong>세트 완료</span> · 
                             <span>누적 <strong>${grp.totalReps}</strong>회 반복</span> · 
-                            <span>평균 템포 <strong>${grp.avgTempo}초</strong></span>
+                            <span>평균 템포 <strong>${grp.avgTempo}초</strong></span> · 
+                            <span>총 운동 시간 <strong style="color: #0066FF;">${grp.durationStr}</strong></span>
                         </div>
                         <div class="history-sets-wrap" style="max-height: 250px;">
                             ${grp.sets.map((item, idx) => {
@@ -6089,7 +6114,8 @@
                                 <div class="hdc-meta" style="font-size: 0.82rem; margin-top: 2px;">
                                     <span>완료 <strong>${grp.totalSets}</strong>세트</span> · 
                                     <span>누적 <strong>${grp.totalReps}</strong>회</span> · 
-                                    <span>평균 템포 <strong>${grp.avgTempo}초</strong></span>
+                                    <span>평균 템포 <strong>${grp.avgTempo}초</strong></span> · 
+                                    <span>시간 <strong style="color: #0066FF;">${grp.durationStr}</strong></span>
                                 </div>
                             </div>
                             <span class="hdc-btn" style="padding: 6px 14px; font-size: 0.8rem;">기록 보기</span>
@@ -6134,13 +6160,25 @@
             const pageStatReps = document.getElementById('pageStatReps');
             const pageStatTempo = document.getElementById('pageStatTempo');
             const pageStatVolume = document.getElementById('pageStatVolume');
+            const pageStatDuration = document.getElementById('pageStatDuration');
             const pageStatAssists = document.getElementById('pageStatAssists');
+
+            const totalDurationSecAll = groups.reduce((acc, g) => acc + (g.totalDurationSeconds || 0), 0);
+            const totalHours = Math.floor(totalDurationSecAll / 3600);
+            const totalMins = Math.floor((totalDurationSecAll % 3600) / 60);
 
             if (pageStatDays) pageStatDays.innerHTML = `${totalDays}<span>일</span>`;
             if (pageStatSets) pageStatSets.innerHTML = `${totalSets}<span>세트</span>`;
             if (pageStatReps) pageStatReps.innerHTML = `${totalReps}<span>회</span>`;
             if (pageStatTempo) pageStatTempo.innerHTML = `${overallTempo}<span>초</span>`;
             if (pageStatVolume) pageStatVolume.innerHTML = `${Math.round(totalVolumeKg).toLocaleString()}<span>kg</span>`;
+            if (pageStatDuration) {
+                if (totalHours > 0) {
+                    pageStatDuration.innerHTML = `${totalHours}<span>시간</span> ${totalMins}<span>분</span>`;
+                } else {
+                    pageStatDuration.innerHTML = `${totalMins}<span>분</span>`;
+                }
+            }
             if (pageStatAssists) pageStatAssists.innerHTML = `${totalAssists}<span>회</span>`;
 
             // 우측 Agent Orb 텔레메트리 상태 업데이트
@@ -6192,6 +6230,10 @@
                                 <span class="hds-k">추정 볼륨</span>
                                 <span class="hds-v">${Math.round(grp.totalVolumeKg || (grp.totalReps * 70)).toLocaleString()}kg</span>
                             </div>
+                            <div class="hds-cell">
+                                <span class="hds-k">총 운동 시간</span>
+                                <span class="hds-v" style="color: #0066FF;">${grp.durationStr}</span>
+                            </div>
                         </div>
                         <div class="history-sets-wrap">
                             ${grp.sets.map((item, idx) => `
@@ -6204,6 +6246,7 @@
                                         <span class="set-tempo">평균 <strong>${(item.avgTempo || 0).toFixed(1)}초</strong></span>
                                         <span class="rom-mini-badge ${item.romRating || 'GOOD'}">${item.romRating || 'GOOD'}</span>
                                         <span class="set-load-badge">부하 ${(item.finalLoadKg || item.baseWeightKg || 70).toFixed(1)}kg</span>
+                                        <span class="set-duration-badge" style="font-size: 0.72rem; padding: 2px 7px; background: rgba(0, 102, 255, 0.08); color: #0066FF; border-radius: 999px; font-weight: 700;">소요 ${item.setDurationSeconds || Math.round((item.avgTempo || 2.0) * (item.reps || 10))}초</span>
                                         ${(item.loadChanges && item.loadChanges.length > 0) ? `
                                             <span class="set-assist-badge">
                                                 감경 ${item.loadChanges.length}회 (-${(item.loadChanges.length * 5)}kg)
@@ -6266,6 +6309,10 @@
                                 <div class="hdc-m-cell">
                                     <span class="hdc-m-k">추정 볼륨</span>
                                     <span class="hdc-m-v">${Math.round(grp.totalVolumeKg || (grp.totalReps * 70)).toLocaleString()}kg</span>
+                                </div>
+                                <div class="hdc-m-cell">
+                                    <span class="hdc-m-k">총 운동 시간</span>
+                                    <span class="hdc-m-v" style="color: #0066FF;">${grp.durationStr}</span>
                                 </div>
                             </div>
                             <span class="hdc-action-btn">세트 일지 보기</span>

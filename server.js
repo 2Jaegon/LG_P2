@@ -72,6 +72,13 @@ app.get('/api/tts', async (req, res) => {
 
 // 전체 운동 일지 및 세트 기록 반환 API
 app.get('/api/history', (req, res) => {
+    try {
+        delete require.cache[require.resolve('./workoutHistoryData')];
+        const fresh = require('./workoutHistoryData');
+        if (fresh && fresh.initialSetHistory) {
+            setHistory = fresh.initialSetHistory;
+        }
+    } catch (e) {}
     res.json({ success: true, count: setHistory.length, setHistory });
 });
 
