@@ -6125,7 +6125,6 @@
                             <span class="history-detail-date-title" style="font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
                                 ${formatDisplayDate(grp.date)} 기록
                                 ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
-                                <span class="hdc-time-badge ${(grp.timeBudget || 'UNDER_60M').toLowerCase().replace('_', '-')}">${grp.timeBudgetLabel || '1시간 미만'}</span>
                             </span>
                         </div>
                         <div class="history-detail-summary-bar" style="padding: 8px 14px; font-size: 0.82rem;">
@@ -6198,7 +6197,6 @@
                                 <div class="hdc-date-row" style="display: flex; align-items: center; gap: 8px;">
                                     <span class="hdc-date" style="font-size: 0.95rem;">${formatDisplayDate(grp.date)}</span>
                                     ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
-                                    <span class="hdc-time-badge ${(grp.timeBudget || 'UNDER_60M').toLowerCase().replace('_', '-')}">${grp.timeBudgetLabel || '1시간 미만'}</span>
                                 </div>
                                 <div class="hdc-meta" style="font-size: 0.82rem; margin-top: 2px;">
                                     <span><strong>SET</strong> ${grp.totalSets}</span> · 
@@ -6301,7 +6299,6 @@
                             <div class="history-detail-date-title" style="display: flex; align-items: center; gap: 8px;">
                                 <span>${formatDisplayDate(grp.date)}</span>
                                 ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
-                                <span class="hdc-time-badge ${(grp.timeBudget || 'UNDER_60M').toLowerCase().replace('_', '-')}">${grp.timeBudgetLabel || '1시간 미만'}</span>
                             </div>
                         </div>
                         <div class="history-detail-summary-bar">
@@ -6390,7 +6387,6 @@
                             <div class="hdc-date-col">
                                 <span class="hdc-date">${formatDisplayDate(grp.date)}</span>
                                 ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
-                                <span class="hdc-time-badge ${(grp.timeBudget || 'UNDER_60M').toLowerCase().replace('_', '-')}">${grp.timeBudgetLabel || '1시간 미만'}</span>
                             </div>
                             <div class="hdc-metrics-strip">
                                 <div class="hdc-m-cell">
