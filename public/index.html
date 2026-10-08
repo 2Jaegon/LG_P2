@@ -3250,11 +3250,10 @@
                         <div id="mainBodyDetachAlertBanner" class="main-danger-alert main-detach-alert" style="display: none;">
                             <div class="danger-alert-text">
                                 <span class="danger-alert-badge" style="background: #FF4D4D;">BODY DETACHED</span>
-                                <strong>바 신체 이탈 감지 (바 위치 고정)</strong>
-                                <p>바에서 손/신체가 떨어져 안전을 위해 바의 위치를 즉시 고정했습니다.</p>
+                                <strong>바 위치 고정 (신체 이탈)</strong>
                             </div>
-                            <button type="button" id="btnMainBodyDetachClear" class="main-danger-clear-btn" style="background: #E03131;" title="신체 접촉을 확인하고 바 고정을 해제합니다">
-                                <span>1번 버튼: 신체 접촉 재개</span>
+                            <button type="button" id="btnMainBodyDetachClear" class="main-danger-clear-btn" style="background: #E03131;">
+                                <span>고정 해제</span>
                             </button>
                         </div>
 
@@ -3262,11 +3261,10 @@
                         <div id="mainImbalanceAlertBanner" class="main-danger-alert main-imbalance-alert" style="display: none;">
                             <div class="danger-alert-text">
                                 <span class="danger-alert-badge" style="background: #F59F00;">IMBALANCE</span>
-                                <strong>좌우 힘 불균형 감지 (안전 교정 부하 20kg 설정 &amp; 증량 잠금)</strong>
-                                <p>부상 방지를 위해 무게를 20kg으로 맞췄습니다. 균형이 교정될 때까지 증량이 잠깁니다.</p>
+                                <strong>좌우 불균형 (20kg 설정)</strong>
                             </div>
-                            <button type="button" id="btnMainImbalanceClear" class="main-danger-clear-btn" style="background: #E67700;" title="균형 교정 완료 상태로 전환합니다">
-                                <span>2번 버튼: 균형 교정 완료</span>
+                            <button type="button" id="btnMainImbalanceClear" class="main-danger-clear-btn" style="background: #E67700;">
+                                <span>교정 완료</span>
                             </button>
                         </div>
 
@@ -3274,27 +3272,21 @@
                         <div id="mainWorkoutConfirmBanner" class="main-danger-alert main-workout-confirm-alert" style="display: none;">
                             <div class="danger-alert-text">
                                 <span class="danger-alert-badge" style="background: #20C997;">BALANCED</span>
-                                <strong>좌우 밸런스 정상 교정 완료</strong>
-                                <p>자세가 올바르게 교정되었습니다! 현재는 교정 무게(20kg)가 유지 중이며, 본 운동을 시작하시겠습니까?</p>
+                                <strong>자세 교정 완료 · 본 운동을 시작하시겠습니까?</strong>
                             </div>
-                            <button type="button" id="btnConfirmMainWorkout" class="main-danger-clear-btn" style="background: #0CA678;" title="본 운동으로 재돌입합니다">
-                                <span>본 운동 시작하기 (원래 무게 복원)</span>
+                            <button type="button" id="btnConfirmMainWorkout" class="main-danger-clear-btn" style="background: #0CA678;">
+                                <span>본 운동 시작</span>
                             </button>
                         </div>
 
                         <!-- 4. 메인 긴급 위험 알림 배너 & 해제 버튼 (바텀 탈진) -->
                         <div id="mainDangerAlertBanner" class="main-danger-alert" style="display: none;">
                             <div class="danger-alert-text">
-                                <span class="danger-alert-badge">SAFETY HOLD</span>
-                                <strong>바텀 탈진 위험 감지 (안전선 280 고정)</strong>
-                                <p id="mainDangerAlertDesc">바를 안전 라인에 고정했습니다. 안전하게 빠져나오신 후 답변 또는 버튼을 눌러주세요.</p>
+                                <span class="danger-alert-badge">DANGER</span>
+                                <strong>탈진 위험 감지 (안전 고정)</strong>
                             </div>
-                            <button type="button" id="btnMainDangerClear" class="main-danger-clear-btn" title="위험 안전 고정을 해제하고 정상 운동 모드로 복귀합니다">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-                                    <line x1="12" y1="2" x2="12" y2="12"></line>
-                                </svg>
-                                <span>안전 탈출 완료 (위험 해제)</span>
+                            <button type="button" id="btnMainDangerClear" class="main-danger-clear-btn">
+                                <span>위험 해제</span>
                             </button>
                         </div>
 
@@ -3892,9 +3884,6 @@
                 if (btnDangerClear) btnDangerClear.style.display = 'block';
                 const sidebarDangerClearItem = document.getElementById('sidebarDangerClearItem');
                 if (sidebarDangerClearItem) sidebarDangerClearItem.style.display = 'block';
-                if (mainDangerAlertDesc) {
-                    mainDangerAlertDesc.textContent = "바를 안전 라인(280)에 고정했습니다. 안전하게 빠져나오신 후 음성 답변이나 버튼을 눌러주세요.";
-                }
                 if (statusBoxLabel) {
                     statusBoxLabel.textContent = 'SAFETY HOLD';
                     statusBoxLabel.style.color = 'var(--danger)';
@@ -3918,7 +3907,7 @@
                 if (!isDangerAlertActive) {
                     isDangerAlertActive = true;
                     stopAllSpeech();
-                    const dangerWarningNotice = "경고: 바텀 탈진 위험이 감지되어 바를 안전선에 고정했습니다! 사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?";
+                    const dangerWarningNotice = "탈진 위험 감지, 바를 고정했습니다. 괜찮으신가요?";
                     lastSpokenDecision = dangerWarningNotice;
                     speakAgentVoice(dangerWarningNotice);
                 }
@@ -5098,7 +5087,7 @@
                         isAwaitingDangerEscapeConfirm = false;
                         isDangerAlertActive = false;
                         performDangerClear(true);
-                        agentReply = "확인되었습니다! 위험 상태를 해제하고 바 고정을 풀었습니다. 호흡을 가다듬고 준비되시면 다시 시작하세요!";
+                        agentReply = "확인되었습니다. 안전 고정을 해제합니다.";
                         renderAgentDecision(agentReply);
                         speakAgentVoice(agentReply);
                         return;
@@ -5116,7 +5105,7 @@
                     if (mainDangerAlertBanner) mainDangerAlertBanner.style.display = 'flex';
                     if (btnDangerClear) btnDangerClear.style.display = 'block';
                     triggerDangerSafetyLift();
-                    agentReply = "경고: 위험 상황이 감지되어 바를 안전선(280)에 즉시 고정했습니다! 사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?";
+                    agentReply = "탈진 위험 감지! 바 고정 완료. 괜찮으신가요?";
                     renderAgentDecision(agentReply);
                     speakAgentVoice(agentReply);
                     return;
@@ -5135,7 +5124,7 @@
                         const lockBadge = document.getElementById('weightLockedBadge');
                         if (lockBadge) lockBadge.remove();
 
-                        agentReply = "좋습니다! 원래 무게로 복원하여 본 운동으로 재돌입합니다. 화이팅!";
+                        agentReply = "원래 무게로 본 운동을 시작합니다.";
                         renderAgentDecision(agentReply);
                         speakAgentVoice(agentReply);
                         return; // 로컬 LLM 호출 절대 방지 및 즉각 반응

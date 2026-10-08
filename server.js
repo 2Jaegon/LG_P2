@@ -477,8 +477,8 @@ function toggleBodyDetachment(source = 'hardware') {
         currentStatus = 'BODY_DETACHED';
         if (port && port.isOpen) port.write('H\n'); // 위험/고정 신호 (적색 LED + 부저)
 
-        const alertDecision = "경고: 신체 이탈 감지!\n바에서 손이 떨어져 안전을 위해 바의 위치를 즉시 고정했습니다.\n안전을 확보한 후 1번 버튼을 다시 누르면 고정이 해제됩니다.";
-        const speechText = "경고: 신체 접촉이 감지되지 않습니다! 바에서 손이 떨어져 안전을 위해 바의 위치를 즉시 고정했습니다.";
+        const alertDecision = "신체 이탈 감지: 바 위치를 고정했습니다.";
+        const speechText = "신체 이탈 감지, 바를 고정했습니다.";
         
         console.log(`\n[시나리오 1] 바 신체 이탈 감지 (${source}) -> 바 위치 즉시 고정 (${lockedBarValue})`);
         io.emit('sensorData', {
@@ -496,8 +496,8 @@ function toggleBodyDetachment(source = 'hardware') {
         currentStatus = 'NORMAL';
         if (port && port.isOpen) port.write('N\n'); // 정상 복귀 (녹색 LED)
 
-        const clearDecision = "신체 접촉 확인 완료!\n바 고정을 해제하고 정상 운동 상태로 복구했습니다.\n자세를 가다듬고 진행하세요.";
-        const speechText = "신체 접촉이 다시 확인되었습니다. 바 고정을 해제하고 정상 상태로 복귀합니다.";
+        const clearDecision = "신체 접촉 확인: 바 고정을 해제했습니다.";
+        const speechText = "바 고정을 해제합니다.";
 
         console.log(`\n[시나리오 1] 바 신체 접촉 재개 (${source}) -> 바 고정 해제 및 NORMAL 복귀`);
         io.emit('sensorData', {
@@ -524,13 +524,12 @@ function toggleImbalanceScenario(source = 'hardware') {
             preImbalanceWeightKg = userWeightKg; // 원래 설정 무게 보관
         }
         const prevKg = userWeightKg;
-        // 사용자 요구사항: 무게를 20kg 감소가 아니라 딱 20kg으로 설정!
         userWeightKg = 20.0;
         currentStatus = 'IMBALANCE';
         if (port && port.isOpen) port.write('L\n'); // 보조/불균형 신호 (청색 LED)
 
-        const alertDecision = `경고: 좌우 힘 불균형 감지!\n부상 방지를 위해 무게를 안전 교정 부하인 20kg으로 맞췄습니다 (${prevKg}kg -> 20.0kg).\n자세가 올바르게 교정될 때까지 무게를 올릴 수 없습니다.\n균형을 맞추며 천천히 당겨보세요.`;
-        const speechText = "주의: 좌우 불균형이 감지되었습니다! 부상 방지를 위해 무게를 20kg으로 맞췄습니다. 자세가 올바르게 교정될 때까지 무게를 올릴 수 없습니다. 균형을 맞추며 천천히 당겨주세요.";
+        const alertDecision = `좌우 불균형 감지: 부상 방지를 위해 20kg으로 조정했습니다.`;
+        const speechText = "불균형 감지, 20kg으로 조정했습니다.";
 
         console.log(`\n[시나리오 2] 좌우 불균형 감지 (${source}) -> 무게 딱 20kg으로 설정 (${prevKg}kg -> 20.0kg) & 증량 잠금 활성화`);
         io.emit('sensorData', {
@@ -550,8 +549,8 @@ function toggleImbalanceScenario(source = 'hardware') {
         if (port && port.isOpen) port.write('N\n');
 
         const originalKg = preImbalanceWeightKg || 70.0;
-        const questionDecision = `좌우 밸런스가 안정적으로 교정되었습니다!\n사용자님의 동의 전까지는 안전을 위해 교정 무게(20kg)가 계속 적용됩니다.\n원래 본 운동 무게(${originalKg}kg)로 복원하여 본 운동을 실시하시겠습니까?\n(음성 또는 채팅으로 '시작해'라고 말씀하시거나 버튼을 눌러주세요)`;
-        const speechText = "좌우 밸런스가 안정적으로 교정되었습니다! 현재는 교정 무게 20kg이 유지 중입니다. 원래 무게로 본 운동을 다시 실시하시겠습니까?";
+        const questionDecision = `자세 교정 완료! 본 운동을 시작하시겠습니까?`;
+        const speechText = "자세가 교정되었습니다. 본 운동을 시작하시겠습니까?";
 
         console.log(`\n[시나리오 2] 균형 교정 완료 (${source}) -> 동의 전까지 교정 무게(20kg) 유지한 채 본 운동 확인 대기`);
         io.emit('sensorData', {
@@ -582,8 +581,8 @@ function confirmMainWorkout() {
     userWeightKg = restoredKg;
     preImbalanceWeightKg = null; // 초기화
 
-    const confirmDecision = `자세 교정 완료: 본 운동 재돌입!\n원래 설정 무게(${userWeightKg}kg)로 복원하여 본 운동을 재개합니다.\n호흡을 가다듬고 힘차게 진행하세요!`;
-    const speechText = `좋습니다! 원래 무게 ${userWeightKg}kg으로 복원하여 정상 강도로 본 운동을 재개합니다. 화이팅!`;
+    const confirmDecision = `본 운동 재개 (${userWeightKg}kg 복원)`;
+    const speechText = "원래 무게로 본 운동을 시작합니다.";
 
     console.log(`\n[시나리오 2] 본 운동 재돌입 승인 -> 원래 무게(${userWeightKg}kg) 복원 & 무게 잠금 해제 & 본 운동 복귀`);
     io.emit('sensorData', {
@@ -614,8 +613,8 @@ function triggerDangerScenario(source = 'system', reason = '바텀 탈진 위험
         port.write('H\n'); // 위험/고정 신호 (적색 LED + 부저)
     }
 
-    const dangerDecision = `경고: 위험 상황 감지 (${reason})!\n바를 안전 라인(280)에 즉시 고정했습니다.\n사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?`;
-    const dangerSpeech = "경고: 위험 상황이 감지되어 바를 안전선에 고정했습니다! 사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?";
+    const dangerDecision = `탈진 위험 감지! 바 고정 완료. 괜찮으신가요?`;
+    const dangerSpeech = "탈진 위험 감지, 바를 고정했습니다. 괜찮으신가요?";
 
     io.emit('sensorData', {
         value: THRESHOLD_BOTTOM,
@@ -637,8 +636,8 @@ function confirmDangerEscape() {
     dangerCooldownUntil = Date.now() + 3000;
     if (port && port.isOpen) port.write('N\n');
 
-    const clearDecision = "탈출 확인 완료: 안전 고정 해제!\n바의 안전 고정을 정상 해제했습니다.\n무리하지 마시고 호흡을 충분히 가다듬은 후 다시 준비해 주세요.";
-    const speechText = "확인되었습니다. 바의 안전 고정을 해제합니다. 무리하지 마시고 호흡을 충분히 가다듬은 후 다시 시작해 주세요.";
+    const clearDecision = "안전 고정을 해제했습니다.";
+    const speechText = "바 고정을 해제합니다.";
 
     console.log(`\n[시나리오 3] 바텀 위험 탈출 확인 -> 바 고정 해제 & NORMAL 정상 복귀`);
     io.emit('sensorData', {
@@ -1392,7 +1391,7 @@ io.on('connection', (socket) => {
             const isEscapeAck = /(괜찮|응|탈출|빠져|나왔|해제|풀어|네|안전|다치지|살았|괜춘|문제없|이상없|멀쩡|벗어|벗어났|살았어|상황\s*벗어|살아남|끝났|완료|ok|yes)/i.test(lower);
             if (isEscapeAck) {
                 confirmDangerEscape();
-                const reply = "확인되었습니다! 바 안전 고정을 해제하고 정상 상태로 복구했습니다. 충분히 호흡을 가다듬은 후 운동을 재개하세요.";
+                const reply = "확인되었습니다. 안전 고정을 해제합니다.";
                 socket.emit('agentChatResponse', { reply, originalMessage: msg });
                 return;
             }
@@ -1402,7 +1401,7 @@ io.on('connection', (socket) => {
         const isDangerTrigger = /(위험|깔렸|깔림|살려|도와|비상|사고|멈춰|스톱|긴급|살려줘|도와줘|위험해|위험\s*상황)/i.test(lower);
         if (isDangerTrigger) {
             triggerDangerScenario('chat_command', msg);
-            const reply = "경고: 위험 상황이 감지되어 바를 안전선(280)에 즉시 고정했습니다! 사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?";
+            const reply = "탈진 위험 감지! 바를 고정했습니다. 괜찮으신가요?";
             socket.emit('agentChatResponse', { reply, originalMessage: msg });
             return;
         }
@@ -1412,7 +1411,7 @@ io.on('connection', (socket) => {
             const isConfirmAck = /(네|응|시작|돌입|그래|좋아|하자|본\s*운동|화이팅|고|해제|맞췄|교정|풀어|원래|yes|ok|start)/i.test(lower);
             if (isConfirmAck) {
                 confirmMainWorkout();
-                const reply = `좋습니다! 원래 설정 무게(${userWeightKg}kg)로 복원하여 본 운동으로 재돌입합니다. 화이팅!`;
+                const reply = "원래 무게로 본 운동을 시작합니다.";
                 socket.emit('agentChatResponse', { reply, originalMessage: msg });
                 return;
             }
@@ -1422,7 +1421,7 @@ io.on('connection', (socket) => {
         if (isWeightLocked) {
             const isIncreaseAttempt = /(올려|증가|추가|높여|증량|\+|더해|무겁)/.test(lower);
             if (isIncreaseAttempt) {
-                const reply = "현재 좌우 불균형 교정 모드가 진행 중이므로 무게를 올릴 수 없습니다. 균형을 맞추며 먼저 자세를 교정해 주세요.";
+                const reply = "불균형 교정 중에는 무게를 올릴 수 없습니다.";
                 socket.emit('agentChatResponse', { reply, originalMessage: msg });
                 io.emit('agentSpeech', { text: reply });
                 return;
