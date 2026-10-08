@@ -3442,6 +3442,18 @@
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
+        /* 오늘 날짜 카드 전용 테두리 하이라이트 (오늘 텍스트 배지 대체) */
+        .history-date-card.is-today {
+            border: 2px solid var(--lg-red) !important;
+            box-shadow: 0 0 0 1px rgba(165, 0, 52, 0.18), 0 4px 18px rgba(165, 0, 52, 0.08);
+            position: relative;
+        }
+
+        .history-date-card.is-today:hover {
+            border-color: var(--lg-red) !important;
+            box-shadow: 0 0 0 2px rgba(165, 0, 52, 0.28), 0 6px 22px rgba(165, 0, 52, 0.12);
+        }
+
         .history-date-card:hover .hdc-action-btn {
             background: var(--lg-red);
             border-color: var(--lg-red);
@@ -4412,7 +4424,6 @@
             <div class="history-widget-head">
                 <div class="hwh-title-wrap">
                     <span class="label" style="margin-bottom: 0;">오늘의 운동 현황</span>
-                    <span class="hdc-today-pill" style="font-size: 0.72rem; padding: 2px 7px;">TODAY</span>
                 </div>
                 <button type="button" id="btnOpenHistoryModal" class="widget-link-btn" title="전체 세트 기록 및 통계 모달 열기">
                     전체 세트 기록 / 통계 상세 분석 보기 ›
@@ -6124,7 +6135,6 @@
                             <button type="button" class="history-back-btn" id="btnModalBackToDates">전체 날짜 목록</button>
                             <span class="history-detail-date-title" style="font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
                                 ${formatDisplayDate(grp.date)} 기록
-                                ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
                             </span>
                         </div>
                         <div class="history-detail-summary-bar" style="padding: 8px 14px; font-size: 0.82rem;">
@@ -6192,11 +6202,10 @@
             container.innerHTML = `
                 <div class="history-date-list">
                     ${groups.map(grp => `
-                        <div class="history-date-card" data-modal-date="${grp.date}" style="padding: 13px 16px;">
+                        <div class="history-date-card ${grp.isToday ? 'is-today' : ''}" data-modal-date="${grp.date}" style="padding: 13px 16px;">
                             <div class="hdc-info">
                                 <div class="hdc-date-row" style="display: flex; align-items: center; gap: 8px;">
                                     <span class="hdc-date" style="font-size: 0.95rem;">${formatDisplayDate(grp.date)}</span>
-                                    ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
                                 </div>
                                 <div class="hdc-meta" style="font-size: 0.82rem; margin-top: 2px;">
                                     <span><strong>SET</strong> ${grp.totalSets}</span> · 
@@ -6298,7 +6307,6 @@
                             </button>
                             <div class="history-detail-date-title" style="display: flex; align-items: center; gap: 8px;">
                                 <span>${formatDisplayDate(grp.date)}</span>
-                                ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
                             </div>
                         </div>
                         <div class="history-detail-summary-bar">
@@ -6383,10 +6391,9 @@
             container.innerHTML = `
                 <div class="history-date-list">
                     ${groups.map(grp => `
-                        <div class="history-date-card" data-page-date="${grp.date}">
+                        <div class="history-date-card ${grp.isToday ? 'is-today' : ''}" data-page-date="${grp.date}">
                             <div class="hdc-date-col">
                                 <span class="hdc-date">${formatDisplayDate(grp.date)}</span>
-                                ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
                             </div>
                             <div class="hdc-metrics-strip">
                                 <div class="hdc-m-cell">
