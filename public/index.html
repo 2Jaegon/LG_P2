@@ -2307,146 +2307,281 @@
         }
 
         /* ---------- 상세 텔레메트리 모달 스타일 ---------- */
+        /* ---------- 상세 텔레메트리 모달 스타일 ---------- */
         .modal-card.modal-card-xl {
-            max-width: 680px;
+            max-width: 800px;
             max-height: 90vh;
             overflow-y: auto;
         }
 
-        .tel-top-metrics {
+        .pattern-analysis-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
             margin-bottom: 14px;
         }
 
-        .tel-metric-box {
+        @media (max-width: 640px) {
+            .pattern-analysis-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .pac-card {
             background: var(--surface-2);
             border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 10px 8px;
-            text-align: center;
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .tel-metric-lbl {
-            font-size: 0.68rem;
+        .pac-tag {
+            font-size: 0.7rem;
+            font-weight: 800;
             color: var(--text-muted);
-            font-weight: 700;
-            text-transform: uppercase;
+            letter-spacing: 0.02em;
         }
 
-        .tel-metric-num {
-            font-size: 1.18rem;
+        .pac-val {
+            font-size: 1.05rem;
             font-weight: 800;
             color: var(--text);
-            margin-top: 3px;
+            margin-top: 2px;
             font-variant-numeric: tabular-nums;
         }
 
-        .tel-section {
-            background: #fff;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 12px 14px;
-            margin-bottom: 12px;
+        .pac-sub {
+            font-size: 0.74rem;
+            color: var(--text-2);
+            line-height: 1.4;
+            margin-top: 2px;
         }
 
-        .tel-sec-title {
-            font-size: 0.82rem;
+        .tel-metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        @media (max-width: 640px) {
+            .tel-metric-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .tmg-item {
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .tmg-lbl {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: -0.01em;
+        }
+
+        .tmg-val {
+            font-size: 1.25rem;
             font-weight: 800;
             color: var(--text);
-            margin-bottom: 8px;
+            font-variant-numeric: tabular-nums;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            align-items: baseline;
+            gap: 3px;
         }
 
-        .tel-sec-badge {
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 999px;
-            background: var(--surface-2);
+        .tmg-val .tmg-sub {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .tmg-sub {
+            font-size: 0.72rem;
             color: var(--text-2);
         }
 
-        .rep-tempo-bars {
+        .tel-section {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            padding: 16px 18px;
+            margin-bottom: 14px;
+        }
+
+        .tel-section-title {
+            font-size: 0.86rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .tempo-bars-wrap {
             display: flex;
             align-items: flex-end;
-            gap: 6px;
-            height: 90px;
-            padding: 10px 0 4px;
-            border-bottom: 1px solid var(--line);
-            margin-bottom: 8px;
+            gap: 8px;
+            height: 125px;
+            padding: 14px 4px 6px;
             overflow-x: auto;
         }
 
-        .rt-col {
+        .tempo-bar-col {
             flex: 1;
-            min-width: 32px;
+            min-width: 44px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
             height: 100%;
             justify-content: flex-end;
         }
 
-        .rt-val {
-            font-size: 0.68rem;
+        .tempo-bar-val {
+            font-size: 0.72rem;
             font-weight: 700;
-            color: var(--text-2);
+            color: var(--text-muted);
             font-variant-numeric: tabular-nums;
         }
 
-        .rt-bar {
-            width: 18px;
+        .tempo-bar-track {
+            width: 20px;
+            height: 80px;
+            background: var(--surface-2);
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+
+        .tempo-bar-fill {
+            width: 100%;
             background: var(--lg-red);
-            border-radius: 4px 4px 0 0;
-            transition: height 0.3s ease;
+            border-radius: 3px 3px 0 0;
+            transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .rt-bar.slow {
-            background: #FF9900;
-        }
-
-        .rt-bar.fast {
-            background: #009966;
-        }
-
-        .rt-lbl {
-            font-size: 0.68rem;
+        .tempo-rep-num {
+            font-size: 0.72rem;
+            font-weight: 800;
             color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
         }
 
-        .tel-log-table {
+        .tempo-rom-badge {
+            font-size: 0.64rem;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 4px;
+            background: var(--surface-2);
+            color: var(--text-muted);
+            border: 1px solid var(--line);
+        }
+
+        .tempo-rom-badge.PERFECT {
+            color: #00AA77;
+            border-color: rgba(0, 170, 119, 0.3);
+            background: rgba(0, 170, 119, 0.1);
+        }
+
+        .tempo-inflection-badge {
+            font-size: 0.62rem;
+            font-weight: 800;
+            background: #FF4D4D;
+            color: #fff;
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+
+        .tel-table-wrap {
+            overflow-x: auto;
+        }
+
+        .tel-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.78rem;
-            margin-top: 6px;
+            font-size: 0.8rem;
         }
 
-        .tel-log-table th,
-        .tel-log-table td {
-            padding: 6px 8px;
+        .tel-table th,
+        .tel-table td {
+            padding: 10px 12px;
             border-bottom: 1px solid var(--line);
             text-align: left;
+            font-variant-numeric: tabular-nums;
         }
 
-        .tel-log-table th {
+        .tel-table th {
             background: var(--surface-2);
             color: var(--text-muted);
             font-weight: 700;
+            font-size: 0.74rem;
         }
 
-        .tel-agent-quote {
-            font-size: 0.82rem;
-            line-height: 1.55;
-            background: #FAF9F7;
-            border-left: 3px solid var(--lg-red);
-            padding: 8px 12px;
-            border-radius: 0 6px 6px 0;
-            margin-top: 6px;
+        .load-pct-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid var(--line);
+        }
+
+        .load-pct-badge.assisted {
+            color: #0066FF;
+            background: rgba(0, 102, 255, 0.08);
+            border-color: rgba(0, 102, 255, 0.25);
+        }
+
+        .tel-agent-box {
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+        }
+
+        .tab-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-badge {
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: var(--lg-red);
+            background: var(--lg-red-soft);
+            border: 1px solid var(--lg-red-line);
+            padding: 2px 8px;
+            border-radius: 999px;
+            letter-spacing: 0.03em;
+        }
+
+        .tab-text {
+            color: var(--text-muted);
+        }
+
+        .tab-text strong {
+            color: var(--text);
+        }
+
+        .tab-desc {
+            font-size: 0.88rem;
+            line-height: 1.6;
         }
 
         .tel-future-idea {
@@ -2460,114 +2595,37 @@
             color: #0044AA;
         }
 
-        /* 패턴 분석 전용 컴포넌트 */
-        .pattern-analysis-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .pac-card {
-            background: var(--surface-2);
+        .tel-json-preview {
+            background: #111418;
+            color: #A0B0C0;
+            font-family: 'SF Mono', Consolas, Monaco, monospace;
+            font-size: 0.75rem;
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            max-height: 200px;
+            overflow-y: auto;
             border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 11px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .pac-tag {
-            font-size: 0.68rem;
-            font-weight: 800;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .pac-val {
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: var(--text);
-            margin-top: 2px;
-        }
-
-        .pac-sub {
-            font-size: 0.72rem;
-            color: var(--text-2);
-            line-height: 1.35;
-            margin-top: 2px;
-        }
-
-        .pattern-highlight-box {
-            background: #FFF9F2;
-            border: 1px solid #FFE4C4;
-            border-left: 4px solid var(--warn);
-            border-radius: 6px;
-            padding: 10px 12px;
-            margin-bottom: 10px;
-            font-size: 0.82rem;
-            line-height: 1.5;
-            color: #8A4B00;
-        }
-
-        .pattern-highlight-box.assist {
-            background: #F0F7FF;
-            border-color: #CCE3FF;
-            border-left-color: #0066FF;
-            color: #0044AA;
-        }
-
-        .pattern-highlight-box.perfect {
-            background: #F0FAF4;
-            border-color: #C2EDD3;
-            border-left-color: var(--ok);
-            color: #0F5B32;
-        }
-
-        .tempo-inflection-badge {
-            font-size: 0.64rem;
-            font-weight: 800;
-            background: #FF4D4D;
-            color: #fff;
-            padding: 1px 5px;
-            border-radius: 999px;
-            margin-top: 2px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 0;
         }
 
         .btn-copy-json {
             background: var(--surface-2);
             border: 1px solid var(--line-strong);
             border-radius: 999px;
-            padding: 8px 16px;
+            padding: 8px 18px;
             font-weight: 700;
             font-size: 0.8rem;
             cursor: pointer;
-            color: var(--text-2);
+            color: var(--text);
             transition: all 0.2s;
             font-family: inherit;
         }
 
         .btn-copy-json:hover {
-            background: var(--text);
-            color: #fff;
-        }
-
-        .telemetry-json-preview {
-            background: #1E1E1E;
-            color: #D4D4D4;
-            font-family: monospace;
-            font-size: 0.72rem;
-            padding: 10px;
-            border-radius: 6px;
-            max-height: 140px;
-            overflow-y: auto;
-            margin-top: 8px;
-            white-space: pre-wrap;
-            word-break: break-all;
+            border-color: var(--text-muted);
+            background: var(--surface);
         }
 
         footer {
@@ -3211,6 +3269,7 @@
         .journal-kpi-card {
             background: var(--surface);
             border: 1px solid var(--line);
+            border-top: 2px solid var(--line);
             border-radius: var(--radius-md);
             padding: 16px 18px;
             display: flex;
@@ -3219,9 +3278,26 @@
             transition: transform 0.2s, border-color 0.2s;
         }
 
+        .journal-kpi-card.highlight-assist {
+            border-top-color: #0066FF;
+        }
+
         .journal-kpi-card:hover {
-            border-color: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
+        }
+
+        .jk-head-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .jk-code {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
         }
 
         .jk-label {
@@ -3238,16 +3314,12 @@
             display: flex;
             align-items: baseline;
             gap: 3px;
+            font-variant-numeric: tabular-nums;
         }
 
         .jk-val span {
             font-size: 0.85rem;
             font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        .jk-sub {
-            font-size: 0.72rem;
             color: var(--text-muted);
         }
 
@@ -3276,47 +3348,398 @@
             gap: 18px;
         }
 
+        /* 날짜 목록 카드 스타일 */
+        .history-date-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-date-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
+            font-family: inherit;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .history-date-card:hover {
+            background: var(--surface-2);
+            border-color: rgba(255, 255, 255, 0.22);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .history-date-card:hover .hdc-action-btn {
+            background: var(--lg-red);
+            border-color: var(--lg-red);
+            color: #fff;
+        }
+
+        .hdc-date-col {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 130px;
+        }
+
+        .hdc-date {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+        }
+
+        .hdc-today-pill {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--lg-red);
+            background: var(--lg-red-soft);
+            border: 1px solid var(--lg-red-line);
+            padding: 2px 8px;
+            border-radius: 999px;
+            letter-spacing: 0.02em;
+        }
+
+        .hdc-metrics-strip {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            flex-wrap: wrap;
+            flex: 1;
+            justify-content: flex-start;
+        }
+
+        .hdc-m-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .hdc-m-k {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+
+        .hdc-m-v {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hdc-action-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 16px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--text);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        /* 날짜 상세 세트 목록 드릴다운 뷰 */
+        .history-detail-wrap {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .history-detail-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .history-back-btn {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 6px 14px;
+            transition: all 0.18s ease;
+            font-family: inherit;
+        }
+
+        .history-back-btn:hover {
+            color: var(--text);
+            border-color: var(--text-muted);
+            background: var(--surface);
+        }
+
+        .history-detail-date-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-detail-summary-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+        }
+
+        @media (max-width: 600px) {
+            .history-detail-summary-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .hds-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .hds-k {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+
+        .hds-v {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-sets-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            cursor: pointer;
+            padding: 14px 18px;
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .history-item:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .history-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .set-tag {
+            font-size: 0.74rem;
+            font-weight: 800;
+            color: var(--lg-red);
+            background: var(--lg-red-soft);
+            border: 1px solid var(--lg-red-line);
+            padding: 3px 10px;
+            border-radius: 999px;
+            letter-spacing: 0.04em;
+        }
+
+        .set-reps {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .set-reps-target {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .set-tempo {
+            font-size: 0.85rem;
+            color: var(--text-2);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .set-tempo strong {
+            color: var(--text);
+        }
+
+        .rom-mini-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            border: 1px solid var(--line);
+            letter-spacing: 0.03em;
+        }
+
+        .rom-mini-badge.PERFECT {
+            background: rgba(0, 170, 119, 0.12);
+            color: #00AA77;
+            border-color: rgba(0, 170, 119, 0.3);
+        }
+
+        .set-load-badge {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 0.85rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .set-assist-badge {
+            font-size: 0.74rem;
+            color: #0066FF;
+            font-weight: 800;
+            background: rgba(0, 102, 255, 0.1);
+            border: 1px solid rgba(0, 102, 255, 0.3);
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-item-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .set-time {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .btn-set-detail {
+            background: none;
+            border: 1px solid var(--line);
+            color: var(--text);
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            font-family: inherit;
+        }
+
+        .history-item:hover .btn-set-detail {
+            border-color: var(--text-muted);
+            background: var(--surface);
+        }
+
+        /* AI 운동 패턴 진단 카드 */
         .journal-ai-card {
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: var(--radius-md);
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
         }
 
         .jac-head {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.92rem;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .jac-title {
+            font-size: 0.95rem;
             font-weight: 800;
             color: var(--text);
-            margin-bottom: 14px;
+            letter-spacing: -0.01em;
+        }
+
+        .jac-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            padding: 2px 7px;
+            border-radius: 999px;
         }
 
         .jac-body {
             font-size: 0.84rem;
             color: var(--text-2);
-            line-height: 1.6;
-            margin-bottom: 16px;
+            line-height: 1.65;
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            font-family: 'SF Mono', Consolas, Monaco, monospace;
+            white-space: pre-line;
+            font-variant-numeric: tabular-nums;
         }
 
         .jac-action-btn {
             width: 100%;
-            padding: 11px;
-            background: var(--lg-red-soft);
-            border: 1px solid var(--lg-red-line);
-            color: var(--lg-red);
+            padding: 10px;
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            color: var(--text);
             font-weight: 800;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             font-family: inherit;
         }
 
         .jac-action-btn:hover {
-            background: var(--lg-red);
-            color: #fff;
+            border-color: var(--lg-red);
+            color: var(--lg-red);
+            background: var(--lg-red-soft);
         }
 
         @media (max-width: 1160px) {
@@ -3640,14 +4063,13 @@
 
 
 
-    <!-- 초상세 수집 데이터 & Agent 텔레메트리 뷰어 모달 -->
+    <!-- 세트 상세 텔레메트리 뷰어 모달 -->
     <div id="setTelemetryModal" class="modal-backdrop">
         <div class="modal-card modal-card-xl">
             <div class="modal-header">
                 <div>
-                    <h3 class="modal-title" id="telModalTitle">SET 1 상세 텔레메트리 &amp; 수집 데이터</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;" id="telModalSub">2026.10.06
-                        11:30:15 기록 · VBT 바이오메트릭스 센서 로그</p>
+                    <h3 class="modal-title" id="telModalTitle">SET 1 상세 텔레메트리</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;" id="telModalSub">2026.10.06 11:30:15 기록</p>
                 </div>
                 <button type="button" class="modal-close-btn" id="btnCloseTelemetryModal" aria-label="닫기">✕</button>
             </div>
@@ -3655,7 +4077,7 @@
                 <!-- 동적으로 텔레메트리 컨텐츠 렌더링 -->
             </div>
             <div class="modal-footer" style="justify-content: space-between;">
-                <button type="button" class="btn-copy-json" id="btnCopyTelemetryJson">📋 전체 텔레메트리 JSON 복사</button>
+                <button type="button" class="btn-copy-json" id="btnCopyTelemetryJson">전체 텔레메트리 JSON 복사</button>
                 <button type="button" class="btn-modal-cancel" id="btnCloseTelemetryModalBottom">닫기</button>
             </div>
         </div>
@@ -3872,20 +4294,19 @@
         <header class="journal-page-header">
             <div class="journal-header-left">
                 <button type="button" class="journal-back-btn" id="btnJournalBackToLive" title="실시간 코칭 화면으로 복귀">
-                    ‹ 실시간 풀업 코칭으로 돌아가기
+                    실시간 풀업 코칭으로 돌아가기
                 </button>
                 <div class="journal-title-wrap">
-                    <h1 class="journal-title">운동 일지 (Workout Journal)</h1>
+                    <h1 class="journal-title">운동 일지</h1>
                     <span class="journal-badge-pill">BIOMECHANICAL TELEMETRY</span>
                 </div>
-                <p class="journal-desc">VBT 센서 기반 세트별 템포 지체 분석 · 스마트 부하 감경 이력 및 AI 바이오메트릭스 센서 일지</p>
             </div>
             <div class="journal-header-actions">
                 <button type="button" class="journal-action-btn" id="btnJournalCopyJson">
-                    <span>📋 전체 일지 JSON 복사</span>
+                    <span>전체 일지 JSON 복사</span>
                 </button>
                 <button type="button" class="journal-action-btn primary" id="btnJournalStartWorkout">
-                    <span>🏋️ 실시간 코칭 시작</span>
+                    <span>실시간 코칭 시작</span>
                 </button>
             </div>
         </header>
@@ -3893,34 +4314,46 @@
         <!-- 6-KPI 대시보드 통계 카드 그리드 -->
         <section class="journal-kpi-grid">
             <div class="journal-kpi-card">
-                <span class="jk-label">총 운동 일수</span>
+                <div class="jk-head-row">
+                    <span class="jk-label">총 운동 일수</span>
+                    <span class="jk-code">DAYS</span>
+                </div>
                 <div class="jk-val" id="pageStatDays">0<span>일</span></div>
-                <span class="jk-sub">누적 운동 활동일</span>
             </div>
             <div class="journal-kpi-card">
-                <span class="jk-label">완료 세트수</span>
+                <div class="jk-head-row">
+                    <span class="jk-label">완료 세트수</span>
+                    <span class="jk-code">SETS</span>
+                </div>
                 <div class="jk-val" id="pageStatSets">0<span>세트</span></div>
-                <span class="jk-sub">기록 완료 세트</span>
             </div>
             <div class="journal-kpi-card">
-                <span class="jk-label">총 반복 횟수</span>
+                <div class="jk-head-row">
+                    <span class="jk-label">총 반복 횟수</span>
+                    <span class="jk-code">REPS</span>
+                </div>
                 <div class="jk-val" id="pageStatReps">0<span>회</span></div>
-                <span class="jk-sub">누적 Rep 수행</span>
             </div>
             <div class="journal-kpi-card">
-                <span class="jk-label">전체 평균 템포</span>
+                <div class="jk-head-row">
+                    <span class="jk-label">전체 평균 템포</span>
+                    <span class="jk-code">TEMPO</span>
+                </div>
                 <div class="jk-val" id="pageStatTempo">0.0<span>초</span></div>
-                <span class="jk-sub">1회 반복당 평균 소요</span>
             </div>
             <div class="journal-kpi-card">
-                <span class="jk-label">추정 누적 볼륨</span>
+                <div class="jk-head-row">
+                    <span class="jk-label">추정 누적 볼륨</span>
+                    <span class="jk-code">VOLUME</span>
+                </div>
                 <div class="jk-val" id="pageStatVolume">0<span>kg</span></div>
-                <span class="jk-sub">반복수 × 부하 환산</span>
             </div>
-            <div class="journal-kpi-card">
-                <span class="jk-label">스마트 감량 지원</span>
+            <div class="journal-kpi-card highlight-assist">
+                <div class="jk-head-row">
+                    <span class="jk-label">스마트 감량 지원</span>
+                    <span class="jk-code">ASSIST</span>
+                </div>
                 <div class="jk-val" id="pageStatAssists" style="color: #0066FF;">0<span>회</span></div>
-                <span class="jk-sub">정체/지침 부하 경감</span>
             </div>
         </section>
 
@@ -3935,26 +4368,18 @@
             <aside class="journal-sidebar-section">
                 <div class="journal-ai-card">
                     <div class="jac-head">
-                        <span style="color: var(--lg-red);">📊</span>
-                        <span>AI 운동 패턴 정밀 진단</span>
+                        <span class="jac-title">AI 운동 패턴 정밀 진단</span>
+                        <span class="jac-badge">TELEMETRY</span>
                     </div>
                     <div class="jac-body" id="journalAiReportContent">
-                        누적 세트와 평균 템포를 분석하여 피로도 및 최적 무게를 진단합니다.
+                        [AI 운동 패턴 정밀 진단]
+                        완료된 세트 기록이 없습니다.
+                        현재 설정 부하: 70.0kg
+                        세트 완료 시 VBT 템포 및 속도 손실률을 분석하여 최적 부하를 산출합니다.
                     </div>
                     <button type="button" class="jac-action-btn" id="btnJournalAiDiagnose">
                         AI 패턴 진단 새로고침
                     </button>
-                </div>
-
-                <div class="journal-ai-card" style="background: var(--surface-2);">
-                    <div class="jac-head">
-                        <span style="color: #0066FF;">💡</span>
-                        <span>VBT 바이오메트릭스 안내</span>
-                    </div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.55;">
-                        • 각 세트의 <strong>[상세 텔레메트리 보기]</strong>를 누르면 실시간 VBT 센서 그래프와 피크 속도를 확인할 수 있습니다.<br>
-                        • 탑-바텀 사이 정체 시 3초마다 5kg씩 자동 감경된 내역이 세트별로 기록됩니다.
-                    </div>
                 </div>
             </aside>
         </div>
@@ -5119,13 +5544,15 @@
                 const avgTempo = sets.length > 0
                     ? (sets.reduce((acc, s) => acc + (s.avgTempo || 0), 0) / sets.length).toFixed(1)
                     : '0.0';
+                const totalVolumeKg = sets.reduce((acc, s) => acc + (s.totalVolumeKg || ((s.reps || 0) * (s.finalLoadKg || 70))), 0);
                 return {
                     date: d,
                     isToday: d === today,
                     sets: sets,
                     totalSets: sets.length,
                     totalReps: totalReps,
-                    avgTempo: avgTempo
+                    avgTempo: avgTempo,
+                    totalVolumeKg: totalVolumeKg
                 };
             });
         }
@@ -5213,7 +5640,7 @@
                 container.innerHTML = `
                     <div class="history-detail-wrap">
                         <div class="history-detail-nav">
-                            <button type="button" class="history-back-btn" id="btnModalBackToDates">‹ 전체 날짜 목록</button>
+                            <button type="button" class="history-back-btn" id="btnModalBackToDates">전체 날짜 목록</button>
                             <span class="history-detail-date-title" style="font-size: 0.95rem;">
                                 ${formatDisplayDate(grp.date)} 기록
                                 ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
@@ -5290,7 +5717,7 @@
                                     <span>평균 템포 <strong>${grp.avgTempo}초</strong></span>
                                 </div>
                             </div>
-                            <span class="hdc-btn" style="padding: 6px 14px; font-size: 0.8rem;">기록 보기 ›</span>
+                            <span class="hdc-btn" style="padding: 6px 14px; font-size: 0.8rem;">기록 보기</span>
                         </div>
                     `).join('')}
                 </div>
@@ -5350,10 +5777,8 @@
 
             if (groups.length === 0) {
                 container.innerHTML = `
-                    <div class="history-empty" style="padding: 60px 20px; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md);">
-                        <div style="font-size: 2.2rem; margin-bottom: 12px;">🏋️</div>
-                        <strong style="font-size: 1.1rem; color: var(--text); display: block; margin-bottom: 6px;">아직 완료된 운동 일지 기록이 없습니다.</strong>
-                        <span style="color: var(--text-muted); font-size: 0.88rem;">풀업 바를 당겨 세트를 완료하시면 실시간 VBT 센서 로그와 AI 분석 일지가 여기에 자동으로 기록됩니다.</span>
+                    <div class="history-empty" style="padding: 48px 20px; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md);">
+                        <strong style="font-size: 1rem; color: var(--text); display: block;">완료된 운동 일지 기록이 없습니다.</strong>
                     </div>
                 `;
                 return;
@@ -5369,41 +5794,55 @@
                 }
 
                 container.innerHTML = `
-                    <div class="history-detail-wrap" style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 22px;">
-                        <div class="history-detail-nav" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
-                            <button type="button" class="history-back-btn" id="btnPageBackToDates" style="font-size: 0.88rem; font-weight: 700; color: var(--lg-red); cursor: pointer; background: none; border: none; padding: 0;">
-                                ‹ 전체 날짜 목록으로 돌아가기
+                    <div class="history-detail-wrap">
+                        <div class="history-detail-nav">
+                            <button type="button" class="history-back-btn" id="btnPageBackToDates">
+                                전체 날짜 목록으로 돌아가기
                             </button>
-                            <span class="history-detail-date-title" style="font-size: 1.1rem; font-weight: 800; color: var(--text);">
-                                ${formatDisplayDate(grp.date)} ${grp.isToday ? '<span class="hdc-today-pill" style="margin-left: 6px; font-size: 0.72rem; padding: 2px 8px;">오늘</span>' : ''}
-                            </span>
+                            <div class="history-detail-date-title">
+                                <span>${formatDisplayDate(grp.date)}</span>
+                                ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
+                            </div>
                         </div>
-                        <div class="history-detail-summary-bar" style="display: flex; gap: 20px; padding: 12px 18px; background: var(--surface-2); border-radius: var(--radius-sm); margin-bottom: 18px; font-size: 0.86rem; color: var(--text-muted); flex-wrap: wrap;">
-                            <span>완료 세트: <strong style="color: var(--text);">${grp.totalSets}세트</strong></span>
-                            <span>총 반복수: <strong style="color: var(--text);">${grp.totalReps}회</strong></span>
-                            <span>평균 템포: <strong style="color: var(--text);">${grp.avgTempo}초</strong></span>
+                        <div class="history-detail-summary-bar">
+                            <div class="hds-cell">
+                                <span class="hds-k">완료 세트</span>
+                                <span class="hds-v">${grp.totalSets}세트</span>
+                            </div>
+                            <div class="hds-cell">
+                                <span class="hds-k">총 반복수</span>
+                                <span class="hds-v">${grp.totalReps}회</span>
+                            </div>
+                            <div class="hds-cell">
+                                <span class="hds-k">평균 템포</span>
+                                <span class="hds-v">${grp.avgTempo}초</span>
+                            </div>
+                            <div class="hds-cell">
+                                <span class="hds-k">추정 볼륨</span>
+                                <span class="hds-v">${Math.round(grp.totalVolumeKg || (grp.totalReps * 70)).toLocaleString()}kg</span>
+                            </div>
                         </div>
-                        <div class="history-sets-wrap" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="history-sets-wrap">
                             ${grp.sets.map((item, idx) => `
-                                <div class="history-item" data-set-id="${item.id || ''}" data-idx="${idx}" style="cursor: pointer; padding: 16px 20px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; flex-wrap: wrap; gap: 12px;">
-                                    <div class="history-item-left" style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-                                        <span class="set-tag" style="font-size: 0.78rem; font-weight: 800; color: var(--lg-red); background: var(--lg-red-soft); padding: 3px 10px; border-radius: 999px;">SET ${item.set}</span>
-                                        <span class="set-reps" style="font-weight: 700; font-size: 0.95rem; color: var(--text);">
-                                            <strong>${item.reps || 0}</strong>회 <span style="color: var(--text-muted); font-size: 0.8rem;">/ ${item.targetReps || 10}회 목표</span>
+                                <div class="history-item" data-set-id="${item.id || ''}" data-idx="${idx}">
+                                    <div class="history-item-left">
+                                        <span class="set-tag">SET ${item.set}</span>
+                                        <span class="set-reps">
+                                            <strong>${item.reps || 0}</strong>회 <span class="set-reps-target">/ ${item.targetReps || 10}회 목표</span>
                                         </span>
-                                        <span class="set-tempo" style="font-size: 0.84rem; color: var(--text-2);">평균 <strong>${(item.avgTempo || 0).toFixed(1)}s</strong></span>
-                                        <span class="rom-mini-badge" style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.06); color: var(--text);">${item.romRating || 'GOOD'}</span>
-                                        <span class="set-load-badge" style="font-weight: 700; color: var(--text); font-size: 0.85rem;">최종 ${item.finalLoadKg || item.baseWeightKg || 70}kg</span>
+                                        <span class="set-tempo">평균 <strong>${(item.avgTempo || 0).toFixed(1)}초</strong></span>
+                                        <span class="rom-mini-badge ${item.romRating || 'GOOD'}">${item.romRating || 'GOOD'}</span>
+                                        <span class="set-load-badge">부하 ${(item.finalLoadKg || item.baseWeightKg || 70).toFixed(1)}kg</span>
                                         ${(item.loadChanges && item.loadChanges.length > 0) ? `
-                                            <span style="font-size: 0.74rem; color: #0066FF; font-weight: 700; background: rgba(0,102,255,0.1); border: 1px solid rgba(0,102,255,0.25); padding: 2px 8px; border-radius: 999px;">
-                                                정체 감량 ${item.loadChanges.length}회 (-${(item.loadChanges.length * 5)}kg)
+                                            <span class="set-assist-badge">
+                                                감경 ${item.loadChanges.length}회 (-${(item.loadChanges.length * 5)}kg)
                                             </span>
                                         ` : ''}
                                     </div>
-                                    <div class="history-item-right" style="display: flex; align-items: center; gap: 12px;">
-                                        <span class="set-time" style="color: var(--text-muted); font-size: 0.8rem;">${item.completedAt || ''}</span>
-                                        <button type="button" class="btn-set-detail" style="background: none; border: 1px solid var(--line); color: var(--text); border-radius: 999px; padding: 5px 14px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.18s;">
-                                            상세 텔레메트리 보기 ›
+                                    <div class="history-item-right">
+                                        <span class="set-time">${item.completedAt || ''}</span>
+                                        <button type="button" class="btn-set-detail">
+                                            상세 텔레메트리
                                         </button>
                                     </div>
                                 </div>
@@ -5433,21 +5872,32 @@
 
             // [모드 2] 전체 날짜 카드 목록 보기
             container.innerHTML = `
-                <div class="history-date-list" style="display: flex; flex-direction: column; gap: 14px;">
+                <div class="history-date-list">
                     ${groups.map(grp => `
-                        <div class="history-date-card" data-page-date="${grp.date}" style="padding: 20px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s;">
-                            <div class="hdc-info">
-                                <div class="hdc-date-row" style="display: flex; align-items: center; gap: 8px;">
-                                    <span class="hdc-date" style="font-size: 1.1rem; font-weight: 800; color: var(--text);">${formatDisplayDate(grp.date)}</span>
-                                    ${grp.isToday ? '<span class="hdc-today-pill" style="font-size: 0.72rem; padding: 2px 8px;">오늘</span>' : ''}
+                        <div class="history-date-card" data-page-date="${grp.date}">
+                            <div class="hdc-date-col">
+                                <span class="hdc-date">${formatDisplayDate(grp.date)}</span>
+                                ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
+                            </div>
+                            <div class="hdc-metrics-strip">
+                                <div class="hdc-m-cell">
+                                    <span class="hdc-m-k">완료 세트</span>
+                                    <span class="hdc-m-v">${grp.totalSets}세트</span>
                                 </div>
-                                <div class="hdc-meta" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; display: flex; gap: 14px; flex-wrap: wrap;">
-                                    <span>완료 <strong style="color: var(--text);">${grp.totalSets}</strong>세트</span> · 
-                                    <span>누적 <strong style="color: var(--text);">${grp.totalReps}</strong>회</span> · 
-                                    <span>평균 템포 <strong style="color: var(--text);">${grp.avgTempo}초</strong></span>
+                                <div class="hdc-m-cell">
+                                    <span class="hdc-m-k">누적 반복</span>
+                                    <span class="hdc-m-v">${grp.totalReps}회</span>
+                                </div>
+                                <div class="hdc-m-cell">
+                                    <span class="hdc-m-k">평균 템포</span>
+                                    <span class="hdc-m-v">${grp.avgTempo}초</span>
+                                </div>
+                                <div class="hdc-m-cell">
+                                    <span class="hdc-m-k">추정 볼륨</span>
+                                    <span class="hdc-m-v">${Math.round(grp.totalVolumeKg || (grp.totalReps * 70)).toLocaleString()}kg</span>
                                 </div>
                             </div>
-                            <span class="hdc-btn" style="padding: 8px 18px; font-size: 0.84rem; font-weight: 700; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; color: var(--text);">세트 일지 보기 ›</span>
+                            <span class="hdc-action-btn">세트 일지 보기</span>
                         </div>
                     `).join('')}
                 </div>
@@ -5490,10 +5940,10 @@
             const assistText = assistLvl > 0 ? `Lv.${assistLvl} (-${Math.min(60, assistLvl * 15)}%)` : '맨몸 100%';
 
             if (titleEl) {
-                titleEl.textContent = `SET ${item.set} 상세 운동 일지 & 바이오메트릭스 텔레메트리`;
+                titleEl.textContent = `SET ${item.set} 상세 텔레메트리`;
             }
             if (subEl) {
-                subEl.textContent = `${formatDisplayDate(item.date)} ${item.completedAt || ''} 완수 · VBT 심층 패턴 수집 리포트`;
+                subEl.textContent = `${formatDisplayDate(item.date)} ${item.completedAt || ''} 완수 기록`;
             }
 
             const tempos = item.repTempos && item.repTempos.length > 0
@@ -5535,7 +5985,7 @@
                 <div class="pattern-analysis-grid">
                     <div class="pac-card" style="border-left: 3px solid ${hasLoadReduction ? '#0066FF' : 'var(--ok)'};">
                         <span class="pac-tag">
-                            <span>⚡ 부하 감경 발동 지점</span>
+                            <span>부하 감경 발동 지점</span>
                         </span>
                         <div class="pac-val" style="color: ${hasLoadReduction ? '#0066FF' : 'var(--text)'};">
                             ${hasLoadReduction && firstReduction
@@ -5551,19 +6001,19 @@
 
                     <div class="pac-card" style="border-left: 3px solid ${inflectionRep ? '#FF4D4D' : 'var(--primary)'};">
                         <span class="pac-tag">
-                            <span>📉 템포 변곡점 (피로 임계)</span>
+                            <span>템포 변곡점 (피로 임계)</span>
                         </span>
                         <div class="pac-val" style="color: ${inflectionRep ? '#FF4D4D' : 'var(--text)'};">
                             ${inflectionRep ? `R${inflectionRep}회차 (+${inflection.jumpPercent || 25}%)` : '균일 페이스 유지'}
                         </div>
                         <div class="pac-sub">
-                            최속 R${fastestRep.rep}(${fastestRep.tempo}s) → 최저 R${slowestRep.rep}(${slowestRep.tempo}s) · 감속률 ${velocityLossPct}%
+                            최속 R${fastestRep.rep}(${fastestRep.tempo}s) / 최저 R${slowestRep.rep}(${slowestRep.tempo}s) · 감속률 ${velocityLossPct}%
                         </div>
                     </div>
 
                     <div class="pac-card" style="border-left: 3px solid #00AA77;">
                         <span class="pac-tag">
-                            <span>⏱️ 휴식 사이클 & 회복</span>
+                            <span>세트 간 휴식 &amp; 회복</span>
                         </span>
                         <div class="pac-val">
                             ${item.set === 1 ? '첫 세트 시작' : `${actualRestSec}초 (권장 ${recRestSec}초)`}
@@ -5601,9 +6051,9 @@
                 <!-- 3. 반복(Rep)별 템포 & 가동범위 (ROM) 바이오메트릭스 차트 -->
                 <div class="tel-section">
                     <div class="tel-section-title">
-                        <span>📊 반복(Rep)별 템포 및 가동범위 (ROM) 변곡점 추적</span>
+                        <span>반복(Rep)별 템포 및 가동범위 (ROM) 추적</span>
                         <span style="font-size: 0.75rem; color: var(--text-muted);">
-                            ${inflectionRep ? `<span style="color: #FF4D4D; font-weight: 700;">⚠️ R${inflectionRep} 피로 변곡점 감지</span>` : '균일한 VBT 속도'}
+                            ${inflectionRep ? `<span style="color: #FF4D4D; font-weight: 700;">R${inflectionRep} 피로 변곡점 감지</span>` : '균일한 VBT 속도'}
                         </span>
                     </div>
                     <div class="tempo-bars-wrap">
@@ -5633,7 +6083,7 @@
                 <!-- 4. 부하 감경 상세 로그 & 정체 지점 타임라인 -->
                 <div class="tel-section">
                     <div class="tel-section-title">
-                        <span>⚡ 부하 감경 &amp; 중량 감소 발생 지점 로그</span>
+                        <span>부하 감경 및 중량 변화 로그</span>
                         <span style="font-size: 0.75rem; color: var(--text-muted);">감경 횟수: <strong>${loadChanges.length}회</strong></span>
                     </div>
                     <div class="tel-table-wrap">
@@ -5662,7 +6112,7 @@
                                             <td><span class="load-pct-badge" style="background: var(--surface-2); color: var(--text);">높이 ${hPct}%</span></td>
                                             <td><strong>${ch.fromKg}kg → ${ch.toKg}kg</strong></td>
                                             <td><span class="load-pct-badge assisted">-${redKg}kg (-${redPct}%)</span></td>
-                                            <td><span style="color: var(--primary); font-weight: 600;">${ch.reason || '중간 정체 7초 감지 부하 감경'}</span></td>
+                                            <td><span style="color: var(--primary); font-weight: 600;">${ch.reason || '중간 정체 감지 부하 감경'}</span></td>
                                         </tr>
                                     `;
                     }).join('') : `
@@ -5680,7 +6130,7 @@
                 <!-- 5. LG Well AI Agent 패턴 일지 진단 & 차기 처방 -->
                 <div class="tel-section">
                     <div class="tel-section-title">
-                        <span>🤖 LG Well AI Agent 운동 패턴 종합 진단 &amp; 차기 처방</span>
+                        <span>LG Well AI 패턴 진단 및 권장 처방</span>
                     </div>
                     <div class="tel-agent-box">
                         <div class="tab-header">
@@ -5691,16 +6141,16 @@
                             "${escapeHtml(coachFeedback)}"
                         </div>
                         <div class="tel-future-idea" style="margin-top: 10px;">
-                            💡 <strong>Agent 미래 연동 처방:</strong> ${escapeHtml(agentOpportunity)}
+                            <strong>차기 세트 권장 처방:</strong> ${escapeHtml(agentOpportunity)}
                         </div>
                     </div>
                 </div>
 
-                <!-- 6. 추후 Agent 연동용 전체 수집 텔레메트리 (Raw JSON) -->
+                <!-- 6. 전체 수집 텔레메트리 (JSON) -->
                 <div class="tel-section" style="margin-bottom: 0;">
                     <div class="tel-section-title">
-                        <span>📦 추후 Agent 연동용 전체 수집 텔레메트리 규격 (Raw JSON)</span>
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">총 25+ 파라미터 표준 스키마</span>
+                        <span>전체 수집 텔레메트리 데이터 (JSON)</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">표준 스키마</span>
                     </div>
                     <pre class="tel-json-preview"><code>${escapeHtml(JSON.stringify(item, null, 2))}</code></pre>
                 </div>
@@ -5721,7 +6171,7 @@
                 const jsonStr = JSON.stringify(currentTelemetryItem, null, 2);
                 navigator.clipboard.writeText(jsonStr).then(() => {
                     const originalText = btnCopyTelemetryJson.textContent;
-                    btnCopyTelemetryJson.textContent = '✅ 복사 완료!';
+                    btnCopyTelemetryJson.textContent = '복사 완료';
                     setTimeout(() => {
                         btnCopyTelemetryJson.textContent = originalText;
                     }, 2000);
@@ -6422,7 +6872,7 @@
             // 1. 아직 완료된 세트가 없는 경우 (운동 시작 전)
             if (history.length === 0) {
                 latestProposedWeightKg = baseKg;
-                return `📊 [AI 운동 패턴 진단]\n아직 완료된 세트 기록이 없습니다.\n\n1세트를 수행하시면 실시간 템포(수축·이완 속도), 가동범위(ROM), 정체 및 피로도 패턴을 다각도로 분석하여 다음 세트 최적 무게를 맞춤 제안해 드립니다.\n현재 설정 무게 [${baseKg.toFixed(1)}kg]으로 1세트를 힘차게 시작해 보세요!\n\n(원하시는 시작 무게가 있으시면 "무게 40kg으로 설정해줘"와 같이 챗으로 말씀해 주세요.)`;
+                return `[AI 운동 패턴 진단]\n완료된 세트 기록이 없습니다.\n현재 설정 부하: ${baseKg.toFixed(1)}kg\n세트 완료 후 VBT 템포 및 피로도에 따라 최적 부하가 진단됩니다.`;
             }
 
             // 2. 세트 기록이 있는 경우: 운동 패턴 정밀 분석
@@ -6440,22 +6890,31 @@
             if (hadStall || lastSet.reps < Math.max(1, aiTargetReps - 2) || parseFloat(lastTempo) >= 3.0) {
                 proposedKg = Math.max(10, Math.round((baseKg - 5.0) * 10) / 10);
                 latestProposedWeightKg = proposedKg;
-                proposalRationale = `직전 ${lastSet.set}세트에서 후반 템포 지연(${lastTempo}s)과 피로 누적이 감지되었습니다.\n목표 랩 완수와 관절 부상 방지를 위해 다음 세트는 현재(${baseKg.toFixed(1)}kg)보다 5kg 줄인 [${proposedKg.toFixed(1)}kg]으로 진행하시는 것을 제안합니다.`;
+                proposalRationale = `직전 ${lastSet.set}세트 템포 지연(${lastTempo}초) 및 피로 누적 감지. 목표 랩 완수 및 부상 방지를 위해 -5.0kg 감량 권장.`;
             }
             // B. 고출력 파워/안정 패턴: 목표 횟수 완수, 템포 빠름(<= 2.0s), 완벽한 가동범위
             else if (lastSet.reps >= aiTargetReps && parseFloat(lastTempo) <= 2.0 && (lastRom === 'PERFECT' || lastRom === 'GOOD')) {
                 proposedKg = Math.min(150, Math.round((baseKg + 2.5) * 10) / 10);
                 latestProposedWeightKg = proposedKg;
-                proposalRationale = `직전 ${lastSet.set}세트(${lastSet.reps}회)를 평균 템포 ${lastTempo}s의 폭발적인 파워(ROM: ${lastRom})로 완벽히 소화하셨습니다!\n근력 여유가 충분하므로 과부하 원리에 따라 다음 세트는 +2.5kg 증량한 [${proposedKg.toFixed(1)}kg]을 제안합니다.`;
+                proposalRationale = `직전 ${lastSet.set}세트 평균 템포 ${lastTempo}초, 가동범위 ${lastRom} 완벽 완수. 점진적 과부하 원리에 따라 +2.5kg 증량 권장.`;
             }
             // C. 최적 페이스 유지 패턴: 목표 횟수 달성 또는 근접, 정상 템포
             else {
                 proposedKg = baseKg;
                 latestProposedWeightKg = proposedKg;
-                proposalRationale = `현재 누적 ${totalRepsDone}회, 평균 템포 ${avgTempoAcrossSets}s로 이상적인 리듬을 유지하고 계십니다.\n현재 부하 [${baseKg.toFixed(1)}kg]이 목표 볼륨 형성에 가장 적합하므로, 동일한 무게로 페이스 유지를 제안합니다.`;
+                proposalRationale = `누적 ${totalRepsDone}회, 평균 템포 ${avgTempoAcrossSets}초로 이상적 리듬 유지 중. 현재 설정 부하 유지 권장.`;
             }
 
-            return `📊 [AI 운동 패턴 정밀 진단 결과]\n• 누적 세트: ${history.length}세트 (총 ${totalRepsDone}회 완수)\n• 직전 세트 템포: ${lastTempo}s / ROM: ${lastRom}\n• 피로도 상태: ${hadStall ? '주의 (정체 감지)' : (parseFloat(lastTempo) <= 2.0 ? '최상 (근파워 여유)' : '안정적')}\n\n💡 AI 무게 제안: ${proposalRationale}\n\n제안된 무게로 진행하시려면 "무게 ${proposedKg}kg으로 설정해줘" 또는 "제안대로 설정해줘"라고 말씀해 주세요!`;
+            const deltaKg = proposedKg - baseKg;
+            const deltaStr = deltaKg > 0 ? `+${deltaKg.toFixed(1)}kg` : (deltaKg < 0 ? `${deltaKg.toFixed(1)}kg` : '유지');
+
+            return `[AI 운동 패턴 정밀 진단]
+누적 세트: ${history.length}세트 (${totalRepsDone}회)
+최근 세트 템포: ${lastTempo}초 | ROM: ${lastRom}
+피로도 상태: ${hadStall ? '주의 (정체 발생)' : (parseFloat(lastTempo) <= 2.0 ? '최상 (파워 여유)' : '안정적')}
+
+AI 권장 부하: ${proposedKg.toFixed(1)}kg (${deltaStr})
+진단 근거: ${proposalRationale}`;
         }
 
 
