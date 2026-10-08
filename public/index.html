@@ -3672,74 +3672,96 @@
             background: var(--surface);
         }
 
-        /* AI 운동 패턴 진단 카드 */
-        .journal-ai-card {
+        /* 운동 일지 전용 에이전트 Orb 카드 */
+        .journal-agent-card {
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: var(--radius-md);
-            padding: 20px;
+            padding: 24px 20px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
         }
 
-        .jac-head {
+        .journal-orb-header {
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 12px;
             padding-bottom: 12px;
             border-bottom: 1px solid var(--line);
         }
 
-        .jac-title {
-            font-size: 0.95rem;
+        .joh-title {
+            font-size: 0.82rem;
             font-weight: 800;
             color: var(--text);
-            letter-spacing: -0.01em;
+            letter-spacing: 0.04em;
         }
 
-        .jac-badge {
+        .joh-badge {
             font-size: 0.65rem;
             font-weight: 800;
-            letter-spacing: 0.08em;
-            color: var(--text-muted);
-            background: var(--surface-2);
-            border: 1px solid var(--line);
-            padding: 2px 7px;
+            color: #00AA77;
+            background: rgba(0, 170, 119, 0.1);
+            border: 1px solid rgba(0, 170, 119, 0.25);
+            padding: 2px 8px;
             border-radius: 999px;
+            letter-spacing: 0.05em;
         }
 
-        .jac-body {
-            font-size: 0.84rem;
-            color: var(--text-2);
-            line-height: 1.65;
+        .journal-orb-area {
+            padding: 16px 0;
+            min-height: 230px;
+        }
+
+        .journal-orb-backdrop {
+            width: 230px;
+            height: 230px;
+        }
+
+        .journal-orb-container {
+            width: 176px;
+            height: 176px;
+        }
+
+        .journal-orb-metrics-card {
+            width: 100%;
             background: var(--surface-2);
             border: 1px solid var(--line);
             border-radius: var(--radius-sm);
             padding: 14px 16px;
-            font-family: 'SF Mono', Consolas, Monaco, monospace;
-            white-space: pre-line;
-            font-variant-numeric: tabular-nums;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 14px;
+            text-align: left;
         }
 
-        .jac-action-btn {
-            width: 100%;
-            padding: 10px;
-            background: var(--surface-2);
-            border: 1px solid var(--line);
-            color: var(--text);
+        .jom-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+        }
+
+        .jom-lbl {
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+
+        .jom-val {
             font-weight: 800;
-            font-size: 0.82rem;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: inherit;
-        }
-
-        .jac-action-btn:hover {
-            border-color: var(--lg-red);
-            color: var(--lg-red);
-            background: var(--lg-red-soft);
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.02em;
         }
 
         @media (max-width: 1160px) {
@@ -4364,23 +4386,38 @@
                 <div class="history-empty">운동 일지 기록을 불러오는 중...</div>
             </div>
 
-            <!-- 우측: AI 운동 패턴 정밀 분석 및 코칭 리포트 -->
+            <!-- 우측: AI Agent Thinking Orb 시각화 카드 -->
             <aside class="journal-sidebar-section">
-                <div class="journal-ai-card">
-                    <div class="jac-head">
-                        <span class="jac-title">AI 운동 패턴 정밀 진단</span>
-                        <span class="jac-badge">TELEMETRY</span>
+                <section class="card journal-agent-card">
+                    <div class="journal-orb-header">
+                        <span class="joh-title">LG WELL AI AGENT</span>
+                        <span class="joh-badge">ONLINE</span>
                     </div>
-                    <div class="jac-body" id="journalAiReportContent">
-                        [AI 운동 패턴 정밀 진단]
-                        완료된 세트 기록이 없습니다.
-                        현재 설정 부하: 70.0kg
-                        세트 완료 시 VBT 템포 및 속도 손실률을 분석하여 최적 부하를 산출합니다.
+                    <div class="agent-hero-orb-area journal-orb-area">
+                        <div class="agent-hero-orb-backdrop journal-orb-backdrop"></div>
+                        <div class="agent-hero-orb-container journal-orb-container" id="journalOrbWrap" title="클릭하여 AI 지능 모드 전환">
+                            <canvas id="journalOrbCanvas" class="agent-hero-orb-canvas"></canvas>
+                        </div>
+                        <div class="agent-orb-status-caption journal-orb-caption" id="journalOrbCaption">
+                            <span class="orb-status-dot"></span>
+                            <span id="journalOrbStatusText">운동 일지 바이오메트릭스 동기화 완료</span>
+                        </div>
                     </div>
-                    <button type="button" class="jac-action-btn" id="btnJournalAiDiagnose">
-                        AI 패턴 진단 새로고침
-                    </button>
-                </div>
+                    <div class="journal-orb-metrics-card">
+                        <div class="jom-row">
+                            <span class="jom-lbl">지능 모드</span>
+                            <span class="jom-val" id="journalOrbModeVal">BIOMECHANICAL ANALYZER</span>
+                        </div>
+                        <div class="jom-row">
+                            <span class="jom-lbl">텔레메트리 스트림</span>
+                            <span class="jom-val" style="color: #00AA77;">CONNECTED</span>
+                        </div>
+                        <div class="jom-row">
+                            <span class="jom-lbl">피로도 분석 엔진</span>
+                            <span class="jom-val" id="journalOrbFatigueVal">READY</span>
+                        </div>
+                    </div>
+                </section>
             </aside>
         </div>
 
@@ -5064,6 +5101,81 @@
             }
         }
 
+        // ================== 운동 일지 전용 Thinking Orb AI 엔진 ==================
+        let journalAgentOrb = null;
+        let currentJournalOrbIndex = 0;
+
+        function initJournalAgentOrb() {
+            const canvas = document.getElementById('journalOrbCanvas');
+            if (!canvas || typeof window.ThinkingOrb === 'undefined') return;
+
+            try {
+                if (!journalAgentOrb) {
+                    journalAgentOrb = new window.ThinkingOrb(canvas, {
+                        state: 'working',
+                        size: 170,
+                        speed: 1,
+                        dark: false,
+                        color: '#A50034'
+                    });
+
+                    const wrap = document.getElementById('journalOrbWrap');
+                    if (wrap) {
+                        wrap.addEventListener('click', () => {
+                            currentJournalOrbIndex = (currentJournalOrbIndex + 1) % ORB_PREVIEW_STATES.length;
+                            const nextState = ORB_PREVIEW_STATES[currentJournalOrbIndex];
+                            if (journalAgentOrb) {
+                                journalAgentOrb.setState(nextState);
+                                const statusText = document.getElementById('journalOrbStatusText');
+                                if (statusText) statusText.textContent = `${nextState.toUpperCase()} 모드 전환`;
+                                const modeVal = document.getElementById('journalOrbModeVal');
+                                if (modeVal) modeVal.textContent = nextState.toUpperCase();
+                            }
+                        });
+                    }
+                } else {
+                    journalAgentOrb.setSize(170);
+                }
+            } catch (e) {
+                console.warn('Journal ThinkingOrb 초기화 실패:', e);
+            }
+        }
+
+        function updateJournalOrbTelemetryStatus() {
+            const statusText = document.getElementById('journalOrbStatusText');
+            const fatigueVal = document.getElementById('journalOrbFatigueVal');
+            const modeVal = document.getElementById('journalOrbModeVal');
+
+            const history = Array.isArray(setHistory) ? setHistory : [];
+            if (history.length === 0) {
+                if (journalAgentOrb) journalAgentOrb.setState('listening');
+                if (statusText) statusText.textContent = '운동 일지 바이오메트릭스 동기화 완료';
+                if (fatigueVal) fatigueVal.textContent = 'READY';
+                if (modeVal) modeVal.textContent = 'STANDBY';
+            } else {
+                const lastSet = history[history.length - 1];
+                const hadStall = currentSetAssistTriggers > 0 || (lastSet.loadChanges && lastSet.loadChanges.length > 0);
+                const lastTempo = lastSet.avgTempo || 2.1;
+
+                if (hadStall || parseFloat(lastTempo) >= 3.0) {
+                    if (journalAgentOrb) journalAgentOrb.setState('solving');
+                    if (statusText) statusText.textContent = '피로 누적 감지 · 부하 감량 권장';
+                    if (fatigueVal) fatigueVal.textContent = 'FATIGUE DETECTED';
+                    if (modeVal) modeVal.textContent = 'LOAD ASSIST';
+                } else if (parseFloat(lastTempo) <= 2.0) {
+                    if (journalAgentOrb) journalAgentOrb.setState('working');
+                    if (statusText) statusText.textContent = '최상위 VBT 파워 출력 유지';
+                    if (fatigueVal) fatigueVal.textContent = 'OPTIMAL POWER';
+                    if (modeVal) modeVal.textContent = 'PROGRESSIVE OVERLOAD';
+                } else {
+                    if (journalAgentOrb) journalAgentOrb.setState('working');
+                    if (statusText) statusText.textContent = '안정적 수축·이완 리듬 유지';
+                    if (fatigueVal) fatigueVal.textContent = 'NORMAL PACE';
+                    if (modeVal) modeVal.textContent = 'BIOMECHANICAL ANALYZER';
+                }
+            }
+        }
+
         function updateAgentOrbState(status, isRest, isDanger, isAssisting) {
             if (!agentOrb) return;
             const captionEl = document.getElementById('agentOrbStatusText');
@@ -5109,9 +5221,13 @@
 
         // 페이지 로드 시 즉시 ThinkingOrb 활성화
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initAgentOrb);
+            document.addEventListener('DOMContentLoaded', () => {
+                initAgentOrb();
+                initJournalAgentOrb();
+            });
         } else {
             initAgentOrb();
+            initJournalAgentOrb();
         }
 
         function escapeHtml(str) {
@@ -5768,12 +5884,8 @@
             if (pageStatVolume) pageStatVolume.innerHTML = `${Math.round(totalVolumeKg).toLocaleString()}<span>kg</span>`;
             if (pageStatAssists) pageStatAssists.innerHTML = `${totalAssists}<span>회</span>`;
 
-            // 우측 AI 진단 리포트 업데이트
-            const aiReportEl = document.getElementById('journalAiReportContent');
-            if (aiReportEl) {
-                const diagText = analyzeWorkoutPatternAndProposeWeight();
-                aiReportEl.innerHTML = diagText.replace(/\n/g, '<br>');
-            }
+            // 우측 Agent Orb 텔레메트리 상태 업데이트
+            updateJournalOrbTelemetryStatus();
 
             if (groups.length === 0) {
                 container.innerHTML = `
@@ -6785,6 +6897,8 @@
             if (menuLive) menuLive.classList.remove('active');
             if (menuJournal) menuJournal.classList.add('active');
 
+            initJournalAgentOrb();
+            updateJournalOrbTelemetryStatus();
             renderJournalPageView();
             closeSidebar();
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -6810,17 +6924,6 @@
         const btnJournalStartWorkout = document.getElementById('btnJournalStartWorkout');
         if (btnJournalBackToLive) btnJournalBackToLive.addEventListener('click', showLiveDashboard);
         if (btnJournalStartWorkout) btnJournalStartWorkout.addEventListener('click', showLiveDashboard);
-
-        const btnJournalAiDiagnose = document.getElementById('btnJournalAiDiagnose');
-        if (btnJournalAiDiagnose) {
-            btnJournalAiDiagnose.addEventListener('click', () => {
-                const aiReportEl = document.getElementById('journalAiReportContent');
-                if (aiReportEl) {
-                    const diagText = analyzeWorkoutPatternAndProposeWeight();
-                    aiReportEl.innerHTML = diagText.replace(/\n/g, '<br>');
-                }
-            });
-        }
 
         const btnJournalCopyJson = document.getElementById('btnJournalCopyJson');
         if (btnJournalCopyJson) {
