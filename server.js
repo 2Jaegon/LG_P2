@@ -700,8 +700,7 @@ function trackRepetition(value) {
                     status: 'NORMAL',
                     assistLevel: assistLevel,
                     loadKg: userWeightKg,
-                    userWeightKg: userWeightKg,
-                    decision: `TOP 도달 성공!\n줄어든 무게(${userWeightKg}kg)로 안정적으로 하강하세요!`
+                    userWeightKg: userWeightKg
                 });
             }
         } else if (value <= THRESHOLD_BOTTOM) {
@@ -1047,7 +1046,7 @@ function processSensorValue(value) {
                 }
             } else {
                 midStallStartTime = 0;
-                // TOP 도달 시 감량된 무게 유지하며 정상 상태 복귀
+                // TOP 도달 시 감량된 무게 유지하며 정상 상태 복귀 (알림 및 안내 없이 조용히 NORMAL 복귀)
                 if (currentStatus === 'ASSIST' && value >= THRESHOLD_TOP) {
                     currentStatus = 'NORMAL';
                     console.log(`\n[TOP 달성] 상단 도달 -> 무게 감량(${userWeightKg}kg, Lv.${assistLevel}) 유지`);
@@ -1057,8 +1056,7 @@ function processSensorValue(value) {
                         status: 'NORMAL',
                         assistLevel: assistLevel,
                         loadKg: userWeightKg,
-                        userWeightKg: userWeightKg,
-                        decision: `TOP 도달 성공!\n줄어든 무게(${userWeightKg}kg)로 페이스를 이어가세요!`
+                        userWeightKg: userWeightKg
                     });
                     io.emit('workoutState', getWorkoutStatePayload());
                 }

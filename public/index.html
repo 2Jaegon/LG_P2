@@ -4519,7 +4519,8 @@
             const mainAssistAlertTitle = document.getElementById('mainAssistAlertTitle');
             const mainAssistAlertLevel = document.getElementById('mainAssistAlertLevel');
 
-            const isAssisting = (data.status === 'ASSIST') && !isDanger && !isDetach;
+            // 탑(TOP)에 도달했거나 위험/이탈 상태이면 정체 알림 배너 및 UI 즉시 제거
+            const isAssisting = (data.status === 'ASSIST') && (val < TOP_ZONE) && !isDanger && !isDetach;
 
             if (isAssisting) {
                 document.body.classList.add('assist');
@@ -4540,6 +4541,23 @@
                 }
                 if (!isImbalanceState) {
                     document.body.classList.remove('assist');
+                }
+            }
+
+            // ⭐️ 정체 도달 후 탑(TOP)에 도달했을 때 알림 및 안내 즉시 제거
+            if (val >= TOP_ZONE) {
+                if (mainAssistAlertBanner) {
+                    mainAssistAlertBanner.style.display = 'none';
+                }
+                if (!isImbalanceState) {
+                    document.body.classList.remove('assist');
+                }
+                if (decisionDisplay && (decisionDisplay.textContent.includes('정체 감지') || decisionDisplay.textContent.includes('TOP 도달'))) {
+                    decisionDisplay.innerHTML = '<span class="agent-line">안녕하세요! 오늘도 건강하고 활기찬 하루 되세요.</span>';
+                }
+                if (typeof stopAllSpeech === 'function' && lastSpokenDecision && (lastSpokenDecision.includes('정체 감지') || lastSpokenDecision.includes('TOP 도달'))) {
+                    stopAllSpeech();
+                    lastSpokenDecision = '';
                 }
             }
 
@@ -4581,7 +4599,7 @@
                     orbWrap.addEventListener('click', () => {
                         currentOrbPreviewIndex = (currentOrbPreviewIndex + 1) % ORB_PREVIEW_STATES.length;
                         const nextState = ORB_PREVIEW_STATES[currentOrbPreviewIndex];
-                        setOrbStateWithCaption(nextState, `Thinking Orb: ${nextState}`);
+                        setOrbStateWithCaption(nextState, `${nextState}`);
                     });
                 }
             } catch (e) {
