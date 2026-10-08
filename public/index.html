@@ -715,9 +715,11 @@
         }
 
         .agent-status.ASSIST {
-            background: rgba(0, 102, 255, 0.12);
-            border-color: rgba(0, 102, 255, 0.25);
-            color: #0066FF;
+            background: linear-gradient(135deg, #0066FF 0%, #0047BA 100%);
+            border-color: transparent;
+            color: #fff;
+            font-weight: 800;
+            box-shadow: 0 4px 14px rgba(0, 102, 255, 0.45);
         }
 
         /* ---------- Hero Thinking Orb Showcase & Compact Action Box ---------- */
@@ -1061,53 +1063,107 @@
             }
         }
 
+        /* =================== 정체 감지 (ASSIST) 파란색 그라데이션 UI =================== */
+        /* 1. 화면 전체 가장자리 & 배경 네온 블루 비네트 방사형 그라데이션 */
         body.assist::before {
             content: '';
             position: fixed;
             inset: 0;
             pointer-events: none;
             z-index: 9990;
-            box-shadow: inset 0 0 90px 18px rgba(0, 102, 255, 0.4);
+            background: radial-gradient(circle at 50% 50%, rgba(0, 102, 255, 0) 30%, rgba(0, 102, 255, 0.14) 72%, rgba(0, 75, 220, 0.32) 100%);
+            box-shadow: inset 0 0 110px 30px rgba(0, 102, 255, 0.48), inset 0 0 200px 70px rgba(0, 150, 255, 0.22);
             animation: assistVignetteGlow 1.6s ease-in-out infinite;
         }
 
         @keyframes assistVignetteGlow {
             0%, 100% {
-                box-shadow: inset 0 0 70px 12px rgba(0, 102, 255, 0.25);
+                opacity: 0.85;
+                box-shadow: inset 0 0 90px 22px rgba(0, 102, 255, 0.38), inset 0 0 170px 50px rgba(0, 150, 255, 0.18);
             }
             50% {
-                box-shadow: inset 0 0 120px 30px rgba(0, 102, 255, 0.55);
+                opacity: 1;
+                box-shadow: inset 0 0 140px 45px rgba(0, 102, 255, 0.65), inset 0 0 240px 90px rgba(0, 150, 255, 0.35);
             }
         }
 
-        /* assist state (정체 감지 & 스마트 부하 감소) */
+        /* 2. 메인 AI 에이전트 카드 파란색 그라데이션 & 네온 글로우 */
         body.assist .agent-card {
-            background: rgba(0, 102, 255, 0.08) !important;
-            border-color: rgba(0, 102, 255, 0.5) !important;
-            box-shadow: 0 0 30px rgba(0, 102, 255, 0.25) !important;
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.12) 0%, rgba(0, 70, 200, 0.04) 100%) !important;
+            border-color: rgba(0, 102, 255, 0.65) !important;
+            box-shadow: 0 0 36px rgba(0, 102, 255, 0.28), inset 0 0 20px rgba(0, 102, 255, 0.08) !important;
         }
 
         body.assist .agent-decision {
-            background: rgba(0, 102, 255, 0.1) !important;
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.15) 0%, rgba(0, 102, 255, 0.06) 100%) !important;
             color: #0066FF !important;
-            border: 1px solid rgba(0, 102, 255, 0.3) !important;
+            border: 1.5px solid rgba(0, 102, 255, 0.45) !important;
             font-weight: 700 !important;
+            box-shadow: 0 2px 14px rgba(0, 102, 255, 0.2) !important;
         }
 
+        /* 3. 풀업 무대(Stage) 블루 그라데이션 오버레이 & 바/필 파란색 변환 */
         body.assist .stage {
             border-color: #0066FF !important;
-            box-shadow: 0 0 28px rgba(0, 102, 255, 0.35) !important;
+            background: 
+                radial-gradient(ellipse at 50% 50%, rgba(0, 102, 255, 0.16) 0%, rgba(0, 70, 200, 0.05) 60%, transparent 100%),
+                repeating-linear-gradient(0deg, rgba(0, 102, 255, 0.06) 0 1px, transparent 1px 54px),
+                var(--surface-2) !important;
+            box-shadow: 0 0 38px rgba(0, 102, 255, 0.45), inset 0 0 30px rgba(0, 102, 255, 0.18) !important;
             animation: assistPulse 1.2s ease-in-out infinite !important;
+        }
+
+        body.assist .fill {
+            background: linear-gradient(180deg, rgba(0, 102, 255, 0.45) 0%, rgba(0, 198, 255, 0.12) 100%) !important;
+            box-shadow: 0 0 22px rgba(0, 102, 255, 0.35) !important;
+        }
+
+        body.assist .grip {
+            background: #0066FF !important;
+            box-shadow: 0 4px 18px rgba(0, 102, 255, 0.8) !important;
+        }
+
+        body.assist .bar-rod {
+            background: linear-gradient(180deg, #1A4480, #0B254A) !important;
+        }
+
+        body.assist .agent-hero-orb-backdrop {
+            background: radial-gradient(circle, rgba(0, 102, 255, 0.28) 0%, rgba(0, 102, 255, 0) 70%) !important;
+        }
+
+        body.assist .agent-hero-orb-container {
+            border-color: #0066FF !important;
+            box-shadow: 0 0 32px rgba(0, 102, 255, 0.55) !important;
+        }
+
+        /* 4. 부하(무게) 표시 박스 블루 그라데이션 */
+        body.assist .metric-box.load-box,
+        .metric-box.load-box.assisting {
+            border-color: #0066FF !important;
+            background: linear-gradient(180deg, var(--surface) 35%, rgba(0, 102, 255, 0.14) 100%) !important;
+            box-shadow: 0 4px 24px rgba(0, 102, 255, 0.28) !important;
+        }
+
+        body.assist .metric-box.load-box .m-val,
+        .metric-box.load-box.assisting .m-val {
+            color: #0066FF !important;
+            text-shadow: 0 0 12px rgba(0, 102, 255, 0.35) !important;
+        }
+
+        body.assist .metric-box.load-box .load-gauge-fill,
+        .metric-box.load-box.assisting .load-gauge-fill {
+            background: linear-gradient(90deg, #00E5FF, #0066FF) !important;
+            box-shadow: 0 0 12px rgba(0, 102, 255, 0.75) !important;
         }
 
         @keyframes assistPulse {
             0%,
             100% {
-                box-shadow: inset 0 0 0 0 rgba(0, 102, 255, 0), 0 0 15px rgba(0, 102, 255, 0.2);
+                box-shadow: inset 0 0 0 0 rgba(0, 102, 255, 0), 0 0 18px rgba(0, 102, 255, 0.25);
             }
 
             50% {
-                box-shadow: inset 0 0 0 8px rgba(0, 102, 255, 0.22), 0 0 30px rgba(0, 102, 255, 0.45);
+                box-shadow: inset 0 0 0 8px rgba(0, 102, 255, 0.25), 0 0 38px rgba(0, 102, 255, 0.55);
             }
         }
 
@@ -1376,22 +1432,29 @@
             box-shadow: 0 8px 24px rgba(32, 201, 151, 0.2) !important;
             animation: confirmPulseBox 2s infinite ease-in-out !important;
         }
-        /* 4. 중간 정체 감지 스마트 감량 배너 스타일 (파란색 네온 UI) */
+        /* 4. 중간 정체 감지 스마트 감량 배너 스타일 (파란색 네온 그라데이션 UI) */
         .main-assist-alert {
-            background: linear-gradient(135deg, rgba(0, 102, 255, 0.18) 0%, rgba(0, 82, 204, 0.08) 100%) !important;
-            border: 1.5px solid rgba(0, 102, 255, 0.65) !important;
-            box-shadow: 0 8px 24px rgba(0, 102, 255, 0.25) !important;
-            animation: assistPulseBox 1.8s infinite ease-in-out !important;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.22) 0%, rgba(0, 140, 255, 0.10) 100%) !important;
+            border: 1.5px solid rgba(0, 102, 255, 0.8) !important;
+            border-radius: var(--radius-md);
+            padding: 13px 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 8px 30px rgba(0, 102, 255, 0.35) !important;
+            animation: assistPulseBox 1.6s infinite ease-in-out !important;
         }
 
         @keyframes assistPulseBox {
             0%, 100% {
-                border-color: rgba(0, 102, 255, 0.45);
-                box-shadow: 0 8px 24px rgba(0, 102, 255, 0.2);
+                border-color: rgba(0, 102, 255, 0.55);
+                box-shadow: 0 8px 26px rgba(0, 102, 255, 0.25);
             }
             50% {
-                border-color: rgba(0, 102, 255, 0.95);
-                box-shadow: 0 10px 32px rgba(0, 102, 255, 0.45);
+                border-color: rgba(0, 102, 255, 1);
+                box-shadow: 0 10px 38px rgba(0, 102, 255, 0.55);
             }
         }
 
@@ -1401,14 +1464,14 @@
             gap: 6px;
             font-size: 0.82rem;
             font-weight: 800;
-            color: #0066FF;
-            background: rgba(0, 102, 255, 0.12);
-            border: 1px solid rgba(0, 102, 255, 0.35);
+            color: #fff;
+            background: linear-gradient(135deg, #0066FF 0%, #0044CC 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 999px;
             padding: 6px 14px;
             white-space: nowrap;
             flex-shrink: 0;
-            box-shadow: 0 0 12px rgba(0, 102, 255, 0.2);
+            box-shadow: 0 4px 14px rgba(0, 102, 255, 0.45);
         }
 
         /* 무게 증량 잠금 뱃지 */
@@ -3433,10 +3496,18 @@
                     </button>
                 </li>
                 <li>
-                    <button type="button" class="sidebar-link-btn" id="btnSimulateImbalance">
+                    <button type="button" class="sidebar-link-btn" id="btnSimulateImbalance" style="margin-bottom: 6px;">
                         <div class="sidebar-link-text">
                             <span class="title" style="color: #F59F00;">2번 버튼 (12번 핀)</span>
                             <span class="desc">좌우 불균형 감지 &amp; 20kg 설정/잠금 토글</span>
+                        </div>
+                    </button>
+                </li>
+                <li>
+                    <button type="button" class="sidebar-link-btn" id="btnSimulateStall">
+                        <div class="sidebar-link-text">
+                            <span class="title" style="color: #0066FF;">중간 정체 감지 (스마트 ASSIST)</span>
+                            <span class="desc">3초 정체 시뮬레이션 · 파란색 그라데이션 UI</span>
                         </div>
                     </button>
                 </li>
@@ -3930,6 +4001,10 @@
         const btnConfirmMainWorkout = document.getElementById('btnConfirmMainWorkout');
         const btnSimulateBodyDetach = document.getElementById('btnSimulateBodyDetach');
         const btnSimulateImbalance = document.getElementById('btnSimulateImbalance');
+        const btnSimulateStall = document.getElementById('btnSimulateStall');
+        const mainAssistAlertBanner = document.getElementById('mainAssistAlertBanner');
+        const mainAssistAlertTitle = document.getElementById('mainAssistAlertTitle');
+        const mainAssistAlertLevel = document.getElementById('mainAssistAlertLevel');
 
         let isDangerAlertActive = false; // 위험 감지 활성 상태 및 긴급 음성 알림 발화 제어 플래그
         let isBodyDetachedState = false;
@@ -3937,6 +4012,9 @@
         let isCurrentWeightLocked = false;
         let isAwaitingMainWorkoutConfirm = false;
         let isAwaitingDangerEscapeConfirm = false;
+        let assistStickyTimer = null;
+        let isAssistVisualActive = false;
+        let lastReceivedStatus = 'WAITING';
 
         // 무게 강도 & Kg 부하 디스플레이 요소
         const loadBox = document.getElementById('loadBox');
@@ -4115,7 +4193,7 @@
             }
 
             if (loadBox) {
-                loadBox.classList.remove('assisting');
+                loadBox.classList.toggle('assisting', isAssistVisualActive || status === 'ASSIST');
             }
 
             const sidebarWeightSummary = document.getElementById('sidebarWeightSummary');
@@ -4130,6 +4208,41 @@
             if (sidebarAssistPill) {
                 sidebarAssistPill.textContent = 'WEIGHT';
                 sidebarAssistPill.className = 'sidebar-pill';
+            }
+        }
+
+        // ⭐️ 정체 감지 (ASSIST) 파란색 그라데이션 UI 및 배너 제어 통합 함수
+        function setAssistUI(active, payload = {}) {
+            isAssistVisualActive = Boolean(active);
+            document.body.classList.toggle('assist', isAssistVisualActive);
+
+            if (loadBox) {
+                loadBox.classList.toggle('assisting', isAssistVisualActive);
+            }
+
+            if (mainAssistAlertBanner) {
+                mainAssistAlertBanner.style.display = isAssistVisualActive ? 'flex' : 'none';
+                if (isAssistVisualActive) {
+                    const curKg = (typeof payload.loadKg === 'number') ? payload.loadKg : ((typeof payload.userWeightKg === 'number') ? payload.userWeightKg : currentLoadKg);
+                    const lv = payload.assistLevel || currentAssistLevel || 1;
+                    if (mainAssistAlertTitle) {
+                        mainAssistAlertTitle.textContent = `정체 감지: 스마트 부하 5kg 감소 (${curKg}kg)`;
+                    }
+                    if (mainAssistAlertLevel) {
+                        mainAssistAlertLevel.textContent = `Lv.${lv} (-${lv * 5}kg)`;
+                    }
+                }
+            }
+
+            if (agentOrb) {
+                if (isAssistVisualActive) {
+                    if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#0066FF');
+                    agentOrb.setState('connecting');
+                    const captionEl = document.getElementById('agentOrbStatusText');
+                    if (captionEl) captionEl.textContent = '스마트 부하 어시스트 작동 중 (-5kg 감량)';
+                } else if (!document.body.classList.contains('danger')) {
+                    if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#A50034');
+                }
             }
         }
 
@@ -4404,6 +4517,7 @@
                 renderAgentDecision(data.decision);
             }
             if (data.status) {
+                lastReceivedStatus = data.status;
                 if (data.status === 'ASSIST') {
                     const lv = data.assistLevel ? ` Lv.${data.assistLevel}` : '';
                     statusBadge.textContent = 'ASSIST' + lv;
@@ -4415,12 +4529,11 @@
                     statusBadge.textContent = data.status;
                 }
                 statusBadge.className = 'agent-status ' + (data.status === 'BODY_DETACHED' ? 'DANGER' : data.status);
-                document.body.classList.toggle('danger', isDanger || isDetach);
-                document.body.classList.toggle('assist', data.status === 'ASSIST' || isImbalanceState);
-                updateAgentOrbState(data.status, isWorkoutResting, isDanger || isDetach, data.status === 'ASSIST');
             }
 
             if (isDanger) {
+                if (assistStickyTimer) clearTimeout(assistStickyTimer);
+                setAssistUI(false);
                 isWorkoutResting = false;
                 triggerDangerSafetyLift();
                 if (mainDangerAlertBanner) mainDangerAlertBanner.style.display = 'flex';
@@ -4459,34 +4572,28 @@
                 resetDangerUI();
             }
 
-            // ⭐️ 정체 감지 (ASSIST) 상태 처리: 위험 시 빨간색 UI가 뜨듯 파란색 UI 효과 및 배너 제어
-            const mainAssistAlertBanner = document.getElementById('mainAssistAlertBanner');
-            const mainAssistAlertTitle = document.getElementById('mainAssistAlertTitle');
-            const mainAssistAlertLevel = document.getElementById('mainAssistAlertLevel');
-
+            // ⭐️ 정체 감지 (ASSIST) 상태 처리: 파란색 그라데이션 UI 및 배너 제어 (최소 4.5초 확실한 유지)
             const isAssisting = (data.status === 'ASSIST') && !isDanger && !isDetach;
 
             if (isAssisting) {
-                document.body.classList.add('assist');
-                if (mainAssistAlertBanner) {
-                    mainAssistAlertBanner.style.display = 'flex';
-                    const curKg = data.loadKg || data.userWeightKg || 65;
-                    const lv = data.assistLevel || 1;
-                    if (mainAssistAlertTitle) {
-                        mainAssistAlertTitle.textContent = `정체 감지: 무게 5kg 감소 (${curKg}kg)`;
+                setAssistUI(true, data);
+                if (assistStickyTimer) clearTimeout(assistStickyTimer);
+                assistStickyTimer = setTimeout(() => {
+                    if (lastReceivedStatus !== 'ASSIST') {
+                        setAssistUI(false);
+                        updateAgentOrbState(lastReceivedStatus, isWorkoutResting, isDanger || isDetach, false);
                     }
-                    if (mainAssistAlertLevel) {
-                        mainAssistAlertLevel.textContent = `Lv.${lv} (-${lv * 5}kg)`;
-                    }
-                }
-            } else {
-                if (mainAssistAlertBanner) {
-                    mainAssistAlertBanner.style.display = 'none';
-                }
-                if (!isImbalanceState) {
-                    document.body.classList.remove('assist');
-                }
+                }, 4500);
+            } else if (isDanger || isDetach) {
+                if (assistStickyTimer) clearTimeout(assistStickyTimer);
+                setAssistUI(false);
+            } else if (!isAssistVisualActive) {
+                setAssistUI(false);
             }
+
+            document.body.classList.toggle('danger', isDanger || isDetach);
+            document.body.classList.toggle('assist', isAssistVisualActive || isAssisting);
+            updateAgentOrbState(data.status, isWorkoutResting, isDanger || isDetach, isAssistVisualActive || isAssisting);
 
             if (typeof data.assistLevel !== 'undefined') {
                 updateLoadDisplay(data.assistLevel, data.status, data.userWeightKg, data.currentLoadKg);
@@ -4539,18 +4646,23 @@
             const captionEl = document.getElementById('agentOrbStatusText');
 
             if (isDanger) {
+                if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#EB0A28');
                 agentOrb.setState('solving');
                 if (captionEl) captionEl.textContent = '위험 감지 긴급 안전 고정';
             } else if (isAssisting) {
+                if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#0066FF');
                 agentOrb.setState('connecting');
-                if (captionEl) captionEl.textContent = '스마트 부하 어시스트 작동 중';
+                if (captionEl) captionEl.textContent = '스마트 부하 어시스트 작동 중 (-5kg)';
             } else if (isRest) {
+                if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#A50034');
                 agentOrb.setState('breathing');
                 if (captionEl) captionEl.textContent = '세트 간 휴식 회복 중';
             } else if (status === 'NORMAL' && !isRest) {
+                if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#A50034');
                 agentOrb.setState('working');
                 if (captionEl) captionEl.textContent = '실시간 풀업 궤적 분석 중';
             } else {
+                if (typeof agentOrb.setColor === 'function') agentOrb.setColor('#A50034');
                 agentOrb.setState('listening');
                 if (captionEl) captionEl.textContent = '음성 대화 및 풀업 동작 대기 중';
             }
@@ -4846,7 +4958,7 @@
                 syncTargetSetsToUI(state.aiTargetSets);
             }
 
-            updateLoadDisplay(state.assistLevel || 0, 'NORMAL', state.userWeightKg, state.currentLoadKg);
+            updateLoadDisplay(state.assistLevel || 0, state.status || (isAssistVisualActive ? 'ASSIST' : 'NORMAL'), state.userWeightKg, state.currentLoadKg);
 
             // 시나리오 상태 동기화
             isBodyDetachedState = Boolean(state.isBodyDetached);
@@ -5673,6 +5785,9 @@
         }
         if (btnSimulateImbalance) {
             btnSimulateImbalance.addEventListener('click', () => socket.emit('toggleImbalance'));
+        }
+        if (btnSimulateStall) {
+            btnSimulateStall.addEventListener('click', () => socket.emit('triggerStallAssist'));
         }
 
         // 서버에서 전달되는 실시간 에이전트 음성 안내 발화

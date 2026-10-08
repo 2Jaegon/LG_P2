@@ -411,6 +411,7 @@ function getWorkoutStatePayload() {
         userWeightKg,
         currentLoadKg: loadKg,
         currentLoadPercent: loadPercent,
+        status: currentStatus,
         isArduinoConnected: Boolean(port && port.isOpen),
         arduinoPort: typeof activePortPath !== 'undefined' ? activePortPath : ARDUINO_PORT
     };
@@ -1467,6 +1468,11 @@ io.on('connection', (socket) => {
     // 시나리오 3: 바텀 탈진(DANGER) 탈출 확인 및 안전 고정 해제
     socket.on('confirmDangerEscape', () => {
         confirmDangerEscape();
+    });
+
+    // 시나리오 4: 중간 정체 감지 및 스마트 5kg 부하 감경 시뮬레이션
+    socket.on('triggerStallAssist', () => {
+        applyAssistWeightReduction('정체 감지 시뮬레이션 (3.0초 정체)', 'manual_simulation', lastValue > 300 ? lastValue : 520);
     });
 
     // 위험 상태 수동 해제 (기존 버튼 호환)
