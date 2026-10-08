@@ -3742,6 +3742,35 @@
             border-radius: 999px;
         }
 
+        /* 사용자 가용 일정/시간대(Time Budget) 배지: 30분 미만, 1시간 미만, 1시간 이상 */
+        .hdc-time-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 999px;
+            letter-spacing: -0.01em;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .hdc-time-badge.under-30m {
+            background: rgba(0, 168, 132, 0.12);
+            color: #008769;
+            border: 1px solid rgba(0, 168, 132, 0.32);
+        }
+        .hdc-time-badge.under-60m {
+            background: rgba(0, 102, 255, 0.10);
+            color: #005CE6;
+            border: 1px solid rgba(0, 102, 255, 0.28);
+        }
+        .hdc-time-badge.over-60m {
+            background: rgba(142, 68, 173, 0.12);
+            color: #8E44AD;
+            border: 1px solid rgba(142, 68, 173, 0.32);
+        }
+
         .history-item-right {
             display: flex;
             align-items: center;
@@ -5985,6 +6014,10 @@
                 const maxLoadKg = Math.max(...sets.map(s => s.finalLoadKg || s.baseWeightKg || 0));
                 const warmupKg = warmupSet ? (warmupSet.finalLoadKg || warmupSet.startLoadKg) : 0;
 
+                // 사용자 가용 시간 버짓(Time Budget) 정보 추출
+                const timeBudget = firstSet.timeBudget || (dayDurationSec < 1800 ? 'UNDER_30M' : (dayDurationSec < 3600 ? 'UNDER_60M' : 'OVER_60M'));
+                const timeBudgetLabel = firstSet.timeBudgetLabel || (timeBudget === 'UNDER_30M' ? '30분 미만' : (timeBudget === 'OVER_60M' ? '1시간 이상' : '1시간 미만'));
+
                 return {
                     date: d,
                     isToday: d === today,
@@ -5995,6 +6028,8 @@
                     totalVolumeKg: totalVolumeKg,
                     totalDurationSeconds: dayDurationSec,
                     durationStr: durationStr,
+                    timeBudget: timeBudget,
+                    timeBudgetLabel: timeBudgetLabel,
                     warmupSet: warmupSet,
                     mainSets: mainSets,
                     maxLoadKg: maxLoadKg,
@@ -6087,9 +6122,10 @@
                     <div class="history-detail-wrap">
                         <div class="history-detail-nav">
                             <button type="button" class="history-back-btn" id="btnModalBackToDates">전체 날짜 목록</button>
-                            <span class="history-detail-date-title" style="font-size: 0.95rem;">
+                            <span class="history-detail-date-title" style="font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
                                 ${formatDisplayDate(grp.date)} 기록
                                 ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
+                                <span class="hdc-time-badge ${(grp.timeBudget || 'UNDER_60M').toLowerCase().replace('_', '-')}">${grp.timeBudgetLabel || '1시간 미만'}</span>
                             </span>
                         </div>
                         <div class="history-detail-summary-bar" style="padding: 8px 14px; font-size: 0.82rem;">
@@ -6158,9 +6194,10 @@
                     ${groups.map(grp => `
                         <div class="history-date-card" data-modal-date="${grp.date}" style="padding: 13px 16px;">
                             <div class="hdc-info">
-                                <div class="hdc-date-row">
+                                <div class="hdc-date-row" style="display: flex; align-items: center; gap: 8px;">
                                     <span class="hdc-date" style="font-size: 0.95rem;">${formatDisplayDate(grp.date)}</span>
                                     ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
+                                    <span class="hdc-time-badge ${(grp.timeBudget || 'UNDER_60M').toLowerCase().replace('_', '-')}">${grp.timeBudgetLabel || '1시간 미만'}</span>
                                 </div>
                                 <div class="hdc-meta" style="font-size: 0.82rem; margin-top: 2px;">
                                     <span>완료 <strong>${grp.totalSets}</strong>세트</span> · 
@@ -6259,9 +6296,10 @@
                             <button type="button" class="history-back-btn" id="btnPageBackToDates">
                                 전체 날짜 목록으로 돌아가기
                             </button>
-                            <div class="history-detail-date-title">
+                            <div class="history-detail-date-title" style="display: flex; align-items: center; gap: 8px;">
                                 <span>${formatDisplayDate(grp.date)}</span>
                                 ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
+                                <span class="hdc-time-badge ${(grp.timeBudget || 'UNDER_60M').toLowerCase().replace('_', '-')}">${grp.timeBudgetLabel || '1시간 미만'}</span>
                             </div>
                         </div>
                         <div class="history-detail-summary-bar">
@@ -6350,6 +6388,7 @@
                             <div class="hdc-date-col">
                                 <span class="hdc-date">${formatDisplayDate(grp.date)}</span>
                                 ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
+                                <span class="hdc-time-badge ${(grp.timeBudget || 'UNDER_60M').toLowerCase().replace('_', '-')}">${grp.timeBudgetLabel || '1시간 미만'}</span>
                             </div>
                             <div class="hdc-metrics-strip">
                                 <div class="hdc-m-cell">

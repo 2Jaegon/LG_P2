@@ -7,8 +7,12 @@
 
 function formatDurationSec(totalSeconds) {
     const sec = Math.max(0, Math.round(totalSeconds || 0));
-    const m = Math.floor(sec / 60);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
     const rem = sec % 60;
+    if (h > 0) {
+        return `${h}시간 ${m}분${rem > 0 ? ' ' + rem + '초' : ''}`;
+    }
     if (m > 0) {
         return `${m}분${rem > 0 ? ' ' + rem + '초' : ''}`;
     }
@@ -153,12 +157,15 @@ function createDetailedSetRecord(data) {
         startTime: data.startTime || '18:10:00',
         completedAt: data.completedAt || '18:10:30',
 
-        // 운동 시간 관련 핵심 필드
+        // 운동 시간 및 사용자 가용 시간 버짓(Time Budget) 메타데이터
         setDurationSeconds: setDurationSeconds,
         workoutDurationSeconds: totalDayDurationSeconds,
         totalDayDurationSeconds: totalDayDurationSeconds,
         workoutDurationFormatted: dayDurationFormatted,
         dayDurationFormatted: dayDurationFormatted,
+        timeBudget: data.timeBudget || 'UNDER_60M',
+        timeBudgetLabel: data.timeBudgetLabel || '1시간 미만 일반 세션',
+        targetDurationMin: data.targetDurationMin || 45,
 
         baseWeightKg: baseWeightKg,
         startLoadKg: startLoadKg,
@@ -421,6 +428,48 @@ function getDayBlockConfig(dayIdx) {
     }
 }
 
+/**
+ * 사용자 가용 시간 버짓 (Time Budget) 판별기
+ * 추후 사용자가 입력할 수 있는 가용 시간에 맞춰 세트 수와 루틴을 추천하기 위한 사전 텔레메트리 기반
+ * 1. UNDER_30M (30분 미만): 바쁜 일정 퀵 숏세션 -> 워밍업 1 + 본 세트 1~2 (총 2~3세트, 18~24분 소요)
+ * 2. UNDER_60M (1시간 미만): 평일 표준 정규 세션 -> 워밍업 1 + 본 세트 3~4 (총 4~5세트, 38~45분 소요)
+ * 3. OVER_60M (1시간 이상): 주말 및 고강도 풀볼륨 세션 -> 워밍업 1 + 본 세트 6 (총 7세트, 64~70분 소요)
+ */
+function getTimeBudgetTier(dayIdx) {
+    // [1시간 이상 집중 풀볼륨]: 주말 토요일(9/5, 9/12, 9/19, 9/26, 10/3), 특별 집중일(9/20), 오늘(10/8)
+    const over60Days = [4, 11, 18, 19, 25, 32, 37];
+    if (over60Days.includes(dayIdx)) {
+        return {
+            tier: 'OVER_60M',
+            label: '1시간 이상',
+            mainSets: 6, // 워밍업 1 + 본 세트 6 = 총 7세트
+            targetMin: 64 + (dayIdx % 7), // 64 ~ 70분
+            restSec: 85
+        };
+    }
+
+    // [30분 미만 퀵 숏세션]: 바쁜 목요일, 일요 가벼운 회복, 일정 제약일
+    const under30Days = [2, 5, 9, 12, 16, 23, 31, 34];
+    if (under30Days.includes(dayIdx)) {
+        return {
+            tier: 'UNDER_30M',
+            label: '30분 미만',
+            mainSets: (dayIdx === 9 || dayIdx === 34) ? 1 : 2, // 워밍업 1 + 본 세트 1~2 = 총 2~3세트
+            targetMin: 18 + (dayIdx % 7), // 18 ~ 24분
+            restSec: 50
+        };
+    }
+
+    // [1시간 미만 정규 세션]: 일반 평일 표준 루틴
+    return {
+        tier: 'UNDER_60M',
+        label: '1시간 미만',
+        mainSets: (dayIdx < 15 ? 3 : 4), // 9월 전반 본세트 3, 후반 본세트 4 (총 4~5세트)
+        targetMin: 38 + (dayIdx % 8), // 38 ~ 45분
+        restSec: 68
+    };
+}
+
 function generateWorkoutHistory() {
     const dates = [];
     // 9월 1일 ~ 9월 30일 (30일)
@@ -439,28 +488,13 @@ function generateWorkoutHistory() {
         const baseWeight = config.baseWeight;
         const baseTempo = config.baseTempo;
 
-        // 요일 계산 (2026-09-01은 화요일)
-        const dayOfWeek = (dayIdx + 2) % 7; // 0: 일, 1: 월, ... 6: 토
-        const isSunday = (dayOfWeek === 0);
-
-        // 세트 수 결정: 9월 1일은 본 세트 3세트(총 4세트)로 시작하여 10월에는 본 세트 5세트(총 6세트)로 점진적 확장
-        let mainSetCount = 3;
-        if (config.isShortSession) {
-            mainSetCount = 1; // 시간 부족 숏 세션: 워밍업 1 + 본 세트 1 = 총 2세트
-        } else if (isSunday) {
-            mainSetCount = 2; // 일요일 회복일: 워밍업 1 + 본 세트 2 = 총 3세트
-        } else if (dayIdx < 12) {
-            mainSetCount = 3; // 9/1 ~ 9/12: 본 세트 3세트
-        } else if (dayIdx < 26) {
-            mainSetCount = 4; // 9/13 ~ 9/26: 본 세트 4세트
-        } else {
-            mainSetCount = 5; // 9/27 ~ 10/8: 본 세트 5세트 (오늘 10/8은 본 세트 5세트 완성!)
-        }
-
+        // 사용자의 가용 일정/시간대(Time Budget)에 따른 동적 세트 수 및 목표 시간 결정
+        const budgetInfo = getTimeBudgetTier(dayIdx);
+        const mainSetCount = budgetInfo.mainSets;
         const setCount = 1 + mainSetCount; // 워밍업 1세트 + 본 세트 N세트
 
-        // 총 운동 시간(초) 산출
-        const totalDurationSec = Math.round(config.totalMin * 60);
+        // 총 운동 시간(초) 산출: 30분 미만, 1시간 미만, 1시간 이상 명확히 분기
+        const totalDurationSec = Math.round(budgetInfo.targetMin * 60 + ((dayIdx * 19) % 50));
         const durationFormatted = formatDurationSec(totalDurationSec);
 
         const startHour = 18 + (dayIdx % 3); // 18시, 19시, 20시
@@ -491,22 +525,22 @@ function generateWorkoutHistory() {
                 // Set 1: 워밍업 세트 (가벼운 무게로 20~30회 고반복 예열)
                 setType = 'WARMUP';
                 setTypeLabel = '워밍업';
-                reps = config.isShortSession ? 20 : 25;
+                reps = (budgetInfo.tier === 'UNDER_30M') ? 20 : 25;
                 targetReps = reps;
                 startLoadKg = warmupWeight;
                 finalLoadKg = warmupWeight;
                 repTempos = Array.from({ length: reps }, (_, i) => Number((1.36 + (i % 5) * 0.03).toFixed(1)));
-                coachFeedback = `[워밍업] 가벼운 부하(${warmupWeight}kg)로 ${reps}회 고반복 예열 완료. 관절 윤활액 분비 및 신경계 활성화.`;
+                coachFeedback = `[워밍업] 가벼운 부하(${warmupWeight}kg)로 ${reps}회 고반복 예열 완료 (${budgetInfo.label} 루틴). 관절 윤활액 분비 및 신경계 활성화.`;
             } else if (s === 2) {
                 // Set 2: 본 세트 1 (탑 세트) - 최고 부하로 무게 확 늘림!
                 setType = 'MAIN';
                 setTypeLabel = '본 세트';
-                reps = (config.isShortSession && config.repsList && config.repsList[1]) ? config.repsList[1] : 10;
+                reps = (budgetInfo.tier === 'UNDER_30M' && config.repsList && config.repsList[1]) ? config.repsList[1] : 10;
                 targetReps = 10;
                 startLoadKg = baseWeight;
                 finalLoadKg = baseWeight;
                 repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo + i * 0.03).toFixed(1)));
-                coachFeedback = `[본 세트 1] 최고 부하 ${baseWeight}kg 탑 세트 완수. 최대 수축 장력으로 본 세트 유효 반복 달성.`;
+                coachFeedback = `[본 세트 1] 최고 부하 ${baseWeight}kg 탑 세트 완수 (${budgetInfo.label} 맞춤). 최대 수축 장력으로 본 세트 유효 반복 달성.`;
             } else {
                 // Set 3 ~ N: 본 세트 2 ~ N (드랍 형식: 탑 세트에서 10kg 낮춰 고볼륨 소화)
                 setType = 'MAIN';
@@ -532,7 +566,7 @@ function generateWorkoutHistory() {
             const completeStr = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
 
             // 세트 간 휴식 시간 경과
-            const restSecThisSet = s === 1 ? 0 : (s >= 3 ? Math.min(50, config.restSec) : config.restSec);
+            const restSecThisSet = s === 1 ? 0 : (s >= 3 ? Math.min(55, budgetInfo.restSec) : budgetInfo.restSec);
             currentSeconds += restSecThisSet;
             while (currentSeconds >= 60) {
                 currentMinutes += 1;
@@ -545,6 +579,9 @@ function generateWorkoutHistory() {
                 setType: setType,
                 setTypeLabel: setTypeLabel,
                 isDroppedLoad: isDroppedLoad,
+                timeBudget: budgetInfo.tier,
+                timeBudgetLabel: budgetInfo.label,
+                targetDurationMin: budgetInfo.targetMin,
                 reps: reps,
                 targetReps: targetReps,
                 baseWeightKg: baseWeight,
