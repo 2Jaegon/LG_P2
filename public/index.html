@@ -3769,19 +3769,6 @@
             margin-left: 4px;
         }
 
-        .hdc-routine-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.74rem;
-            color: var(--text-2);
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--line);
-            padding: 2px 8px;
-            border-radius: 6px;
-            margin-top: 4px;
-        }
-
         .history-item-right {
             display: flex;
             align-items: center;
@@ -6027,15 +6014,6 @@
                 const warmupKg = warmupSet ? (warmupSet.finalLoadKg || warmupSet.startLoadKg) : 0;
                 const dropKg = dropSets.length > 0 ? (dropSets[0].finalLoadKg || dropSets[0].startLoadKg) : 0;
 
-                let routineSummaryText = '';
-                if (warmupSet && dropSets.length > 0) {
-                    routineSummaryText = `워밍업 ${warmupSet.reps}회(${warmupKg}kg) → 탑세트 ${maxLoadKg}kg → 드랍 ${dropKg}kg(-10kg)`;
-                } else if (warmupSet) {
-                    routineSummaryText = `워밍업 ${warmupSet.reps}회(${warmupKg}kg) → 본세트 ${maxLoadKg}kg`;
-                } else {
-                    routineSummaryText = `본세트 ${maxLoadKg}kg`;
-                }
-
                 return {
                     date: d,
                     isToday: d === today,
@@ -6051,8 +6029,7 @@
                     dropSets: dropSets,
                     maxLoadKg: maxLoadKg,
                     warmupKg: warmupKg,
-                    dropKg: dropKg,
-                    routineSummaryText: routineSummaryText
+                    dropKg: dropKg
                 };
             });
         }
@@ -6224,11 +6201,6 @@
                                     <span>평균 템포 <strong>${grp.avgTempo}초</strong></span> · 
                                     <span>시간 <strong style="color: #0066FF;">${grp.durationStr}</strong></span>
                                 </div>
-                                ${grp.routineSummaryText ? `
-                                    <div class="hdc-routine-pill">
-                                        <span>${grp.routineSummaryText}</span>
-                                    </div>
-                                ` : ''}
                             </div>
                             <span class="hdc-btn" style="padding: 6px 14px; font-size: 0.8rem;">기록 보기</span>
                         </div>
@@ -6413,11 +6385,6 @@
                             <div class="hdc-date-col">
                                 <span class="hdc-date">${formatDisplayDate(grp.date)}</span>
                                 ${grp.isToday ? '<span class="hdc-today-pill">오늘</span>' : ''}
-                                ${grp.routineSummaryText ? `
-                                    <div class="hdc-routine-pill">
-                                        <span>${grp.routineSummaryText}</span>
-                                    </div>
-                                ` : ''}
                             </div>
                             <div class="hdc-metrics-strip">
                                 <div class="hdc-m-cell">
