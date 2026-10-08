@@ -1305,6 +1305,57 @@
             transform: translateY(0);
         }
 
+        /* 1. 신체 이탈 배너 스타일 */
+        .main-detach-alert {
+            background: linear-gradient(135deg, rgba(255, 77, 77, 0.18) 0%, rgba(224, 49, 49, 0.08) 100%) !important;
+            border: 1.5px solid rgba(255, 77, 77, 0.6) !important;
+            box-shadow: 0 8px 24px rgba(255, 77, 77, 0.2) !important;
+            animation: detachPulseBox 2s infinite ease-in-out !important;
+        }
+        @keyframes detachPulseBox {
+            0%, 100% { border-color: rgba(255, 77, 77, 0.45); }
+            50% { border-color: rgba(255, 77, 77, 0.9); }
+        }
+
+        /* 2. 좌우 불균형 배너 스타일 */
+        .main-imbalance-alert {
+            background: linear-gradient(135deg, rgba(245, 159, 0, 0.18) 0%, rgba(230, 119, 0, 0.08) 100%) !important;
+            border: 1.5px solid rgba(245, 159, 0, 0.6) !important;
+            box-shadow: 0 8px 24px rgba(245, 159, 0, 0.2) !important;
+            animation: imbalancePulseBox 2s infinite ease-in-out !important;
+        }
+        @keyframes imbalancePulseBox {
+            0%, 100% { border-color: rgba(245, 159, 0, 0.45); }
+            50% { border-color: rgba(245, 159, 0, 0.9); }
+        }
+
+        /* 3. 본 운동 재돌입 확인 배너 스타일 */
+        .main-workout-confirm-alert {
+            background: linear-gradient(135deg, rgba(32, 201, 151, 0.18) 0%, rgba(12, 166, 120, 0.08) 100%) !important;
+            border: 1.5px solid rgba(32, 201, 151, 0.6) !important;
+            box-shadow: 0 8px 24px rgba(32, 201, 151, 0.2) !important;
+            animation: confirmPulseBox 2s infinite ease-in-out !important;
+        }
+        @keyframes confirmPulseBox {
+            0%, 100% { border-color: rgba(32, 201, 151, 0.45); }
+            50% { border-color: rgba(32, 201, 151, 0.9); }
+        }
+
+        /* 무게 증량 잠금 뱃지 */
+        .weight-locked-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            color: #F59F00;
+            background: rgba(245, 159, 0, 0.15);
+            border: 1px solid rgba(245, 159, 0, 0.4);
+            border-radius: 999px;
+            padding: 2px 7px;
+            margin-top: 4px;
+        }
+
         .control-guide {
             font-size: 0.84rem;
             color: var(--text-2);
@@ -2939,6 +2990,21 @@
                         </div>
                     </button>
                 </li>
+                <li style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);">
+                    <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; padding-left: 6px; letter-spacing: 0.02em;">아두이노 하드웨어 시나리오 (COM3)</div>
+                    <button type="button" class="sidebar-link-btn" id="btnSimulateBodyDetach" style="margin-bottom: 6px;">
+                        <div class="sidebar-link-text">
+                            <span class="title" style="color: #FF4D4D;">1번 버튼 (11번 핀)</span>
+                            <span class="desc">신체 이탈 감지 &amp; 바 위치 고정 토글</span>
+                        </div>
+                    </button>
+                    <button type="button" class="sidebar-link-btn" id="btnSimulateImbalance">
+                        <div class="sidebar-link-text">
+                            <span class="title" style="color: #F59F00;">2번 버튼 (12번 핀)</span>
+                            <span class="desc">좌우 불균형 감지 &amp; 20kg 설정/잠금 토글</span>
+                        </div>
+                    </button>
+                </li>
             </ul>
         </div>
     </aside>
@@ -3005,7 +3071,7 @@
                     <strong style="color: var(--danger); display: block; margin-bottom: 6px;">바텀 탈진 위험 감지
                         (DANGER)</strong>
                     <div style="color: var(--text-2); font-size: 0.85rem;">
-                        바텀 구간에서 힘이 빠져 7초 이상 작은 범위로 꼼질거리는 탈진 상태가 감지되면, 머신이 바를 <strong>Bottom 안전선(280)까지 자동으로 부드럽게
+                        바텀 구간에서 힘이 빠져 2.5초 이상 작은 범위로 꼼질거리는 탈진 상태가 감지되면, 머신이 바를 <strong>Bottom 안전선(280)까지 자동으로 부드럽게
                             리프트</strong>하여 사용자를 받쳐줍니다.<br>
                         이 안전 조치는 <strong>휴식 모드로 전환되지 않고 안전 정지(SAFETY HOLD) 상태로 유지</strong>되며, 사용자가 바를 다시 당기거나 해제 버튼을 눌러야
                         재개됩니다.
@@ -3014,11 +3080,10 @@
 
                 <div
                     style="background: var(--surface-2); padding: 14px 16px; border-radius: var(--radius-sm); border-left: 4px solid #0066FF;">
-                    <strong style="color: #0066FF; display: block; margin-bottom: 6px;">무게 부담 자동 감지 (ASSIST)</strong>
+                    <strong style="color: #0066FF; display: block; margin-bottom: 6px;">부상 방지 스마트 감량 (ASSIST)</strong>
                     <div style="color: var(--text-2); font-size: 0.85rem;">
-                        바텀과 탑 사이에서 7초간 진전 없이 멈춰 서면 무게 부담을 감지하여 <strong>부하를 1단계(-15%) 즉시 감경</strong>합니다.<br>
-                        이후에도 3초간 정체가 지속되면 추가 감경(-30%, -45%...)이 단계별로 이루어집니다.<br>
-                        힘을 내어 <strong>TOP 라인을 통과하면 어시스트가 해제되고, 감경된 강도는 다음 세트까지 쭉 유지</strong>됩니다.
+                        바텀과 탑 사이에서 1.4초간 정체되면 무게 부담을 감지하여 <strong>무게를 5kg 즉시 감량</strong>합니다.<br>
+                        힘을 내어 <strong>TOP 라인을 통과하면 안정적으로 Rep을 완수</strong>할 수 있습니다.
                     </div>
                 </div>
             </div>
@@ -3181,19 +3246,55 @@
 
                     <!-- 하단: 판단/행동 시각화 박스 & 명령 입력창 -->
                     <div class="agent-control-area">
-                        <!-- 메인 긴급 위험 알림 배너 & 해제 버튼 -->
+                        <!-- 1. 신체 이탈 경고 배너 & 해제 버튼 (1번 버튼 / 11번 핀) -->
+                        <div id="mainBodyDetachAlertBanner" class="main-danger-alert main-detach-alert" style="display: none;">
+                            <div class="danger-alert-text">
+                                <span class="danger-alert-badge" style="background: #FF4D4D;">BODY DETACHED</span>
+                                <strong>바 신체 이탈 감지 (바 위치 고정)</strong>
+                                <p>바에서 손/신체가 떨어져 안전을 위해 바의 위치를 즉시 고정했습니다.</p>
+                            </div>
+                            <button type="button" id="btnMainBodyDetachClear" class="main-danger-clear-btn" style="background: #E03131;" title="신체 접촉을 확인하고 바 고정을 해제합니다">
+                                <span>1번 버튼: 신체 접촉 재개</span>
+                            </button>
+                        </div>
+
+                        <!-- 2. 좌우 힘 불균형 감지 배너 (2번 버튼 / 12번 핀) -->
+                        <div id="mainImbalanceAlertBanner" class="main-danger-alert main-imbalance-alert" style="display: none;">
+                            <div class="danger-alert-text">
+                                <span class="danger-alert-badge" style="background: #F59F00;">IMBALANCE</span>
+                                <strong>좌우 힘 불균형 감지 (안전 교정 부하 20kg 설정 &amp; 증량 잠금)</strong>
+                                <p>부상 방지를 위해 무게를 20kg으로 맞췄습니다. 균형이 교정될 때까지 증량이 잠깁니다.</p>
+                            </div>
+                            <button type="button" id="btnMainImbalanceClear" class="main-danger-clear-btn" style="background: #E67700;" title="균형 교정 완료 상태로 전환합니다">
+                                <span>2번 버튼: 균형 교정 완료</span>
+                            </button>
+                        </div>
+
+                        <!-- 3. 본 운동 재돌입 확인 배너 (2번 버튼 해제 후 승인 질문) -->
+                        <div id="mainWorkoutConfirmBanner" class="main-danger-alert main-workout-confirm-alert" style="display: none;">
+                            <div class="danger-alert-text">
+                                <span class="danger-alert-badge" style="background: #20C997;">BALANCED</span>
+                                <strong>좌우 밸런스 정상 교정 완료</strong>
+                                <p>자세가 올바르게 교정되었습니다! 현재는 교정 무게(20kg)가 유지 중이며, 본 운동을 시작하시겠습니까?</p>
+                            </div>
+                            <button type="button" id="btnConfirmMainWorkout" class="main-danger-clear-btn" style="background: #0CA678;" title="본 운동으로 재돌입합니다">
+                                <span>본 운동 시작하기 (원래 무게 복원)</span>
+                            </button>
+                        </div>
+
+                        <!-- 4. 메인 긴급 위험 알림 배너 & 해제 버튼 (바텀 탈진) -->
                         <div id="mainDangerAlertBanner" class="main-danger-alert" style="display: none;">
                             <div class="danger-alert-text">
                                 <span class="danger-alert-badge">SAFETY HOLD</span>
-                                <strong>바텀 탈진 위험 감지 (안전 라인 고정)</strong>
-                                <p>바를 안전 라인에 고정했습니다. 무리하지 말고 안전하게 내려오세요.</p>
+                                <strong>바텀 탈진 위험 감지 (안전선 280 고정)</strong>
+                                <p id="mainDangerAlertDesc">바를 안전 라인에 고정했습니다. 안전하게 빠져나오신 후 답변 또는 버튼을 눌러주세요.</p>
                             </div>
                             <button type="button" id="btnMainDangerClear" class="main-danger-clear-btn" title="위험 안전 고정을 해제하고 정상 운동 모드로 복귀합니다">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
                                     <line x1="12" y1="2" x2="12" y2="12"></line>
                                 </svg>
-                                <span>위험 해제 / 운동 재개</span>
+                                <span>안전 탈출 완료 (위험 해제)</span>
                             </button>
                         </div>
 
@@ -3285,7 +3386,22 @@
         const btnDangerClear = document.getElementById('btnDangerClear');
         const mainDangerAlertBanner = document.getElementById('mainDangerAlertBanner');
         const btnMainDangerClear = document.getElementById('btnMainDangerClear');
+        const mainDangerAlertDesc = document.getElementById('mainDangerAlertDesc');
+        const mainBodyDetachAlertBanner = document.getElementById('mainBodyDetachAlertBanner');
+        const btnMainBodyDetachClear = document.getElementById('btnMainBodyDetachClear');
+        const mainImbalanceAlertBanner = document.getElementById('mainImbalanceAlertBanner');
+        const btnMainImbalanceClear = document.getElementById('btnMainImbalanceClear');
+        const mainWorkoutConfirmBanner = document.getElementById('mainWorkoutConfirmBanner');
+        const btnConfirmMainWorkout = document.getElementById('btnConfirmMainWorkout');
+        const btnSimulateBodyDetach = document.getElementById('btnSimulateBodyDetach');
+        const btnSimulateImbalance = document.getElementById('btnSimulateImbalance');
+
         let isDangerAlertActive = false; // 위험 감지 활성 상태 및 긴급 음성 알림 발화 제어 플래그
+        let isBodyDetachedState = false;
+        let isImbalanceState = false;
+        let isCurrentWeightLocked = false;
+        let isAwaitingMainWorkoutConfirm = false;
+        let isAwaitingDangerEscapeConfirm = false;
 
         // 무게 강도 & Kg 부하 디스플레이 요소
         const loadBox = document.getElementById('loadBox');
@@ -3688,8 +3804,65 @@
 
         // 실시간 센서 및 AI 판단 수신
         socket.on('sensorData', (data) => {
-            const val = Math.min(MAX_VAL, Math.max(0, parseInt(data.value, 10) || 0));
+            // 🚨 위험 상태 판정 (DANGER 상태이거나 명시적 isDangerActive 또는 탈출 확인 대기 중인 경우)
+            const isDanger = (data.status === 'DANGER') || Boolean(data.isDangerActive) || Boolean(data.awaitingDangerEscapeConfirm);
+            const isDetach = Boolean(data.isBodyDetached);
+
+            // 🔒 바 위치 고정 처리 (신체 이탈 시 이탈 지점, 위험 감지 시 280 안전선 고정)
+            let val = Math.min(MAX_VAL, Math.max(0, parseInt(data.value, 10) || 0));
+            if (isDanger) {
+                val = 280; // 바텀 안전선 고정
+            } else if (isDetach && typeof data.lockedBarValue !== 'undefined' && data.lockedBarValue !== null) {
+                val = Math.min(MAX_VAL, Math.max(0, parseInt(data.lockedBarValue, 10) || 0));
+            }
             targetVal = val;
+
+            // 바 시각적 락(Lock) 스타일
+            if (bar) {
+                if (isDanger || isDetach) {
+                    bar.style.boxShadow = '0 0 20px rgba(255, 77, 77, 0.9)';
+                    bar.style.borderColor = '#FF4D4D';
+                } else {
+                    bar.style.boxShadow = '';
+                    bar.style.borderColor = '';
+                }
+            }
+
+            // 시나리오 상태 플래그 갱신 (명시적으로 전달된 경우에만 갱신하여 100ms 센서 데이터에 의한 리셋 방지)
+            if (typeof data.isBodyDetached !== 'undefined') isBodyDetachedState = Boolean(data.isBodyDetached);
+            if (typeof data.isImbalanceActive !== 'undefined') isImbalanceState = Boolean(data.isImbalanceActive);
+            if (typeof data.isWeightLocked !== 'undefined') isCurrentWeightLocked = Boolean(data.isWeightLocked);
+            if (typeof data.awaitingMainWorkoutConfirm !== 'undefined') isAwaitingMainWorkoutConfirm = Boolean(data.awaitingMainWorkoutConfirm);
+            if (typeof data.awaitingDangerEscapeConfirm !== 'undefined') isAwaitingDangerEscapeConfirm = Boolean(data.awaitingDangerEscapeConfirm);
+
+            // 1. 신체 이탈 배너 제어
+            if (mainBodyDetachAlertBanner) {
+                mainBodyDetachAlertBanner.style.display = isBodyDetachedState ? 'flex' : 'none';
+            }
+
+            // 2. 좌우 불균형 배너 제어
+            if (mainImbalanceAlertBanner) {
+                mainImbalanceAlertBanner.style.display = isImbalanceState ? 'flex' : 'none';
+            }
+
+            // 3. 본 운동 재돌입 확인 배너 제어
+            if (mainWorkoutConfirmBanner) {
+                mainWorkoutConfirmBanner.style.display = isAwaitingMainWorkoutConfirm ? 'flex' : 'none';
+            }
+
+            // 4. 무게 증량 잠금 배지 제어
+            let lockBadge = document.getElementById('weightLockedBadge');
+            if (isCurrentWeightLocked) {
+                if (!lockBadge && loadBox) {
+                    lockBadge = document.createElement('div');
+                    lockBadge.id = 'weightLockedBadge';
+                    lockBadge.className = 'weight-locked-badge';
+                    lockBadge.innerHTML = `🔒 <span>불균형 교정 중 (증량 잠금)</span>`;
+                    loadBox.appendChild(lockBadge);
+                }
+            } else {
+                if (lockBadge) lockBadge.remove();
+            }
 
             // LLM 판단 결과가 포함된 경우에만 에이전트 영역 갱신
             if (data.decision) {
@@ -3699,20 +3872,29 @@
                 if (data.status === 'ASSIST') {
                     const lv = data.assistLevel ? ` Lv.${data.assistLevel}` : '';
                     statusBadge.textContent = 'ASSIST' + lv;
+                } else if (data.status === 'BODY_DETACHED') {
+                    statusBadge.textContent = 'BAR LOCKED';
+                } else if (data.status === 'IMBALANCE') {
+                    statusBadge.textContent = 'IMBALANCE';
                 } else {
                     statusBadge.textContent = data.status;
                 }
-                statusBadge.className = 'agent-status ' + data.status;
-                document.body.classList.toggle('danger', data.status === 'DANGER');
-                document.body.classList.toggle('assist', data.status === 'ASSIST');
-                updateAgentOrbState(data.status, isWorkoutResting, data.status === 'DANGER', data.status === 'ASSIST');
+                statusBadge.className = 'agent-status ' + (data.status === 'BODY_DETACHED' ? 'DANGER' : data.status);
+                document.body.classList.toggle('danger', isDanger || isDetach);
+                document.body.classList.toggle('assist', data.status === 'ASSIST' || isImbalanceState);
+                updateAgentOrbState(data.status, isWorkoutResting, isDanger || isDetach, data.status === 'ASSIST');
             }
 
-            if (data.status === 'DANGER') {
+            if (isDanger) {
                 isWorkoutResting = false;
                 triggerDangerSafetyLift();
                 if (mainDangerAlertBanner) mainDangerAlertBanner.style.display = 'flex';
                 if (btnDangerClear) btnDangerClear.style.display = 'block';
+                const sidebarDangerClearItem = document.getElementById('sidebarDangerClearItem');
+                if (sidebarDangerClearItem) sidebarDangerClearItem.style.display = 'block';
+                if (mainDangerAlertDesc) {
+                    mainDangerAlertDesc.textContent = "바를 안전 라인(280)에 고정했습니다. 안전하게 빠져나오신 후 음성 답변이나 버튼을 눌러주세요.";
+                }
                 if (statusBoxLabel) {
                     statusBoxLabel.textContent = 'SAFETY HOLD';
                     statusBoxLabel.style.color = 'var(--danger)';
@@ -3732,16 +3914,16 @@
                     restStateBadgeEl.className = 'm-sub rest-badge danger';
                 }
 
-                // 🚨 위험 감지 최초 진입 시 긴급 음성 알림 발화 (최우선 순위 보장)
+                // 🚨 위험 감지 최초 진입 시 긴급 음성 알림 발화
                 if (!isDangerAlertActive) {
                     isDangerAlertActive = true;
                     stopAllSpeech();
-                    const dangerWarningNotice = "경고: 한계 도달 탈진 감지! 바를 안전 라인에 고정했습니다. 무리하지 말고 안전하게 내려오세요.";
+                    const dangerWarningNotice = "경고: 바텀 탈진 위험이 감지되어 바를 안전선에 고정했습니다! 사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?";
                     lastSpokenDecision = dangerWarningNotice;
                     speakAgentVoice(dangerWarningNotice);
                 }
-            } else {
-                // NORMAL, ASSIST, WAITING 등 DANGER가 아닌 모든 상황에서 위험 UI를 완전히 해제
+            } else if (data.status && data.status !== 'DANGER' && !data.isDangerActive && !data.awaitingDangerEscapeConfirm) {
+                // 명시적으로 DANGER가 아니고 서버에서 정상/해제 상태가 전달되었을 때만 위험 UI를 해제
                 resetDangerUI();
             }
 
@@ -3962,26 +4144,29 @@
             }
         }
 
-        // 🎙️ 실시간 아나운서 랩(Rep) 카운트 & 모션 코칭 음성 엔진
+        // 🎙️ 실시간 랩(Rep) 카운트 한자어 숫자 변환기 (일, 이, 삼, 사, 오, 육, 칠, 팔, 구, 십...)
+        const SINO_KOREAN_NUMBERS = [
+            '', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구', '십',
+            '십일', '십이', '십삼', '십사', '십오', '십육', '십칠', '십팔', '십구', '이십',
+            '이십일', '이십이', '이십삼', '이십사', '이십오', '이십육', '이십칠', '이십팔', '이십구', '삼십',
+            '삼십일', '삼십이', '삼십삼', '삼십사', '삼십오', '삼십육', '삼십칠', '삼십팔', '삼십구', '사십',
+            '사십일', '사십이', '사십삼', '사십사', '사십오', '사십육', '사십칠', '사십팔', '사십구', '오십'
+        ];
+
+        function getSinoKoreanCount(num) {
+            const n = parseInt(num, 10);
+            if (n >= 1 && n < SINO_KOREAN_NUMBERS.length) {
+                return SINO_KOREAN_NUMBERS[n];
+            }
+            return String(num);
+        }
+
+        // 🎙️ 실시간 랩(Rep) 카운트 음성 엔진 (일, 이, 삼, 사... 숫자만 또렷하게 발화)
         function speakRepCount(reps, rom, tempoSec) {
             if (!isVoiceAudioEnabled) return;
 
-            let speechText = '';
-            const target = aiTargetReps || 10;
-
-            if (reps === target) {
-                speechText = `목표 ${reps}회 완수! 완벽합니다!`;
-            } else if (reps > target) {
-                speechText = `${reps}회! 한계 돌파!`;
-            } else if (reps === Math.floor(target / 2) && target >= 6) {
-                speechText = `${reps}회! 절반 달성, 계속 힘내세요!`;
-            } else if (rom === 'PERFECT' && reps % 3 === 0) {
-                speechText = `${reps}회! 완벽한 자세!`;
-            } else if (tempoSec && tempoSec <= 1.4 && reps >= 3) {
-                speechText = `${reps}회! 나이스 페이스!`;
-            } else {
-                speechText = `${reps}회!`;
-            }
+            // 사용자 요청: 일, 이, 삼, 사... 숫자만 단호하게 카운트
+            const speechText = getSinoKoreanCount(reps);
 
             // 실시간 랩 카운트는 0초 즉각 반응이 핵심이므로 Web Speech API로 즉각 발화
             if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -3989,7 +4174,7 @@
                     window.speechSynthesis.cancel();
                     const utter = new SpeechSynthesisUtterance(speechText);
                     utter.lang = 'ko-KR';
-                    utter.rate = 1.15; // 힘차고 빠른 스포츠 코치 보이스
+                    utter.rate = 1.15; // 힘차고 명확한 카운트 템포
                     utter.pitch = 1.05;
                     if (!koreanVoice) loadKoreanVoice();
                     if (koreanVoice) utter.voice = koreanVoice;
@@ -4001,9 +4186,9 @@
                 speakAgentVoice(speechText);
             }
 
-            // 하단 에이전트 액션 박스에도 아나운서 코칭 메시지 실시간 갱신
+            // 하단 에이전트 액션 박스에도 카운트 갱신
             if (decisionDisplay) {
-                decisionDisplay.innerHTML = `<span class="agent-line"><strong>${reps}회 달성!</strong> (${rom} · ${tempoSec}초) 페이스를 유지하세요!</span>`;
+                decisionDisplay.innerHTML = `<span class="agent-line"><strong>${speechText} (${reps}회)</strong> 달성! (${rom} · ${tempoSec}초)</span>`;
             }
         }
 
@@ -4102,48 +4287,44 @@
 
             updateLoadDisplay(state.assistLevel || 0, 'NORMAL', state.userWeightKg, state.currentLoadKg);
 
+            // 시나리오 상태 동기화
+            isBodyDetachedState = Boolean(state.isBodyDetached);
+            isImbalanceState = Boolean(state.isImbalanceActive);
+            isCurrentWeightLocked = Boolean(state.isWeightLocked);
+            isAwaitingMainWorkoutConfirm = Boolean(state.awaitingMainWorkoutConfirm);
+            isAwaitingDangerEscapeConfirm = Boolean(state.awaitingDangerEscapeConfirm);
+
+            if (mainBodyDetachAlertBanner) {
+                mainBodyDetachAlertBanner.style.display = isBodyDetachedState ? 'flex' : 'none';
+            }
+            if (mainImbalanceAlertBanner) {
+                mainImbalanceAlertBanner.style.display = isImbalanceState ? 'flex' : 'none';
+            }
+            if (mainWorkoutConfirmBanner) {
+                mainWorkoutConfirmBanner.style.display = isAwaitingMainWorkoutConfirm ? 'flex' : 'none';
+            }
+
+            let lockBadge = document.getElementById('weightLockedBadge');
+            if (isCurrentWeightLocked) {
+                if (!lockBadge && loadBox) {
+                    lockBadge = document.createElement('div');
+                    lockBadge.id = 'weightLockedBadge';
+                    lockBadge.className = 'weight-locked-badge';
+                    lockBadge.innerHTML = `🔒 <span>불균형 교정 중 (증량 잠금)</span>`;
+                    loadBox.appendChild(lockBadge);
+                }
+            } else {
+                if (lockBadge) lockBadge.remove();
+            }
+
             if (state.isDangerActive) {
                 isWorkoutResting = false;
+                isDangerAlertActive = true;
+                isAwaitingDangerEscapeConfirm = true;
                 document.body.classList.add('danger');
-                if (statusBoxLabel) {
-                    statusBoxLabel.textContent = 'SAFETY HOLD';
-                    statusBoxLabel.style.color = 'var(--danger)';
-                }
-                if (romBadgeEl) {
-                    romBadgeEl.textContent = 'DANGER';
-                    romBadgeEl.className = 'm-rom-tag danger';
-                    romBadgeEl.style.display = 'inline-flex';
-                }
-                if (restTimerBig) restTimerBig.style.display = 'none';
-                if (restTimerDisplayEl) {
-                    restTimerDisplayEl.textContent = '바텀 안전 고정';
-                    restTimerDisplayEl.style.color = 'var(--danger)';
-                }
-                if (restStateBadgeEl) {
-                    restStateBadgeEl.textContent = 'DANGER';
-                    restStateBadgeEl.className = 'm-sub rest-badge danger';
-                }
-                if (btnDangerClear) btnDangerClear.style.display = 'block';
-            } else if (state.isResting) {
-                isWorkoutResting = true;
-                resetDangerUI();
-
-                const today = getTodayStr();
-                const todayCompletedSets = (state.setHistory || []).filter(s => (s.date || today) === today).length;
-                const completedNum = todayCompletedSets > 0 ? todayCompletedSets : Math.max(0, state.currentSet - 1);
-
-                setNumberEl.textContent = completedNum > 0 ? completedNum : 1;
-                restStateBadgeEl.textContent = completedNum > 0
-                    ? `${completedNum}세트 완료 (다음 ${state.currentSet}세트 대기)`
-                    : '준비 / 휴식 중';
-                restStateBadgeEl.className = 'm-sub rest-badge resting';
-
-                const target = state.aiRestTimeSeconds || 60;
-                const remaining = typeof state.remainingRestSeconds === 'number'
-                    ? state.remainingRestSeconds
-                    : Math.max(0, target - (state.restSeconds || 0));
-
-                updateRestDisplay(true, remaining, target);
+                if (mainDangerAlertBanner) mainDangerAlertBanner.style.display = 'flex';
+                triggerDangerSafetyLift();
+                updateRestDisplay(false, 0, state.aiRestTimeSeconds || 60);
             } else {
                 isWorkoutResting = false;
                 resetDangerUI();
@@ -4733,6 +4914,7 @@
 
         function performDangerClear(fromVoice = false) {
             socket.emit('clearDanger');
+            socket.emit('confirmDangerEscape');
             resetDangerUI();
             updateAgentOrbState('NORMAL', isWorkoutResting, false, false);
 
@@ -4748,14 +4930,51 @@
             btnDangerClear.addEventListener('click', () => performDangerClear(false));
         }
         if (btnMainDangerClear) {
-            btnMainDangerClear.addEventListener('click', () => performDangerClear(false));
+            btnMainDangerClear.addEventListener('click', () => {
+                socket.emit('confirmDangerEscape');
+                performDangerClear(false);
+            });
         }
+
+        // 시나리오 버튼 리스너 연결
+        if (btnMainBodyDetachClear) {
+            btnMainBodyDetachClear.addEventListener('click', () => socket.emit('toggleBodyDetach'));
+        }
+        if (btnMainImbalanceClear) {
+            btnMainImbalanceClear.addEventListener('click', () => socket.emit('toggleImbalance'));
+        }
+        if (btnConfirmMainWorkout) {
+            btnConfirmMainWorkout.addEventListener('click', () => {
+                socket.emit('confirmMainWorkout');
+                if (mainWorkoutConfirmBanner) mainWorkoutConfirmBanner.style.display = 'none';
+            });
+        }
+        if (btnSimulateBodyDetach) {
+            btnSimulateBodyDetach.addEventListener('click', () => socket.emit('toggleBodyDetach'));
+        }
+        if (btnSimulateImbalance) {
+            btnSimulateImbalance.addEventListener('click', () => socket.emit('toggleImbalance'));
+        }
+
+        // 서버에서 전달되는 실시간 에이전트 음성 안내 발화
+        socket.on('agentSpeech', (data) => {
+            if (data && data.text) {
+                renderAgentDecision(data.text);
+                lastSpokenDecision = data.text;
+                speakAgentVoice(data.text);
+            }
+        });
 
         const handleWorkoutReset = () => {
             if (confirm('운동 기록을 초기화하시겠습니까?\n모든 세트와 부하가 리셋됩니다.')) {
                 socket.emit('resetWorkout');
                 updateLoadDisplay(0);
                 resetDangerUI();
+                if (mainBodyDetachAlertBanner) mainBodyDetachAlertBanner.style.display = 'none';
+                if (mainImbalanceAlertBanner) mainImbalanceAlertBanner.style.display = 'none';
+                if (mainWorkoutConfirmBanner) mainWorkoutConfirmBanner.style.display = 'none';
+                const lockBadge = document.getElementById('weightLockedBadge');
+                if (lockBadge) lockBadge.remove();
                 closeSidebar();
             }
         };
@@ -4871,6 +5090,58 @@
                 let agentReply = '';
                 const lower = text.toLowerCase();
 
+                // 🚨 1) 바텀 탈진(DANGER) 탈출 및 안부 대화 응답 판별
+                if (isAwaitingDangerEscapeConfirm || document.body.classList.contains('danger') || isDangerAlertActive) {
+                    const isEscapeAck = /(괜찮|응|탈출|빠져|나왔|해제|풀어|네|안전|다치지|살았|괜춘|문제없|이상없|멀쩡|벗어|벗어났|살았어|상황\s*벗어|살아남|끝났|완료|ok|yes)/i.test(lower);
+                    if (isEscapeAck) {
+                        socket.emit('confirmDangerEscape');
+                        isAwaitingDangerEscapeConfirm = false;
+                        isDangerAlertActive = false;
+                        performDangerClear(true);
+                        agentReply = "확인되었습니다! 위험 상태를 해제하고 바 고정을 풀었습니다. 호흡을 가다듬고 준비되시면 다시 시작하세요!";
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return;
+                    }
+                }
+
+                // 🚨 2) 사용자 위험/긴급 상황 챗 입력 감지 -> 즉시 바 280 안전선 고정 & 안부 확인 발동!
+                const isDangerTrigger = /(위험|깔렸|깔림|살려|도와|비상|사고|멈춰|스톱|긴급|살려줘|도와줘|위험해|위험\s*상황)/i.test(lower);
+                if (isDangerTrigger) {
+                    socket.emit('triggerDanger', { reason: text });
+                    targetVal = 280;
+                    isDangerAlertActive = true;
+                    isAwaitingDangerEscapeConfirm = true;
+                    document.body.classList.add('danger');
+                    if (mainDangerAlertBanner) mainDangerAlertBanner.style.display = 'flex';
+                    if (btnDangerClear) btnDangerClear.style.display = 'block';
+                    triggerDangerSafetyLift();
+                    agentReply = "경고: 위험 상황이 감지되어 바를 안전선(280)에 즉시 고정했습니다! 사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?";
+                    renderAgentDecision(agentReply);
+                    speakAgentVoice(agentReply);
+                    return;
+                }
+
+                // ⚖️ 3) 불균형 상황 해제 및 본 운동 재돌입 응답 판별 ('네', '시작', '해제' 등)
+                if (isAwaitingMainWorkoutConfirm || isImbalanceState) {
+                    const isConfirmAck = /(네|응|시작|돌입|그래|좋아|하자|본\s*운동|화이팅|고|해제|맞췄|교정|풀어|원래|ok|yes|start)/i.test(lower);
+                    if (isConfirmAck) {
+                        socket.emit('confirmMainWorkout');
+                        isAwaitingMainWorkoutConfirm = false;
+                        isImbalanceState = false;
+                        isCurrentWeightLocked = false;
+                        if (mainWorkoutConfirmBanner) mainWorkoutConfirmBanner.style.display = 'none';
+                        if (mainImbalanceAlertBanner) mainImbalanceAlertBanner.style.display = 'none';
+                        const lockBadge = document.getElementById('weightLockedBadge');
+                        if (lockBadge) lockBadge.remove();
+
+                        agentReply = "좋습니다! 원래 무게로 복원하여 본 운동으로 재돌입합니다. 화이팅!";
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return; // 로컬 LLM 호출 절대 방지 및 즉각 반응
+                    }
+                }
+
                 // 1. 다중 의도(Multi-Intent) 추출기
                 // 1-1. 휴식 시간 (Rest) 파싱: "휴식 시간 30으로", "휴식 30초", "30초 휴식", "휴식 60", "2분 휴식"
                 let matchedRest = null;
@@ -4956,6 +5227,14 @@
 
                 // 2. 실행 및 결과 수집
                 let actionsApplied = [];
+
+                // 🔒 불균형 교정 중 무게 증량 차단
+                if (isCurrentWeightLocked && ((matchedWeight !== null && matchedWeight > currentLoadKg) || (isDeltaWeight && deltaWeightVal > 0))) {
+                    agentReply = "현재 좌우 불균형 교정 모드가 진행 중이므로 무게를 올릴 수 없습니다. 균형을 맞추며 먼저 자세를 교정해 주세요.";
+                    renderAgentDecision(agentReply);
+                    speakAgentVoice(agentReply);
+                    return;
+                }
 
                 // A. 무게 적용 (1kg 단위 지원, 최소 1kg 허용)
                 if (matchedWeight !== null) {

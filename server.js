@@ -56,13 +56,21 @@ let currentStatus = 'WAITING';
 let isAnalyzing = false;
 let lastValue = 0;
 let hasUserInteracted = false; // 최초 운동 개시 감지 플래그
-let isDangerActive = false;    // 위험 감지 및 안전 리프트 상태 플래그 (절대 휴식으로 자동 전환되지 않음)
+let isDangerActive = false;    // 위험 감지 및 안전 리프트 상태 플래그 (절대 자동 전환되지 않고 대화로 해제)
+let awaitingDangerEscapeConfirm = false; // 바텀 탈진 위험 후 사용자 안부 및 탈출 확인 대기
+let isBodyDetached = false;    // 1번 버튼 (11번 핀): 바 신체 이탈 감지 및 바 위치 즉시 고정
+let lockedBarValue = null;     // 바 위치 고정 센서값 (null: 정상 추적, 숫자: 해당 값으로 화면/제어 고정)
+let isImbalanceActive = false; // 2번 버튼 (12번 핀): 좌우 힘 불균형 감지 플래그
+let isWeightLocked = false;    // 불균형 교정 중 무게 증량 잠금 플래그
+let awaitingMainWorkoutConfirm = false; // 불균형 교정 후 본 운동 시작 확인 대기
+let preImbalanceWeightKg = null; // 불균형 감지 직전 원래 본 운동 무게 보관 (동의 후 복원용)
 let dangerCooldownUntil = 0;   // 위험 해제 직후 재트리거 방지 쿨다운 만료 시각 (ms)
 let assistLevel = 0; // 부하 감소 단계 (0: 정상, 1: 1차 감소, 2: 2차 감소...)
 let lastAssistTimestamp = 0; // 마지막 부하 감소 적용 시각 (쿨다운용)
 let currentRepAssistCount = 0; // 현재 1회 반복(Rep) 도중 부하 감경 발동 횟수 (동일 랩 중복 출력 원천 차단)
-let bottomMoveStartTime = 0; // 바텀 범위 내에서 꼼질꼼질 움직인 시작 시각 (6초 후 DANGER)
-let bottomStillStartTime = 0; // 바텀 범위 내에서 완전히 정지한 시작 시각 (7초 후 REST/세트완료)
+let bottomMoveStartTime = 0; // 바텀 범위 내에서 꼼질꼼질 움직인 시작 시각 (2.5초 후 DANGER)
+let lastBottomMoveTimestamp = 0; // 바텀 범위 내 마지막 움직임 감지 시각 (순간 멈칫 보정용)
+let bottomStillStartTime = 0; // 바텀 범위 내에서 완전히 정지한 시작 시각 (3.5초 후 REST/세트완료)
 let midStallStartTime = 0;    // 바텀-탑 중간 구간 정체 시작 시각 (1.4초 후 ASSIST)
 
 // =================== AI 에이전트 동적 제어 변수 ===================
@@ -364,7 +372,7 @@ const THRESHOLD_BOTTOM = 280; // 하단 기준 (시작/완료)
 const THRESHOLD_TOP = 740;    // 상단 최고점 기준
 
 // =================== 실시간 안전 및 모션 타이밍 임계치 (단위: ms) ===================
-let DANGER_TRIGGER_MS = 6000;      // 바텀 탈진 꼼질거림 위험 감지 시간: 6.0초
+let DANGER_TRIGGER_MS = 2500;      // 바텀 탈진 꼼질거림 위험 감지 시간: 2.5초 (신속 감지)
 let MID_STALL_TRIGGER_MS = 1400;   // 바텀-탑 중간 정체 신속 감지 시간: 1.4초 (신속 반응)
 let CONT_STALL_TRIGGER_MS = 10000; // 연속 정체 추가 감경 간격: 10.0초 (빈번한 반복 출력 방지)
 let SET_COMPLETE_STILL_MS = 3500;  // 세트 완료 완전 정지 판정 시간: 3.5초
@@ -387,6 +395,12 @@ function getWorkoutStatePayload() {
         avgTempo: Number((avgTempo || 0).toFixed(1)),
         isResting,
         isDangerActive,
+        isBodyDetached,
+        lockedBarValue,
+        isImbalanceActive,
+        isWeightLocked,
+        awaitingMainWorkoutConfirm,
+        awaitingDangerEscapeConfirm,
         restSeconds: restSec,
         remainingRestSeconds: remainingRest,
         setHistory,
@@ -453,6 +467,192 @@ function applyAssistWeightReduction(reason = '중간 정체 감지', triggerType
     io.emit('workoutState', getWorkoutStatePayload());
 }
 
+// =================== 시나리오 1: 신체 이탈 감지 및 바 위치 고정 (1번 버튼 / 11번 핀) ===================
+function toggleBodyDetachment(source = 'hardware') {
+    isBodyDetached = !isBodyDetached;
+
+    if (isBodyDetached) {
+        // 바에서 손/신체 떨어짐 -> 즉시 현재 위치에 바 고정!
+        lockedBarValue = lastValue;
+        currentStatus = 'BODY_DETACHED';
+        if (port && port.isOpen) port.write('H\n'); // 위험/고정 신호 (적색 LED + 부저)
+
+        const alertDecision = "경고: 신체 이탈 감지!\n바에서 손이 떨어져 안전을 위해 바의 위치를 즉시 고정했습니다.\n안전을 확보한 후 1번 버튼을 다시 누르면 고정이 해제됩니다.";
+        const speechText = "경고: 신체 접촉이 감지되지 않습니다! 바에서 손이 떨어져 안전을 위해 바의 위치를 즉시 고정했습니다.";
+        
+        console.log(`\n[시나리오 1] 바 신체 이탈 감지 (${source}) -> 바 위치 즉시 고정 (${lockedBarValue})`);
+        io.emit('sensorData', {
+            value: lockedBarValue,
+            status: 'BODY_DETACHED',
+            isBodyDetached: true,
+            lockedBarValue: lockedBarValue,
+            decision: alertDecision
+        });
+        io.emit('agentSpeech', { text: speechText });
+        io.emit('workoutState', getWorkoutStatePayload());
+    } else {
+        // 1번 버튼 다시 누름 -> 고정 해제 및 정상 복귀!
+        lockedBarValue = null;
+        currentStatus = 'NORMAL';
+        if (port && port.isOpen) port.write('N\n'); // 정상 복귀 (녹색 LED)
+
+        const clearDecision = "신체 접촉 확인 완료!\n바 고정을 해제하고 정상 운동 상태로 복구했습니다.\n자세를 가다듬고 진행하세요.";
+        const speechText = "신체 접촉이 다시 확인되었습니다. 바 고정을 해제하고 정상 상태로 복귀합니다.";
+
+        console.log(`\n[시나리오 1] 바 신체 접촉 재개 (${source}) -> 바 고정 해제 및 NORMAL 복귀`);
+        io.emit('sensorData', {
+            value: lastValue,
+            status: 'NORMAL',
+            isBodyDetached: false,
+            lockedBarValue: null,
+            decision: clearDecision
+        });
+        io.emit('agentSpeech', { text: speechText });
+        io.emit('workoutState', getWorkoutStatePayload());
+    }
+}
+
+// =================== 시나리오 2: 좌우 힘 불균형 감지 및 교정 시나리오 (2번 버튼 / 12번 핀) ===================
+function toggleImbalanceScenario(source = 'hardware') {
+    isImbalanceActive = !isImbalanceActive;
+
+    if (isImbalanceActive) {
+        // 2번 버튼 1회차: 좌우 불균형 감지 -> 무게를 딱 20kg으로 맞춤 + 무게 증량 잠금!
+        isWeightLocked = true;
+        awaitingMainWorkoutConfirm = false;
+        if (preImbalanceWeightKg === null) {
+            preImbalanceWeightKg = userWeightKg; // 원래 설정 무게 보관
+        }
+        const prevKg = userWeightKg;
+        // 사용자 요구사항: 무게를 20kg 감소가 아니라 딱 20kg으로 설정!
+        userWeightKg = 20.0;
+        currentStatus = 'IMBALANCE';
+        if (port && port.isOpen) port.write('L\n'); // 보조/불균형 신호 (청색 LED)
+
+        const alertDecision = `경고: 좌우 힘 불균형 감지!\n부상 방지를 위해 무게를 안전 교정 부하인 20kg으로 맞췄습니다 (${prevKg}kg -> 20.0kg).\n자세가 올바르게 교정될 때까지 무게를 올릴 수 없습니다.\n균형을 맞추며 천천히 당겨보세요.`;
+        const speechText = "주의: 좌우 불균형이 감지되었습니다! 부상 방지를 위해 무게를 20kg으로 맞췄습니다. 자세가 올바르게 교정될 때까지 무게를 올릴 수 없습니다. 균형을 맞추며 천천히 당겨주세요.";
+
+        console.log(`\n[시나리오 2] 좌우 불균형 감지 (${source}) -> 무게 딱 20kg으로 설정 (${prevKg}kg -> 20.0kg) & 증량 잠금 활성화`);
+        io.emit('sensorData', {
+            value: lastValue,
+            status: 'IMBALANCE',
+            isImbalanceActive: true,
+            isWeightLocked: true,
+            userWeightKg: userWeightKg,
+            decision: alertDecision
+        });
+        io.emit('agentSpeech', { text: speechText });
+        io.emit('workoutState', getWorkoutStatePayload());
+    } else {
+        // 2번 버튼 2회차: 균형 교정 완료 안내 -> 단, 사용자가 동의하기 전까지는 불균형 때 사용한 교정 무게(20kg)와 잠금을 그대로 적용 유지!
+        awaitingMainWorkoutConfirm = true;
+        currentStatus = 'NORMAL';
+        if (port && port.isOpen) port.write('N\n');
+
+        const originalKg = preImbalanceWeightKg || 70.0;
+        const questionDecision = `좌우 밸런스가 안정적으로 교정되었습니다!\n사용자님의 동의 전까지는 안전을 위해 교정 무게(20kg)가 계속 적용됩니다.\n원래 본 운동 무게(${originalKg}kg)로 복원하여 본 운동을 실시하시겠습니까?\n(음성 또는 채팅으로 '시작해'라고 말씀하시거나 버튼을 눌러주세요)`;
+        const speechText = "좌우 밸런스가 안정적으로 교정되었습니다! 현재는 교정 무게 20kg이 유지 중입니다. 원래 무게로 본 운동을 다시 실시하시겠습니까?";
+
+        console.log(`\n[시나리오 2] 균형 교정 완료 (${source}) -> 동의 전까지 교정 무게(20kg) 유지한 채 본 운동 확인 대기`);
+        io.emit('sensorData', {
+            value: lastValue,
+            status: 'NORMAL',
+            isImbalanceActive: false,
+            isWeightLocked: true, // 사용자가 확인하기 전까지는 잠금 및 교정 무게(20kg) 유지
+            userWeightKg: userWeightKg, // 20kg 유지
+            awaitingMainWorkoutConfirm: true,
+            decision: questionDecision
+        });
+        io.emit('agentSpeech', { text: speechText });
+        io.emit('workoutState', getWorkoutStatePayload());
+    }
+}
+
+// 2번 시나리오 본 운동 돌입 승인
+function confirmMainWorkout() {
+    if (!awaitingMainWorkoutConfirm && !isWeightLocked) return;
+
+    awaitingMainWorkoutConfirm = false;
+    isWeightLocked = false; // 무게 증량 잠금 해제!
+    currentStatus = 'NORMAL';
+    if (port && port.isOpen) port.write('N\n');
+
+    // 사용자가 동의했으므로 원래 본 운동 무게로 복구!
+    const restoredKg = preImbalanceWeightKg !== null ? preImbalanceWeightKg : userWeightKg;
+    userWeightKg = restoredKg;
+    preImbalanceWeightKg = null; // 초기화
+
+    const confirmDecision = `자세 교정 완료: 본 운동 재돌입!\n원래 설정 무게(${userWeightKg}kg)로 복원하여 본 운동을 재개합니다.\n호흡을 가다듬고 힘차게 진행하세요!`;
+    const speechText = `좋습니다! 원래 무게 ${userWeightKg}kg으로 복원하여 정상 강도로 본 운동을 재개합니다. 화이팅!`;
+
+    console.log(`\n[시나리오 2] 본 운동 재돌입 승인 -> 원래 무게(${userWeightKg}kg) 복원 & 무게 잠금 해제 & 본 운동 복귀`);
+    io.emit('sensorData', {
+        value: lastValue,
+        status: 'NORMAL',
+        isImbalanceActive: false,
+        isWeightLocked: false,
+        userWeightKg: userWeightKg,
+        awaitingMainWorkoutConfirm: false,
+        decision: confirmDecision
+    });
+    io.emit('agentSpeech', { text: speechText });
+    io.emit('workoutState', getWorkoutStatePayload());
+}
+
+// =================== 시나리오 3: 바텀 탈진(DANGER) 트리거 & 대화형 안전 해제 ===================
+function triggerDangerScenario(source = 'system', reason = '바텀 탈진 위험 감지') {
+    currentStatus = 'DANGER';
+    isDangerActive = true;
+    lockedBarValue = THRESHOLD_BOTTOM; // 바텀 안전선(280)에 바 위치 즉시 고정!
+    awaitingDangerEscapeConfirm = true; // 에이전트의 사용자 안부 및 탈출 확인 대기
+    assistLevel = 0;
+    lastAssistTimestamp = 0;
+    if (isResting) isResting = false;
+
+    console.log(`\n[위험 상황 즉각 발동] (${source}: ${reason}) -> 바 위치 280 안전선 고정 및 안부 확인 대기`);
+    if (port && port.isOpen) {
+        port.write('H\n'); // 위험/고정 신호 (적색 LED + 부저)
+    }
+
+    const dangerDecision = `경고: 위험 상황 감지 (${reason})!\n바를 안전 라인(280)에 즉시 고정했습니다.\n사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?`;
+    const dangerSpeech = "경고: 위험 상황이 감지되어 바를 안전선에 고정했습니다! 사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?";
+
+    io.emit('sensorData', {
+        value: THRESHOLD_BOTTOM,
+        status: 'DANGER',
+        isDangerActive: true,
+        lockedBarValue: THRESHOLD_BOTTOM,
+        awaitingDangerEscapeConfirm: true,
+        decision: dangerDecision
+    });
+    io.emit('agentSpeech', { text: dangerSpeech });
+    io.emit('workoutState', getWorkoutStatePayload());
+}
+
+function confirmDangerEscape() {
+    isDangerActive = false;
+    currentStatus = 'NORMAL';
+    lockedBarValue = null; // 바 위치 고정 해제!
+    awaitingDangerEscapeConfirm = false;
+    dangerCooldownUntil = Date.now() + 3000;
+    if (port && port.isOpen) port.write('N\n');
+
+    const clearDecision = "탈출 확인 완료: 안전 고정 해제!\n바의 안전 고정을 정상 해제했습니다.\n무리하지 마시고 호흡을 충분히 가다듬은 후 다시 준비해 주세요.";
+    const speechText = "확인되었습니다. 바의 안전 고정을 해제합니다. 무리하지 마시고 호흡을 충분히 가다듬은 후 다시 시작해 주세요.";
+
+    console.log(`\n[시나리오 3] 바텀 위험 탈출 확인 -> 바 고정 해제 & NORMAL 정상 복귀`);
+    io.emit('sensorData', {
+        value: lastValue,
+        status: 'NORMAL',
+        isDangerActive: false,
+        lockedBarValue: null,
+        awaitingDangerEscapeConfirm: false,
+        decision: clearDecision
+    });
+    io.emit('agentSpeech', { text: speechText });
+    io.emit('workoutState', getWorkoutStatePayload());
+}
+
 // 상-하 연속 움직임 감지(Repetition) 및 자동 세트/휴식 판별 알고리즘
 function trackRepetition(value) {
     const now = Date.now();
@@ -465,6 +665,7 @@ function trackRepetition(value) {
             peakValue = value;
             currentRepAssistCount = 0; // 새 Rep 시작 시 감량 카운트 리셋
             bottomMoveStartTime = 0;
+            lastBottomMoveTimestamp = 0;
             bottomStillStartTime = 0;
 
             if (currentSetStartTime === 0) {
@@ -473,19 +674,7 @@ function trackRepetition(value) {
                     lastSetRestDurationSec = Math.floor((now - restStartTime) / 1000);
                 }
             }
-
-            // 위험 상태였던 경우, 사용자가 힘차게 다시 당겨 올리면 위험 해제 및 운동 재개!
-            if (currentStatus === 'DANGER' || isDangerActive) {
-                currentStatus = 'NORMAL';
-                isDangerActive = false;
-                console.log(`\n[위험 해제 및 운동 재개] 사용자가 바를 다시 당겨 올림 -> NORMAL 정상 복구`);
-                if (port && port.isOpen) port.write('N\n');
-                io.emit('sensorData', {
-                    value: value,
-                    status: 'NORMAL',
-                    decision: "안전 조치 해제: 운동을 다시 시작합니다!\n자세를 바르게 유지하며 힘차게 당겨주세요!"
-                });
-            }
+            // (위험 상태 자동 해제 금지: 위험 상태는 가변저항 상승으로 자동 해제되지 않으며, 사용자 안부 대화나 해제 버튼으로만 안전하게 해제됨)
 
             if (isResting) {
                 // 휴식 상태에서 당기기 시작하면 자동으로 새 세트 시작
@@ -568,13 +757,14 @@ function trackRepetition(value) {
 
                 // 💡 운동 진행 중 피로 누적(Fatigue / Velocity Loss) 자동 감지 및 선제 부하 감경:
                 // 2회차 이상 수행 중, 이번 랩 수행 시간이 3.8초 이상 걸렸거나 이전 평균 대비 40% 이상 지체된 경우
-                if (currentSetReps >= 2 && durationSec >= 3.8 && (now - lastAssistTimestamp >= 4500)) {
+                // (단, 불균형 교정 모드 중이거나 본 운동 확인 대기 중에는 교정 부하 20kg 유지를 위해 추가 감량 차단)
+                if (currentSetReps >= 2 && durationSec >= 3.8 && (now - lastAssistTimestamp >= 4500) && !isImbalanceActive && !awaitingMainWorkoutConfirm) {
                     const prevTempos = currentSetTempos.slice(0, -1);
                     const prevAvg = prevTempos.length > 0 ? (prevTempos.reduce((a, b) => a + b, 0) / prevTempos.length) : 2.4;
                     if (durationSec >= prevAvg * 1.4 || durationSec >= 4.0) {
                         console.log(`\n[피로 누적 감지] Rep 템포 지체 (${durationSec.toFixed(1)}s, 이전 평균: ${prevAvg.toFixed(1)}s) -> 다음 반복을 위해 5kg 선제 감량`);
                         setTimeout(() => {
-                            if (!isResting && currentStatus !== 'DANGER' && !isDangerActive) {
+                            if (!isResting && currentStatus !== 'DANGER' && !isDangerActive && !isImbalanceActive && !awaitingMainWorkoutConfirm) {
                                 applyAssistWeightReduction(`피로 누적 감지 (${durationSec.toFixed(1)}초 소요)`, 'fatigue_slowdown', lastValue);
                             }
                         }, 500);
@@ -607,6 +797,7 @@ function completeCurrentSet(now) {
     isResting = true;
     lastAssistTimestamp = 0;
     bottomMoveStartTime = 0;
+    lastBottomMoveTimestamp = 0;
     bottomStillStartTime = 0;
     midStallStartTime = 0;
     restStartTime = now || Date.now();
@@ -688,11 +879,37 @@ setInterval(() => {
 function processSensorValue(value) {
     if (isNaN(value)) return;
     value = Math.max(0, Math.min(1023, value));
+    lastValue = value;
     const now = Date.now();
+
+    // 🔒 1. 신체 이탈 상태일 때: 바 위치 즉시 고정 (가변저항 움직임 무시)
+    if (isBodyDetached) {
+        const freezeVal = lockedBarValue !== null ? lockedBarValue : value;
+        io.emit('sensorData', {
+            value: freezeVal,
+            status: 'BODY_DETACHED',
+            isBodyDetached: true,
+            lockedBarValue: freezeVal,
+            decision: "경고: 신체 이탈 감지!\n바에서 손이 떨어져 바의 위치를 안전하게 고정했습니다.\n다시 1번 버튼을 누르면 고정이 해제됩니다."
+        });
+        return;
+    }
+
+    // 🚨 2. 바텀 탈진(DANGER) 상태일 때: 바를 안전 라인(280)에 고정 (가변저항 무시 및 대화 해제 대기)
+    if (isDangerActive || currentStatus === 'DANGER') {
+        io.emit('sensorData', {
+            value: THRESHOLD_BOTTOM,
+            status: 'DANGER',
+            isDangerActive: true,
+            lockedBarValue: THRESHOLD_BOTTOM,
+            awaitingDangerEscapeConfirm: awaitingDangerEscapeConfirm,
+            decision: "경고: 바텀 탈진 위험 감지!\n바를 안전 라인(280)에 고정했습니다.\n사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?"
+        });
+        return;
+    }
 
     sensorDataBuffer.push(value);
     if (sensorDataBuffer.length > 50) sensorDataBuffer.shift();
-    lastValue = value;
     
     // 빠른 움직임 감지용 버퍼 유지 (최근 데이터 최대 15개, 약 1.5초)
     recentDataBuffer.push(value);
@@ -714,86 +931,67 @@ function processSensorValue(value) {
     const BOTTOM_ZONE_LIMIT = THRESHOLD_BOTTOM + 140; // 420 이하를 바텀 구간으로 판별
 
     // =========================================================================
-    // [구간 1] 바텀 구간 (<= 380) 체류 시 판정: 완전 정지(휴식) vs 꼼질꼼질 움직임(탈진 위험)
+    // [구간 1] 바텀 구간 (<= 420) 체류 시 판정: 탈진 위험(DANGER) vs 세트 완료(휴식)
     // =========================================================================
     if (value <= BOTTOM_ZONE_LIMIT) {
         midStallStartTime = 0; // 중간 정체 타이머 리셋
 
-        // ⭐️ 바텀 구간(또는 바텀 아래)에 위치할 때는 임시 ASSIST 상태를 NORMAL로 자동 해제! (줄어든 무게는 유지)
+        // ⭐️ 바텀 구간 진입 시 임시 ASSIST 상태는 NORMAL 복구 (줄어든 무게는 유지)
         if (currentStatus === 'ASSIST') {
             currentStatus = 'NORMAL';
-            midStallStartTime = 0;
-            console.log(`\n[바텀 구간 진입] 바텀 위치에 머물고 있으므로 무게 부담(ASSIST) 상태 해제 -> NORMAL 복구 (현재 무게: ${userWeightKg}kg 유지)`);
-            if (port && port.isOpen) {
-                port.write('N\n');
-            }
-            io.emit('sensorData', {
-                value: value,
-                status: 'NORMAL',
-                assistLevel: assistLevel,
-                loadKg: userWeightKg,
-                userWeightKg: userWeightKg,
-                decision: "바텀 위치입니다.\n호흡을 가다듬고 준비되시면 다시 당겨주세요."
-            });
-            io.emit('workoutState', getWorkoutStatePayload());
+            if (port && port.isOpen) port.write('N\n');
         }
 
-        // 1-A. 바텀 범위 내에서 꼼질꼼질 움직임 (recentDiff > 25) -> 탈진 위험 (DANGER)! (기존 15에서 25로 상향 조정)
-        if (recentDiff > 25) {
-            bottomStillStartTime = 0; // 정지 타이머 리셋
+        // 특수 상태 플래그 확인 (이미 DANGER이거나 불균형 또는 신체 이탈 상태일 때는 바텀 위험/휴식 판정만 건너뛰고 정상 센서 송신 계속 진행!)
+        const isSpecialScenario = currentStatus === 'DANGER' || isDangerActive || isImbalanceActive || awaitingMainWorkoutConfirm || isBodyDetached;
 
-            // 위험 해제 직후 쿨다운 중(5초)에는 DANGER 카운트 시작 방지
-            if (now < dangerCooldownUntil) {
-                bottomMoveStartTime = 0;
-            } else {
+        if (isSpecialScenario) {
+            bottomMoveStartTime = 0;
+            bottomStillStartTime = 0;
+            // (특수 시나리오 진행 중에는 바텀 체류에 의한 위험/휴식 자동 전환을 스킵하고 아래 센서 브로드캐스트로 직행)
+        } else {
+            // ⭐️ [쉬는 상황 vs 위험 감지 명확한 분리]
+            // A. 바텀 탈진 위험(DANGER):
+            //    - 사용자가 손을 놓지 못하고 바텀 구간에서 꼼질거리며 발버둥치는 상태 (recentDiff >= 15)
+            //    - 휴식 중이 아니며(!isResting), 쿨다운이 아닐 때, 꼼질거림이 2.5초 이상 지속되면 위험 발동!
+            const DANGER_DIFF_THRESHOLD = 15; // 꼼질거림 발버둥 임계값
+            const isStruggling = recentDiff >= DANGER_DIFF_THRESHOLD;
+
+            if (isStruggling && !isResting && now >= dangerCooldownUntil) {
+                // 발버둥치는 중이므로 쉬는 타이머는 리셋
+                bottomStillStartTime = 0;
+
                 if (bottomMoveStartTime === 0) {
                     bottomMoveStartTime = now;
                 }
 
-                const movingDuration = now - bottomMoveStartTime;
-                if (movingDuration >= DANGER_TRIGGER_MS) {
-                    if (currentStatus !== 'DANGER') {
-                        currentStatus = 'DANGER';
-                        isDangerActive = true;
-                        assistLevel = 0;
-                        lastAssistTimestamp = 0;
-                        if (isResting) isResting = false; // 휴식 중이었더라도 위험 상황으로 즉각 전환
-
-                        console.log(`\n[위험 즉각 감지] 바텀 범위 내 탈진 꼼질거림 감지 -> 위험 (DANGER)! (경과: ${(movingDuration / 1000).toFixed(1)}초, 최근변동폭: ${recentDiff})`);
-                        if (port && port.isOpen) {
-                            port.write('H\n');
-                        }
-                        io.emit('sensorData', {
-                            value: value,
-                            status: 'DANGER',
-                            decision: "경고: 한계 도달 (탈진 감지)!\n바를 안전 라인에 고정했습니다.\n무리하지 말고 안전하게 내려오세요."
-                        });
-                        io.emit('workoutState', getWorkoutStatePayload());
+                const dangerStayDuration = now - bottomMoveStartTime;
+                if (dangerStayDuration >= DANGER_TRIGGER_MS) {
+                    if (currentStatus !== 'DANGER' && !isDangerActive) {
+                        bottomMoveStartTime = 0;
+                        bottomStillStartTime = 0;
+                        triggerDangerScenario('hardware_sensor', `바텀 탈진 꼼질거림 위험 감지 (${(dangerStayDuration / 1000).toFixed(1)}초 지속)`);
+                        return;
                     }
                 }
-            }
-        } 
-        // 1-B. 바텀에서 딱 같은 값으로 완전히 정지 (recentDiff <= 25)
-        else {
-            bottomMoveStartTime = 0; // 움직임 타이머 리셋
+            } else {
+                // 발버둥치지 않거나 휴식 중이면 위험 타이머 즉시 리셋 (쉬는 상황 보호)
+                bottomMoveStartTime = 0;
 
-            // 🚨 위험(DANGER) 감지 상태이거나 안전 리프트로 바가 올려진 상태일 때:
-            // 절대 '휴식'이나 '세트 완료'로 전환되지 않음! 비상 안전 정지 상태 유지!
-            if (currentStatus === 'DANGER' || isDangerActive) {
-                bottomStillStartTime = 0; // 휴식 판정 카운트 차단
-                return;
-            }
-
-            // [정상 운동 시에만] 손을 놓고 내려와 쉬는 상태 (휴식 및 세트 종료)
-            if (bottomStillStartTime === 0) {
-                bottomStillStartTime = now;
-            }
-
-            const stillDuration = now - bottomStillStartTime;
-            if (stillDuration >= SET_COMPLETE_STILL_MS) {
-                // 세트 진행 중(1회 이상 성공)이었다면 자동으로 세트 완료 처리 및 휴식 타이머 시작
-                if (currentSetReps >= 1 && !isResting && repStage === 'WAITING_START') {
-                    completeCurrentSet(now);
+                // B. 쉬는 상황 (휴식 및 세트 완료 / 평화로운 대기):
+                //    - 손을 놓고 가만히 멈춰있는 상태 (recentDiff < 15)
+                //    - 세트 진행 중(1회 이상 성공)이고 휴식 전이면, 3.5초 정지 시 세트 완료 및 휴식 모드 진입
+                if (!isResting && currentSetReps >= 1 && repStage === 'WAITING_START' && !isStruggling) {
+                    if (bottomStillStartTime === 0) {
+                        bottomStillStartTime = now;
+                    }
+                    const stillDuration = now - bottomStillStartTime;
+                    if (stillDuration >= SET_COMPLETE_STILL_MS) {
+                        completeCurrentSet(now);
+                        bottomStillStartTime = 0;
+                    }
+                } else {
+                    bottomStillStartTime = 0;
                 }
             }
         }
@@ -803,32 +1001,20 @@ function processSensorValue(value) {
     // =========================================================================
     else {
         bottomMoveStartTime = 0;
+        lastBottomMoveTimestamp = 0;
         bottomStillStartTime = 0;
 
-        // DANGER 상태에서 사용자가 힘을 내서 위로 당겨 올라왔다면 즉시 정상 복귀!
-        if (currentStatus === 'DANGER' || isDangerActive) {
-            currentStatus = 'NORMAL';
-            isDangerActive = false;
-            dangerCooldownUntil = Date.now() + 5000;
-            console.log(`\n[위험 탈출 감지] 바텀 구간 탈출 상승 (현재값: ${value}) -> NORMAL 정상 복구`);
-            if (port && port.isOpen) {
-                port.write('N\n');
-            }
-            io.emit('sensorData', {
-                value: value,
-                status: 'NORMAL',
-                decision: "위험 구간을 탈출했습니다!\n페이스를 유지하며 당겨주세요!"
-            });
-            io.emit('workoutState', getWorkoutStatePayload());
-        }
-
-        // ⭐️ 바텀과 탑 사이 중간 정체 판별 -> 사용자 무게 부담 (다단계 ASSIST)
-        // 조건:
-        // 1. 반드시 당겨 올라가는 중(repStage === 'GOING_UP')이어야 함 (대기 중이거나 하강 중에는 발동 금지)
-        // 2. 바텀을 확실히 벗어난 중상단 구간 (value >= THRESHOLD_BOTTOM + 140 = 420 이상)
-        // 3. 탑(740) 도달 직전 미만 (value < THRESHOLD_TOP - 40 = 700 미만)
-        // 4. 휴식 상태가 아님
-        const isMidAscentStallZone = (repStage === 'GOING_UP') && (value >= THRESHOLD_BOTTOM + 140) && (value < THRESHOLD_TOP - 40) && !isResting;
+        // 🚨 바텀 위험(DANGER) 상태이거나 특수 상황일 때는 ASSIST 감경 스킵
+        if (currentStatus === 'DANGER' || isDangerActive || isImbalanceActive || awaitingMainWorkoutConfirm) {
+            // 특수 모드 진행 중에는 스마트 ASSIST 자동 감경 생략
+        } else {
+            // ⭐️ 바텀과 탑 사이 중간 정체 판별 -> 사용자 무게 부담 (다단계 ASSIST)
+            // 조건:
+            // 1. 반드시 당겨 올라가는 중(repStage === 'GOING_UP')이어야 함 (대기 중이거나 하강 중에는 발동 금지)
+            // 2. 바텀을 확실히 벗어난 중상단 구간 (value >= THRESHOLD_BOTTOM + 140 = 420 이상)
+            // 3. 탑(740) 도달 직전 미만 (value < THRESHOLD_TOP - 40 = 700 미만)
+            // 4. 휴식 상태가 아님
+            const isMidAscentStallZone = (repStage === 'GOING_UP') && (value >= THRESHOLD_BOTTOM + 140) && (value < THRESHOLD_TOP - 40) && !isResting;
 
         if (isMidAscentStallZone) {
             // 실제 정체 상태: 상승 중 움직임이 멈칫거림 (손떨림 고려: recentDiff < 95)
@@ -874,11 +1060,21 @@ function processSensorValue(value) {
             }
         }
     }
+}
 
-    // 센서 값은 실시간으로 웹에 표시
+    // 센서 값 및 상태 플래그 실시간 웹 브로드캐스트
     io.emit('sensorData', {
-        value: value,
-        assistLevel: assistLevel
+        value: (isDangerActive || currentStatus === 'DANGER') ? THRESHOLD_BOTTOM : (isBodyDetached ? (lockedBarValue !== null ? lockedBarValue : value) : value),
+        status: currentStatus,
+        isDangerActive: isDangerActive,
+        isBodyDetached: isBodyDetached,
+        isImbalanceActive: isImbalanceActive,
+        isWeightLocked: isWeightLocked,
+        awaitingMainWorkoutConfirm: awaitingMainWorkoutConfirm,
+        awaitingDangerEscapeConfirm: awaitingDangerEscapeConfirm,
+        assistLevel: assistLevel,
+        loadKg: getCurrentLoadKg(),
+        userWeightKg: userWeightKg
     });
 }
 
@@ -939,11 +1135,18 @@ function initSerialConnection() {
                 io.emit('arduinoStatus', { connected: false, port: activePortPath });
             });
 
-            // 아두이노에서 데이터 수신
+            // 아두이노에서 데이터 수신 (센서값 또는 시나리오 버튼 이벤트)
             parser.on('data', (data) => {
-                const value = parseInt(data.trim(), 10);
-                if (!isNaN(value)) {
-                    processSensorValue(value);
+                const raw = data.trim();
+                if (raw === 'BTN1_PRESS' || raw === 'BTN1') {
+                    toggleBodyDetachment('hardware_button_1 (Pin 11)');
+                } else if (raw === 'BTN2_PRESS' || raw === 'BTN2') {
+                    toggleImbalanceScenario('hardware_button_2 (Pin 12)');
+                } else {
+                    const value = parseInt(raw, 10);
+                    if (!isNaN(value)) {
+                        processSensorValue(value);
+                    }
                 }
             });
 
@@ -1182,6 +1385,50 @@ io.on('connection', (socket) => {
         const msg = (data && data.message ? data.message : '').trim();
         if (!msg) return;
         console.log(`\n[로컬 LLM 챗 질문]: "${msg}"`);
+        const lower = msg.toLowerCase();
+
+        // 🚨 1) 바텀 위험(DANGER) 탈출 및 안부 대화 응답 처리
+        if (awaitingDangerEscapeConfirm || isDangerActive || currentStatus === 'DANGER') {
+            const isEscapeAck = /(괜찮|응|탈출|빠져|나왔|해제|풀어|네|안전|다치지|살았|괜춘|문제없|이상없|멀쩡|벗어|벗어났|살았어|상황\s*벗어|살아남|끝났|완료|ok|yes)/i.test(lower);
+            if (isEscapeAck) {
+                confirmDangerEscape();
+                const reply = "확인되었습니다! 바 안전 고정을 해제하고 정상 상태로 복구했습니다. 충분히 호흡을 가다듬은 후 운동을 재개하세요.";
+                socket.emit('agentChatResponse', { reply, originalMessage: msg });
+                return;
+            }
+        }
+
+        // 🚨 2) 사용자 위험/긴급 상황 챗 입력 감지 -> 즉시 바 고정 및 안부 확인 발동!
+        const isDangerTrigger = /(위험|깔렸|깔림|살려|도와|비상|사고|멈춰|스톱|긴급|살려줘|도와줘|위험해|위험\s*상황)/i.test(lower);
+        if (isDangerTrigger) {
+            triggerDangerScenario('chat_command', msg);
+            const reply = "경고: 위험 상황이 감지되어 바를 안전선(280)에 즉시 고정했습니다! 사용자님, 괜찮으신가요? 안전하게 빠져나오셨나요?";
+            socket.emit('agentChatResponse', { reply, originalMessage: msg });
+            return;
+        }
+
+        // ⚖️ 3) 좌우 불균형 교정 후 본 운동 실시 여부 질문 대화 응답 처리 (또는 불균형 중 해소 요청)
+        if (awaitingMainWorkoutConfirm || isImbalanceActive) {
+            const isConfirmAck = /(네|응|시작|돌입|그래|좋아|하자|본\s*운동|화이팅|고|해제|맞췄|교정|풀어|원래|yes|ok|start)/i.test(lower);
+            if (isConfirmAck) {
+                confirmMainWorkout();
+                const reply = `좋습니다! 원래 설정 무게(${userWeightKg}kg)로 복원하여 본 운동으로 재돌입합니다. 화이팅!`;
+                socket.emit('agentChatResponse', { reply, originalMessage: msg });
+                return;
+            }
+        }
+
+        // 🔒 4) 불균형 교정 중 무게 증량 시도 차단
+        if (isWeightLocked) {
+            const isIncreaseAttempt = /(올려|증가|추가|높여|증량|\+|더해|무겁)/.test(lower);
+            if (isIncreaseAttempt) {
+                const reply = "현재 좌우 불균형 교정 모드가 진행 중이므로 무게를 올릴 수 없습니다. 균형을 맞추며 먼저 자세를 교정해 주세요.";
+                socket.emit('agentChatResponse', { reply, originalMessage: msg });
+                io.emit('agentSpeech', { text: reply });
+                return;
+            }
+        }
+
         const reply = await chatWithLLM(msg, data.context || {});
         console.log(`[로컬 LLM 챗 답변]: "${reply}"\n`);
         socket.emit('agentChatResponse', { reply: reply, originalMessage: msg });
@@ -1195,21 +1442,35 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 위험 상태 수동 해제 (안전 확인 후 정상 복귀)
+    // 시나리오 1: 바 신체 이탈 토글 (1번 버튼 / 11번 핀 소프트웨어 연동)
+    socket.on('toggleBodyDetach', () => {
+        toggleBodyDetachment('web_ui');
+    });
+
+    // 시나리오 2: 좌우 힘 불균형 토글 (2번 버튼 / 12번 핀 소프트웨어 연동)
+    socket.on('toggleImbalance', () => {
+        toggleImbalanceScenario('web_ui');
+    });
+
+    // 시나리오 2: 본 운동 시작 확인 승인
+    socket.on('confirmMainWorkout', () => {
+        confirmMainWorkout();
+    });
+
+    // 시나리오 3: 긴급 위험 트리거 (클라이언트 챗/버튼 연동)
+    socket.on('triggerDanger', (data) => {
+        const reason = (data && data.reason) ? data.reason : '사용자 긴급 요청';
+        triggerDangerScenario('web_ui', reason);
+    });
+
+    // 시나리오 3: 바텀 탈진(DANGER) 탈출 확인 및 안전 고정 해제
+    socket.on('confirmDangerEscape', () => {
+        confirmDangerEscape();
+    });
+
+    // 위험 상태 수동 해제 (기존 버튼 호환)
     socket.on('clearDanger', () => {
-        isDangerActive = false;
-        currentStatus = 'NORMAL';
-        bottomMoveStartTime = 0;
-        bottomStillStartTime = 0;
-        dangerCooldownUntil = Date.now() + 5000; // 해제 후 5초간 재트리거 방지
-        if (port && port.isOpen) port.write('N\n');
-        console.log('[위험 상태 수동 해제됨]');
-        io.emit('sensorData', {
-            value: lastValue,
-            status: 'NORMAL',
-            decision: "위험 상태가 해제되었습니다.\n자세를 가다듬고 바를 당겨 운동을 재개하세요."
-        });
-        io.emit('workoutState', getWorkoutStatePayload());
+        confirmDangerEscape();
     });
 
     // 목표 반복수 및 권장 휴식 시간 설정 변경
@@ -1231,7 +1492,18 @@ io.on('connection', (socket) => {
         if (data) {
             const w = typeof data.weightKg !== 'undefined' ? data.weightKg : (typeof data.userWeight !== 'undefined' ? data.userWeight : data.weight);
             if (typeof w !== 'undefined') {
-                userWeightKg = Math.max(1, Math.min(180, parseFloat(w) || 70.0));
+                const targetW = parseFloat(w) || 70.0;
+                // 🔒 불균형 교정 중 증량 차단!
+                if (isWeightLocked && targetW > userWeightKg) {
+                    console.log(`[증량 차단] 좌우 불균형 교정 진행 중이므로 증량 거부 (${userWeightKg}kg -> ${targetW}kg)`);
+                    socket.emit('agentChatResponse', {
+                        reply: "현재 좌우 불균형 교정 모드가 진행 중이므로 무게를 올릴 수 없습니다. 올바른 균형으로 동작을 먼저 교정해 주세요.",
+                        originalMessage: "무게 증량 시도"
+                    });
+                    socket.emit('workoutState', getWorkoutStatePayload());
+                    return;
+                }
+                userWeightKg = Math.max(1, Math.min(180, targetW));
             }
             if (typeof data.assistLevel !== 'undefined') {
                 assistLevel = Math.max(0, parseInt(data.assistLevel, 10));
@@ -1307,11 +1579,19 @@ io.on('connection', (socket) => {
         setHistory = [];
         isResting = false;
         isDangerActive = false;
+        awaitingDangerEscapeConfirm = false;
+        isBodyDetached = false;
+        lockedBarValue = null;
+        isImbalanceActive = false;
+        isWeightLocked = false;
+        preImbalanceWeightKg = null;
+        awaitingMainWorkoutConfirm = false;
         lastRepDuration = 0;
         currentStatus = 'WAITING';
         assistLevel = 0;
         lastAssistTimestamp = 0;
         bottomMoveStartTime = 0;
+        lastBottomMoveTimestamp = 0;
         bottomStillStartTime = 0;
         midStallStartTime = 0;
         currentSetStartTime = 0;

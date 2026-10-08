@@ -3,10 +3,19 @@ const int ledRed = 2;
 const int ledGreen = 3;
 const int ledBlue = 4;
 const int buzzerPin = 13;
-const int btnPin = 12; // 에이전트 시작 버튼 핀
 
-bool isAgentActive = false; // 에이전트 판단 시작 여부 (초기값: 정지)
-bool lastBtnState = HIGH;   // 이전 버튼 상태 기록용
+// 시나리오 버튼 핀 설정
+const int btn1Pin = 11; // 1번 버튼: 바 신체 이탈 감지 및 위치 고정
+const int btn2Pin = 12; // 2번 버튼: 좌우 힘 불균형 감지 시나리오
+
+bool isAgentActive = true; // 에이전트 기본 활성화 상태
+
+// 버튼 디바운스 및 상태 추적 변수
+bool lastBtn1State = HIGH;
+bool lastBtn2State = HIGH;
+unsigned long lastBtn1DebounceTime = 0;
+unsigned long lastBtn2DebounceTime = 0;
+const unsigned long debounceDelay = 150; // 디바운스 지연 시간 (ms)
 
 void setup() {
   Serial.begin(9600);
@@ -17,59 +26,66 @@ void setup() {
   pinMode(ledBlue, OUTPUT);
   pinMode(buzzerPin, OUTPUT);
   
-  // 입력 핀 설정 (내부 풀업 저항 사용: 버튼을 안 누르면 HIGH, 누르면 LOW)
-  pinMode(btnPin, INPUT_PULLUP);
+  // 입력 핀 설정 (내부 풀업 저항 사용: 버튼 누르면 LOW)
+  pinMode(btn1Pin, INPUT_PULLUP);
+  pinMode(btn2Pin, INPUT_PULLUP);
+
+  // 초기 상태: 정상(초록 불)
+  digitalWrite(ledRed, LOW);
+  digitalWrite(ledGreen, HIGH);
+  digitalWrite(ledBlue, LOW);
+  noTone(buzzerPin);
 }
 
 void loop() {
-  // 1. 버튼 입력 감지 (토글 방식: 누를 때마다 시작/정지 반복)
-  bool currentBtnState = digitalRead(btnPin);
-  
-  if (lastBtnState == HIGH && currentBtnState == LOW) { // 버튼을 딱 누르는 순간 감지
-    isAgentActive = !isAgentActive; // 상태 반전 (정지 -> 시작, 시작 -> 정지)
-    delay(50); // 버튼 채터링(흔들림) 방지용 딜레이
-  }
-  lastBtnState = currentBtnState;
+  unsigned long currentMillis = millis();
 
-  // 2. 가변저항 값 읽기
+  // 1. 1번 버튼 (11번 핀: 신체 이탈 감지) 누름 이벤트 감지
+  int reading1 = digitalRead(btn1Pin);
+  if (reading1 == LOW && lastBtn1State == HIGH) {
+    if (currentMillis - lastBtn1DebounceTime > debounceDelay) {
+      Serial.println("BTN1_PRESS");
+      lastBtn1DebounceTime = currentMillis;
+    }
+  }
+  lastBtn1State = reading1;
+
+  // 2. 2번 버튼 (12번 핀: 좌우 불균형 감지) 누름 이벤트 감지
+  int reading2 = digitalRead(btn2Pin);
+  if (reading2 == LOW && lastBtn2State == HIGH) {
+    if (currentMillis - lastBtn2DebounceTime > debounceDelay) {
+      Serial.println("BTN2_PRESS");
+      lastBtn2DebounceTime = currentMillis;
+    }
+  }
+  lastBtn2State = reading2;
+
+  // 3. 가변저항 값 읽기 및 전송
   int sensorValue = analogRead(A0);
-  
-  // 3. 에이전트가 활성화(시작) 상태일 때만 Node.js로 값을 보내 판단을 요청함
   if (isAgentActive) {
     Serial.println(sensorValue);
-  } 
-  else {
-    // 에이전트 비활성화(정지) 상태일 때는 모든 불과 소리를 끔
-    digitalWrite(ledRed, LOW);
-    digitalWrite(ledGreen, LOW);
-    digitalWrite(ledBlue, LOW);
-    noTone(buzzerPin);
   }
-  
+
   // 4. Node.js(Agent)로부터 들어온 명령(신호)이 있는지 확인하여 하드웨어 제어
   if (Serial.available() > 0) {
     char cmd = Serial.read();
-    
-    // 에이전트가 활성화 상태일 때만 서버의 명령을 수행
-    if (isAgentActive) {
-      if (cmd == 'H') {
-        digitalWrite(ledRed, HIGH);
-        digitalWrite(ledGreen, LOW);
-        digitalWrite(ledBlue, LOW);
-        tone(buzzerPin, 1000); 
-      } 
-      else if (cmd == 'N') {
-        digitalWrite(ledRed, LOW);
-        digitalWrite(ledGreen, HIGH);
-        digitalWrite(ledBlue, LOW);
-        noTone(buzzerPin);
-      } 
-      else if (cmd == 'L') {
-        digitalWrite(ledRed, LOW);
-        digitalWrite(ledGreen, LOW);
-        digitalWrite(ledBlue, HIGH);
-        noTone(buzzerPin);
-      }
+    if (cmd == 'H') { // DANGER / 바 고정 (적색 LED + 부저)
+      digitalWrite(ledRed, HIGH);
+      digitalWrite(ledGreen, LOW);
+      digitalWrite(ledBlue, LOW);
+      tone(buzzerPin, 1000); 
+    } 
+    else if (cmd == 'N') { // NORMAL 정상 (녹색 LED)
+      digitalWrite(ledRed, LOW);
+      digitalWrite(ledGreen, HIGH);
+      digitalWrite(ledBlue, LOW);
+      noTone(buzzerPin);
+    } 
+    else if (cmd == 'L') { // ASSIST / 불균형 (청색 LED)
+      digitalWrite(ledRed, LOW);
+      digitalWrite(ledGreen, LOW);
+      digitalWrite(ledBlue, HIGH);
+      noTone(buzzerPin);
     }
   }
   
