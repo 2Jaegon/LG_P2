@@ -373,8 +373,8 @@ const THRESHOLD_TOP = 740;    // 상단 최고점 기준
 
 // =================== 실시간 안전 및 모션 타이밍 임계치 (단위: ms) ===================
 let DANGER_TRIGGER_MS = 2500;      // 바텀 탈진 꼼질거림 위험 감지 시간: 2.5초 (신속 감지)
-let MID_STALL_TRIGGER_MS = 1400;   // 바텀-탑 중간 정체 신속 감지 시간: 1.4초 (신속 반응)
-let CONT_STALL_TRIGGER_MS = 10000; // 연속 정체 추가 감경 간격: 10.0초 (빈번한 반복 출력 방지)
+let MID_STALL_TRIGGER_MS = 5000;   // 바텀-탑 중간 정체 감지 시간: 5.0초 (5초 정체 시 5kg 감소)
+let CONT_STALL_TRIGGER_MS = 5000;  // 정체 지속 시 추가 감경 간격: 5.0초 (5초마다 5kg 연속 감소)
 let SET_COMPLETE_STILL_MS = 3500;  // 세트 완료 완전 정지 판정 시간: 3.5초
 
 function getWorkoutStatePayload() {
@@ -462,7 +462,7 @@ function applyAssistWeightReduction(reason = '중간 정체 감지', triggerType
         assistLevel: assistLevel,
         loadKg: nextKg,
         userWeightKg: nextKg,
-        decision: `${reason}!\n무게를 5kg 낮췄습니다 (${nextKg}kg).\n페이스를 유지하며 끝까지 당겨보세요!`
+        decision: `${reason}: 무게 5kg 감소 (${nextKg}kg)`
     });
     io.emit('workoutState', getWorkoutStatePayload());
 }
@@ -1009,39 +1009,41 @@ function processSensorValue(value) {
         } else {
             // ⭐️ 바텀과 탑 사이 중간 정체 판별 -> 사용자 무게 부담 (다단계 ASSIST)
             // 조건:
-            // 1. 반드시 당겨 올라가는 중(repStage === 'GOING_UP')이어야 함 (대기 중이거나 하강 중에는 발동 금지)
-            // 2. 바텀을 확실히 벗어난 중상단 구간 (value >= THRESHOLD_BOTTOM + 140 = 420 이상)
-            // 3. 탑(740) 도달 직전 미만 (value < THRESHOLD_TOP - 40 = 700 미만)
-            // 4. 휴식 상태가 아님
-            const isMidAscentStallZone = (repStage === 'GOING_UP') && (value >= THRESHOLD_BOTTOM + 140) && (value < THRESHOLD_TOP - 40) && !isResting;
+            // 1. 바텀을 벗어난 중상단 구간 (value >= THRESHOLD_BOTTOM + 140 = 420 이상)
+            // 2. 탑(740) 도달 직전 미만 (value < THRESHOLD_TOP - 40 = 700 미만)
+            // 3. 휴식 상태 및 특수 모드가 아님
+            const isMidStallZone = (value >= THRESHOLD_BOTTOM + 140) && 
+                                   (value < THRESHOLD_TOP - 40) && 
+                                   !isResting && 
+                                   !isImbalanceActive && 
+                                   !awaitingMainWorkoutConfirm;
 
-        if (isMidAscentStallZone) {
-            // 실제 정체 상태: 상승 중 움직임이 멈칫거림 (손떨림 고려: recentDiff < 95)
-            if (recentDiff < 95) {
-                if (midStallStartTime === 0) {
-                    midStallStartTime = now;
+            if (isMidStallZone) {
+                // 실제 정체 상태: 움직임이 멈칫거림 (손떨림 고려: recentDiff < 95)
+                if (recentDiff < 95) {
+                    if (midStallStartTime === 0) {
+                        midStallStartTime = now;
+                    }
+
+                    const stallDuration = now - midStallStartTime;
+                    // 1) 최초 정체 5초 경과 (MID_STALL_TRIGGER_MS: 5000ms)
+                    // 2) 직전 감량 후 최소 5초 경과 (CONT_STALL_TRIGGER_MS: 5000ms)
+                    // 3) 최저 무게(10kg) 초과일 때만 발동
+                    // (1랩 완수 제한 없이 정체 지속 시 5초마다 누적 감량)
+                    const canTriggerAssist = (stallDuration >= MID_STALL_TRIGGER_MS) &&
+                        (now - lastAssistTimestamp >= CONT_STALL_TRIGGER_MS) &&
+                        (userWeightKg > 10.0);
+
+                    if (canTriggerAssist) {
+                        applyAssistWeightReduction(`정체 감지 (${(stallDuration / 1000).toFixed(0)}초)`, 'mid_stall_direct_weight', value);
+                    }
+                } 
+                // 뚜렷한 움직임이 있을 때는 정체 타이머 리셋
+                else {
+                    midStallStartTime = 0;
                 }
-
-                const stallDuration = now - midStallStartTime;
-                // 1) 1.4초 신속 정체 감지
-                // 2) 동일 Rep 도중에는 단 1회만 감량 (currentRepAssistCount === 0) -> 3초마다 연속 출력 원천 차단!
-                // 3) 직전 감량 후 최소 8초 쿨다운 보장
-                // 4) 최저 무게(10kg) 초과일 때만 발동
-                const canTriggerAssist = (stallDuration >= MID_STALL_TRIGGER_MS) &&
-                    (currentRepAssistCount === 0) &&
-                    (now - lastAssistTimestamp >= 8000) &&
-                    (userWeightKg > 10.0);
-
-                if (canTriggerAssist) {
-                    applyAssistWeightReduction(`지침 정체 감지 (${(stallDuration / 1000).toFixed(1)}초)`, 'mid_stall_direct_weight', value);
-                }
-            } 
-            // 뚜렷한 움직임이 있을 때는 정체 타이머 리셋
-            else {
+            } else {
                 midStallStartTime = 0;
-            }
-        } else {
-            midStallStartTime = 0;
             // TOP 도달 시 감량된 무게 유지하며 정상 상태 복귀
             if (currentStatus === 'ASSIST' && value >= THRESHOLD_TOP) {
                 currentStatus = 'NORMAL';
