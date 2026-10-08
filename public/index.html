@@ -4843,8 +4843,17 @@
     </div>
 
     <main class="dashboard page-fade-in" id="liveDashboardView">
-        <section class="hero" style="margin-bottom: 16px;">
+        <section class="hero" style="margin-bottom: 12px;">
         </section>
+
+        <!-- 루틴 상태 표시 배너 (AI 맞춤 루틴 vs 자율 운동) -->
+        <div id="routineStatusBanner" class="routine-status-banner" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="routine-mode-tag" id="routineModeTag" style="font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); color: var(--text); border: 1px solid var(--line);">자율 운동 모드</span>
+                <span id="routineModeDesc" style="font-size: 0.82rem; color: var(--text-2); font-weight: 600;">원하는 무게와 반복수로 자유롭게 진행 중</span>
+            </div>
+            <span id="routineModeProgress" style="font-size: 0.78rem; color: var(--text-muted); font-variant-numeric: tabular-nums;"></span>
+        </div>
 
         <!-- 운동 메트릭스 (직관적 대형 지표) -->
         <section class="workout-metrics" aria-label="운동 지표">
@@ -5158,6 +5167,7 @@
 
                         <!-- 추천 질문 칩 바 -->
                         <div class="voice-chips-bar journal-chips-bar">
+                            <button type="button" class="voice-chip journal-chip" data-cmd="오늘 40분 루틴 추천해줘" style="border-color: rgba(0,102,255,0.4); background: rgba(0,102,255,0.1); color: #0066FF; font-weight: 700;">오늘 40분 루틴 추천</button>
                             <button type="button" class="voice-chip journal-chip" data-cmd="오늘 운동 분석해줘">오늘 운동
                                 분석</button>
                             <button type="button" class="voice-chip journal-chip" data-cmd="다음 세트 무게 제안해줘">다음 세트 무게
@@ -6657,6 +6667,13 @@
         // 1회 반복(Rep) 달성 시
         socket.on('repCompleted', (data) => {
             isWorkoutResting = false;
+
+            // 루틴 미요청 상태에서 바로 운동 시작 시: 자율 운동(FREE_WORKOUT) 모드로 자동 판단 및 확정!
+            if (routineNegotiationState === 'IDLE' || routineNegotiationState.startsWith('AWAITING_')) {
+                routineNegotiationState = 'FREE_WORKOUT';
+                activeRoutinePlan = null;
+                updateRoutineStatusBadge('자율 운동 모드', '사용자 설정 기반 자율 운동 진행 중', '');
+            }
             hasNotifiedRestDone = false;
             repCountEl.textContent = data.reps;
             totalRepsEl.textContent = data.totalReps;
@@ -6705,6 +6722,35 @@
             }
             updateAgentOrbState('NORMAL', true, false, false);
             renderHistory(data.setHistory);
+
+            // AI 맞춤 루틴 진행 중일 때: 다음 세트 목표/무게/휴식 자동 세팅!
+            if (routineNegotiationState === 'ROUTINE_ACTIVE' && activeRoutinePlan) {
+                const nextIdx = (activeRoutinePlan.currentSetIndex || 0) + 1;
+                activeRoutinePlan.currentSetIndex = nextIdx;
+                if (nextIdx < activeRoutinePlan.sets.length) {
+                    const nextSetInfo = activeRoutinePlan.sets[nextIdx];
+                    currentLoadKg = nextSetInfo.weightKg;
+                    currentUserWeightKg = nextSetInfo.weightKg;
+                    aiTargetReps = nextSetInfo.targetReps;
+                    syncRepsToUI(aiTargetReps);
+                    updateLoadDisplay(0, 'NORMAL', currentLoadKg, currentLoadKg);
+                    socket.emit('updateWeight', {
+                        weightKg: currentLoadKg,
+                        userWeight: currentLoadKg,
+                        assistLevel: 0,
+                        targetReps: aiTargetReps,
+                        targetSets: activeRoutinePlan.sets.length,
+                        restTime: activeRoutinePlan.restSeconds
+                    });
+                    updateRoutineStatusBadge(
+                        `AI 맞춤 루틴 (${activeRoutinePlan.minutes}분)`,
+                        `다음 ${nextIdx + 1}/${activeRoutinePlan.sets.length}세트: [${nextSetInfo.label}] ${nextSetInfo.weightKg}kg ${nextSetInfo.targetReps}회 대기`,
+                        `${nextIdx + 1} / ${activeRoutinePlan.sets.length}`
+                    );
+                } else {
+                    updateRoutineStatusBadge('AI 맞춤 루틴 완료', '오늘의 모든 추천 세트를 성공적으로 완수했습니다!', '완료');
+                }
+            }
 
             // 세트 완료 음성 피드백: 사용자가 변경한 휴식 시간(예: 30초)을 정확히 반영하여 안내!
             speakAgentVoice(`${completedNum}세트 완료되었습니다. ${target}초간 휴식하세요.`);
@@ -7861,7 +7907,109 @@
                     return;
                 }
 
-                // ⚖️ 3) 불균형 상황 해제 및 본 운동 재돌입 응답 판별 ('네', '시작', '해제' 등)
+                // 🤖 [AI 대화형 루틴 추천 FSM 분기]
+                const isAffirmative = /(?:응|네|좋아|좋네|그래|이대로|적용|수락|오케이|ok|yes|그렇게|할게|가자|시작해|해줘|맞아|콜)/i.test(lower);
+                const isNegative = /(?:아니|아뇨|별로|싫어|다른|취소|노|no|다시|글쎄)/i.test(lower);
+
+                // 1) 1차 추천 제시 후 수락 대기 상태
+                if (routineNegotiationState === 'AWAITING_ROUTINE_CONFIRM_1') {
+                    if (isAffirmative && pendingRoutinePlan) {
+                        applyRoutinePlan(pendingRoutinePlan);
+                        routineNegotiationState = 'ROUTINE_ACTIVE';
+                        const firstSet = pendingRoutinePlan.sets[0];
+                        agentReply = `네! [${pendingRoutinePlan.title}]을 적용했습니다. 1세트(${firstSet.label} ${firstSet.weightKg}kg, ${firstSet.targetReps}회) 준비되시면 바를 잡고 시작하세요!`;
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return;
+                    } else if (isNegative) {
+                        routineNegotiationState = 'AWAITING_RETRY_CONFIRM';
+                        agentReply = `알겠습니다. 다른 스타일로 다시 추천해 드릴까요?`;
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return;
+                    }
+                }
+
+                // 2) 1차 거절 후 재추천 여부 대기 상태
+                if (routineNegotiationState === 'AWAITING_RETRY_CONFIRM') {
+                    if (isAffirmative || /(?:다시|다른)/i.test(lower)) {
+                        pendingRoutinePlan = generateTimeBudgetRoutine(routineRequestedMinutes, 2);
+                        routineNegotiationState = 'AWAITING_ROUTINE_CONFIRM_2';
+                        agentReply = `[2차 대안: ${pendingRoutinePlan.title}]
+• 세트 구성: ${pendingRoutinePlan.summaryText}
+• 부하: START ${pendingRoutinePlan.startWeightKg}kg → END ${pendingRoutinePlan.endWeightKg}kg
+• 휴식: ${pendingRoutinePlan.restSeconds}초
+
+이 루틴으로 적용할까요?`;
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return;
+                    } else if (isNegative) {
+                        routineNegotiationState = 'AWAITING_FREE_CONFIRM';
+                        agentReply = `그렇다면 목표와 무게를 자유롭게 조절하시는 [자율 운동]으로 진행하시겠습니까?`;
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return;
+                    }
+                }
+
+                // 3) 2차 대안 제시 후 수락 대기 상태
+                if (routineNegotiationState === 'AWAITING_ROUTINE_CONFIRM_2') {
+                    if (isAffirmative && pendingRoutinePlan) {
+                        applyRoutinePlan(pendingRoutinePlan);
+                        routineNegotiationState = 'ROUTINE_ACTIVE';
+                        const firstSet = pendingRoutinePlan.sets[0];
+                        agentReply = `네! 2차 대안 루틴을 적용했습니다. 1세트(${firstSet.label} ${firstSet.weightKg}kg, ${firstSet.targetReps}회) 준비되시면 바를 잡고 시작하세요!`;
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return;
+                    } else if (isNegative) {
+                        routineNegotiationState = 'AWAITING_FREE_CONFIRM';
+                        agentReply = `알겠습니다. 그렇다면 목표와 무게를 자유롭게 조절하시는 [자율 운동]으로 진행하시겠습니까?`;
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return;
+                    }
+                }
+
+                // 4) 2차 거절 후 자율 운동 전환 대기 상태
+                if (routineNegotiationState === 'AWAITING_FREE_CONFIRM') {
+                    if (isAffirmative || /(?:자율|내맘|알아서)/i.test(lower)) {
+                        routineNegotiationState = 'FREE_WORKOUT';
+                        activeRoutinePlan = null;
+                        updateRoutineStatusBadge('자율 운동 모드', '사용자 설정 기반 자율 운동 진행 중', '');
+                        agentReply = `[자율 운동 모드]로 설정되었습니다. 원하시는 무게와 반복수로 자유롭게 운동을 진행해 주세요!`;
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return;
+                    } else if (isNegative) {
+                        routineNegotiationState = 'IDLE';
+                        agentReply = `알겠습니다. 원하시는 명령이나 운동 시간(예: '30분 루틴 추천')을 편하게 말씀해 주세요.`;
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return;
+                    }
+                }
+
+                // 5) 새로운 루틴 추천 요청 감지 ("30분 운동할래", "40분 루틴 추천해줘", "오늘 루틴 짜줘" 등)
+                const isRoutineRequest = /(?:(d+)s*분|(d+)s*시간|한시간|루틴|운동s*추천|루틴s*추천|루틴s*짜줘|운동s*짜줘|운동할래)/i.test(lower);
+                if (isRoutineRequest) {
+                    const parsedMin = parseWorkoutDurationMinutes(text);
+                    routineRequestedMinutes = parsedMin;
+                    pendingRoutinePlan = generateTimeBudgetRoutine(parsedMin, 1);
+                    routineNegotiationState = 'AWAITING_ROUTINE_CONFIRM_1';
+                    agentReply = `[${parsedMin}분 맞춤 AI 루틴: ${pendingRoutinePlan.title}]
+• 세트 구성: ${pendingRoutinePlan.summaryText}
+• 부하: START ${pendingRoutinePlan.startWeightKg}kg → END ${pendingRoutinePlan.endWeightKg}kg
+• 세트 간 휴식: ${pendingRoutinePlan.restSeconds}초
+
+이대로 적용할까요?`;
+                    renderAgentDecision(agentReply);
+                    speakAgentVoice(agentReply);
+                    return;
+                }
+
+                // 🚨 3) 불균형 상황 해제 및 본 운동 재돌입 응답 판별 ('네', '시작', '해제' 등)
                 if (isAwaitingMainWorkoutConfirm || isImbalanceState) {
                     const isConfirmAck = /(네|응|시작|돌입|그래|좋아|하자|본\s*운동|화이팅|고|해제|맞췄|교정|풀어|원래|ok|yes|start)/i.test(lower);
                     if (isConfirmAck) {
@@ -9200,6 +9348,218 @@
                 closeSetTelemetryModal();
             }
         });
+
+        // ------------------ AI 대화형 시간 기반 루틴 추천 FSM 엔진 ------------------
+        let routineNegotiationState = 'IDLE'; 
+        // 상태값:
+        // 'IDLE': 대기 상태
+        // 'AWAITING_ROUTINE_CONFIRM_1': 1차 루틴 추천 제시 후 확인 대기 ("이대로 적용할까요?")
+        // 'AWAITING_RETRY_CONFIRM': 1차 거절 후 재추천 여부 대기 ("다시 추천해 드릴까요?")
+        // 'AWAITING_ROUTINE_CONFIRM_2': 2차 대안 루틴 제시 후 확인 대기 ("이 루틴으로 적용할까요?")
+        // 'AWAITING_FREE_CONFIRM': 2차 거절 후 자율 운동 전환 대기 ("자율 운동으로 진행하시겠습니까?")
+        // 'ROUTINE_ACTIVE': 추천 루틴 수락 후 루틴 모드 진행 중
+        // 'FREE_WORKOUT': 자율 운동 모드 확정
+
+        let activeRoutinePlan = null;
+        let pendingRoutinePlan = null;
+        let routineRequestedMinutes = 40;
+
+        // 시간(분) 자연어 파싱
+        function parseWorkoutDurationMinutes(text) {
+            if (!text) return 40;
+            const lower = text.toLowerCase();
+            if (lower.includes('한시간 반') || lower.includes('1시간 반') || lower.includes('1시간 30분')) return 90;
+            if (lower.includes('한시간') || lower.includes('1시간') || lower.includes('60분')) return 60;
+            if (lower.includes('반시간') || lower.includes('30분')) return 30;
+            if (lower.includes('20분')) return 20;
+            if (lower.includes('40분')) return 40;
+            if (lower.includes('45분')) return 45;
+            if (lower.includes('50분')) return 50;
+
+            const hourMatch = lower.match(/(\d+)\s*시간/);
+            const minMatch = lower.match(/(\d+)\s*분/);
+            if (hourMatch || minMatch) {
+                let total = 0;
+                if (hourMatch) total += parseInt(hourMatch[1], 10) * 60;
+                if (minMatch) total += parseInt(minMatch[1], 10);
+                if (total > 0) return total;
+            }
+            return 40;
+        }
+
+        // 가용 시간 기반 최적 루틴 생성 엔진
+        function generateTimeBudgetRoutine(minutes, variant = 1) {
+            const baseWeight = currentLoadKg || currentUserWeightKg || 60.0;
+            const warmupWeight = Math.max(20, Math.round((baseWeight * 0.5) / 2.5) * 2.5);
+            const mainWeight = Math.round(baseWeight / 2.5) * 2.5;
+
+            let plan = {
+                minutes: minutes,
+                variant: variant,
+                title: '',
+                theme: '',
+                sets: [],
+                startWeightKg: 0,
+                endWeightKg: 0,
+                restSeconds: 60,
+                summaryText: ''
+            };
+
+            if (variant === 1) {
+                if (minutes <= 25) {
+                    plan.title = `${minutes}분 고밀도 파워 루틴`;
+                    plan.theme = '바쁜 일정에 최적화된 고밀도 파워 압축 루틴';
+                    plan.restSeconds = 45;
+                    plan.sets = [
+                        { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 45 },
+                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: mainWeight, targetReps: 10, restSec: 45 },
+                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: mainWeight, targetReps: 10, restSec: 45 }
+                    ];
+                    plan.startWeightKg = mainWeight;
+                    plan.endWeightKg = mainWeight;
+                    plan.summaryText = `총 3세트 (워밍업 1세트 ${warmupWeight}kg + 본세트 2세트 ${mainWeight}kg)`;
+                } else if (minutes <= 45) {
+                    plan.title = `${minutes}분 점진적 과부하 루틴`;
+                    plan.theme = '탑세트 후 피로를 고려한 스마트 감량 주기화 루틴';
+                    plan.restSeconds = 60;
+                    const topWeight = mainWeight + 2.5;
+                    const dropWeight = Math.max(20, mainWeight - 5.0);
+                    plan.sets = [
+                        { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 25, restSec: 60 },
+                        { set: 2, type: 'MAIN', label: '탑 세트', weightKg: topWeight, targetReps: 10, restSec: 60 },
+                        { set: 3, type: 'MAIN', label: '본 세트 1', weightKg: mainWeight, targetReps: 10, restSec: 60 },
+                        { set: 4, type: 'MAIN', label: '본 세트 2', weightKg: mainWeight, targetReps: 10, restSec: 60 },
+                        { set: 5, type: 'MAIN', label: '감경 세트', weightKg: dropWeight, targetReps: 10, restSec: 60 }
+                    ];
+                    plan.startWeightKg = topWeight;
+                    plan.endWeightKg = dropWeight;
+                    plan.summaryText = `총 5세트 (워밍업 1세트 + 탑세트 ${topWeight}kg + 본세트 2세트 + 피로 감경세트 ${dropWeight}kg)`;
+                } else {
+                    plan.title = `${minutes}분 풀 볼륨 피크 루틴`;
+                    plan.theme = '충분한 휴식과 최대 근신경계 활성화를 위한 풀 볼륨 루틴';
+                    plan.restSeconds = 75;
+                    const topWeight = mainWeight + 5.0;
+                    const dropWeight1 = mainWeight;
+                    const dropWeight2 = Math.max(20, mainWeight - 5.0);
+                    const finishWeight = Math.max(20, mainWeight - 10.0);
+                    plan.sets = [
+                        { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 25, restSec: 60 },
+                        { set: 2, type: 'MAIN', label: '빌드업', weightKg: Math.max(20, mainWeight - 5.0), targetReps: 10, restSec: 60 },
+                        { set: 3, type: 'MAIN', label: '피크 탑세트', weightKg: topWeight, targetReps: 10, restSec: 75 },
+                        { set: 4, type: 'MAIN', label: '본 세트 1', weightKg: dropWeight1, targetReps: 10, restSec: 75 },
+                        { set: 5, type: 'MAIN', label: '본 세트 2', weightKg: dropWeight1, targetReps: 10, restSec: 75 },
+                        { set: 6, type: 'MAIN', label: '드랍 세트', weightKg: dropWeight2, targetReps: 10, restSec: 60 },
+                        { set: 7, type: 'MAIN', label: '피니시 세트', weightKg: finishWeight, targetReps: 10, restSec: 60 }
+                    ];
+                    plan.startWeightKg = topWeight;
+                    plan.endWeightKg = finishWeight;
+                    plan.summaryText = `총 7세트 (워밍업 1세트 + 빌드업 + 피크 탑세트 ${topWeight}kg + 백오프 4세트)`;
+                }
+            } else {
+                // [2차 대안: 안정적 볼륨 집중형]
+                if (minutes <= 25) {
+                    plan.title = `${minutes}분 안정형 균일 볼륨 루틴`;
+                    plan.theme = '무리한 중량 도전 없이 안정된 궤적에 집중하는 루틴';
+                    plan.restSeconds = 45;
+                    plan.sets = [
+                        { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 45 },
+                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 45 },
+                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 45 }
+                    ];
+                    plan.startWeightKg = Math.max(20, mainWeight - 2.5);
+                    plan.endWeightKg = Math.max(20, mainWeight - 2.5);
+                    plan.summaryText = `총 3세트 (워밍업 1세트 + 균일 본세트 2세트 ${plan.startWeightKg}kg)`;
+                } else if (minutes <= 45) {
+                    plan.title = `${minutes}분 안정형 볼륨 유지 루틴`;
+                    plan.theme = '일정한 무게로 피로도를 조절하며 자세 완성도를 높이는 루틴';
+                    plan.restSeconds = 60;
+                    plan.sets = [
+                        { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 60 },
+                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
+                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
+                        { set: 4, type: 'MAIN', label: '본 세트 3', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 }
+                    ];
+                    plan.startWeightKg = Math.max(20, mainWeight - 2.5);
+                    plan.endWeightKg = Math.max(20, mainWeight - 2.5);
+                    plan.summaryText = `총 4세트 (워밍업 1세트 + 균일 본세트 3세트 ${plan.startWeightKg}kg)`;
+                } else {
+                    plan.title = `${minutes}분 균일 볼륨 지속 루틴`;
+                    plan.theme = '충분한 볼륨을 안정된 부하로 소화하는 부상 방지형 루틴';
+                    plan.restSeconds = 60;
+                    plan.sets = [
+                        { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 60 },
+                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
+                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
+                        { set: 4, type: 'MAIN', label: '본 세트 3', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
+                        { set: 5, type: 'MAIN', label: '본 세트 4', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
+                        { set: 6, type: 'MAIN', label: '쿨다운 세트', weightKg: warmupWeight, targetReps: 15, restSec: 60 }
+                    ];
+                    plan.startWeightKg = Math.max(20, mainWeight - 2.5);
+                    plan.endWeightKg = warmupWeight;
+                    plan.summaryText = `총 6세트 (워밍업 1세트 + 균일 본세트 4세트 + 쿨다운 1세트)`;
+                }
+            }
+
+            return plan;
+        }
+
+        // 루틴 플랜 대시보드 적용
+        function applyRoutinePlan(plan) {
+            if (!plan || !plan.sets || plan.sets.length === 0) return;
+            activeRoutinePlan = JSON.parse(JSON.stringify(plan));
+            activeRoutinePlan.currentSetIndex = 0;
+
+            const firstSet = activeRoutinePlan.sets[0];
+            currentLoadKg = firstSet.weightKg;
+            currentUserWeightKg = firstSet.weightKg;
+            aiTargetSets = activeRoutinePlan.sets.length;
+            aiTargetReps = firstSet.targetReps;
+            aiRestTimeSeconds = plan.restSeconds;
+            selectedRestTime = plan.restSeconds;
+
+            syncRepsToUI(aiTargetReps);
+            syncSetsToUI(aiTargetSets);
+            syncRestTimeToUI(aiRestTimeSeconds);
+            updateLoadDisplay(0, 'NORMAL', currentLoadKg, currentLoadKg);
+
+            socket.emit('updateSettings', {
+                targetReps: aiTargetReps,
+                targetSets: aiTargetSets,
+                restTime: aiRestTimeSeconds
+            });
+            socket.emit('updateWeight', {
+                weightKg: currentLoadKg,
+                userWeight: currentLoadKg,
+                assistLevel: 0,
+                targetReps: aiTargetReps,
+                targetSets: aiTargetSets,
+                restTime: aiRestTimeSeconds
+            });
+
+            updateRoutineStatusBadge(`AI 맞춤 루틴 (${plan.minutes}분)`, `${plan.title} (1/${aiTargetSets}세트 진행 준비)`, `1 / ${aiTargetSets}`);
+        }
+
+        // 대시보드 상태 배지 UI 갱신
+        function updateRoutineStatusBadge(tagText, descText, progressText) {
+            const banner = document.getElementById('routineStatusBanner');
+            const tag = document.getElementById('routineModeTag');
+            const desc = document.getElementById('routineModeDesc');
+            const prog = document.getElementById('routineModeProgress');
+            if (!banner || !tag || !desc) return;
+
+            tag.textContent = tagText;
+            if (tagText.includes('AI')) {
+                tag.style.background = 'rgba(0, 102, 255, 0.15)';
+                tag.style.color = '#0066FF';
+                tag.style.borderColor = 'rgba(0, 102, 255, 0.35)';
+            } else {
+                tag.style.background = 'rgba(255, 255, 255, 0.08)';
+                tag.style.color = 'var(--text)';
+                tag.style.borderColor = 'var(--line)';
+            }
+            desc.textContent = descText || (tagText.includes('자율') ? '원하는 무게와 반복수로 자유롭게 진행 중' : '');
+            if (prog) prog.textContent = progressText || '';
+        }
 
         // ------------------ AI 운동 패턴 분석 및 챗 기반 무게 제안 엔진 ------------------
         let latestProposedWeightKg = null;
