@@ -3346,6 +3346,9 @@
             display: flex;
             flex-direction: column;
             gap: 18px;
+            position: sticky;
+            top: 24px;
+            align-self: start;
         }
 
         /* 날짜 목록 카드 스타일 */
@@ -3353,6 +3356,66 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+        }
+
+        /* 운동 일지 전용 10개 이상 스크롤 제어 */
+        .journal-timeline-section .history-date-list {
+            max-height: 720px;
+            overflow-y: auto;
+            padding-right: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--line-strong) transparent;
+        }
+
+        .journal-timeline-section .history-date-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .journal-timeline-section .history-date-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .journal-timeline-section .history-date-list::-webkit-scrollbar-thumb {
+            background: var(--line-strong);
+            border-radius: 999px;
+        }
+
+        .journal-timeline-section .history-date-list::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+
+        .journal-timeline-section .history-date-card {
+            flex-shrink: 0;
+        }
+
+        /* 날짜 상세 세트 목록도 10개 이상 시 스크롤 */
+        .journal-timeline-section .history-sets-wrap {
+            max-height: 720px;
+            overflow-y: auto;
+            padding-right: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--line-strong) transparent;
+        }
+
+        .journal-timeline-section .history-sets-wrap .history-item {
+            flex-shrink: 0;
+        }
+
+        .journal-timeline-section .history-sets-wrap::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .journal-timeline-section .history-sets-wrap::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .journal-timeline-section .history-sets-wrap::-webkit-scrollbar-thumb {
+            background: var(--line-strong);
+            border-radius: 999px;
+        }
+
+        .journal-timeline-section .history-sets-wrap::-webkit-scrollbar-thumb:hover {
+            background: #999;
         }
 
         .history-date-card {
