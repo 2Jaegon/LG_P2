@@ -1,7 +1,8 @@
 /**
  * workoutHistoryData.js
  * 2026년 9월 1일부터 2026년 10월 8일(오늘)까지의 실감형 AI 운동 일지 데이터 생성 모듈
- * 점진적 과부하(Progressive Overload) 및 계단식 주기화 적응(Staircase Periodization) 모델 적용
+ * 점진적 과부하(Progressive Overload), 계단식 주기화 적응(Staircase Periodization),
+ * 그리고 중간중간 일정/시간 부족 및 피로 누적으로 인한 현실적인 일시적 숏 세션(역성장/단축 루틴) 포함
  */
 
 function formatDurationSec(totalSeconds) {
@@ -211,13 +212,94 @@ function createDetailedSetRecord(data) {
 
 /**
  * 2026-09-01부터 2026-10-08(오늘)까지의 일지 데이터 생성기
- * 계단식 주기화 적응 모델(Staircase Adaptation):
- * 같은 무게를 며칠간 반복 수행하면서 템포가 단축되고 운동 시간이 줄어든 후 다음 단계로 점진적 증량
+ * 계단식 주기화 적응 모델(Staircase Adaptation) 및
+ * 중간중간 현실적인 시간 부족/피로에 따른 숏 세션(단축 루틴, 템포 일시 지연) 반영
  */
 function getDayBlockConfig(dayIdx) {
     // dayIdx: 0 (2026-09-01) ~ 37 (2026-10-08)
+
+    // [역성장 / 시간 부족 숏 세션 1] 9/10 (Day 9, 목): 62.5kg 진행 중 시간 부족으로 2세트(8/7회), 8분 20초 단축
+    if (dayIdx === 9) {
+        return {
+            phaseName: '62.5kg 1차 증량기 (시간 부족 숏 세션)',
+            baseWeight: 62.5,
+            baseTempo: 2.48, // 피로로 템포 일시 지연
+            setCount: 2,
+            repsList: [8, 7],
+            totalMin: 8.33, // 8분 20초
+            restSec: 75,
+            assistOnSet3: false,
+            isShortSession: true,
+            coachFeedback: '일정상 운동 시간이 부족하여 2세트(8회/7회) 단축 루틴으로 진행했습니다. 짧은 시간 내 핵심 유효 자극에 집중했습니다.'
+        };
+    }
+
+    // [역성장 / 시간 부족 숏 세션 2] 9/17 (Day 16, 목): 65.0kg 진행 중 피로 누적으로 2세트(9/8회), 템포 2.36s, 8분 45초 단축
+    if (dayIdx === 16) {
+        return {
+            phaseName: '65.0kg 2차 증량기 (피로 누적 & 단축 세션)',
+            baseWeight: 65.0,
+            baseTempo: 2.36, // 전날 대비 템포 살짝 늘어남
+            setCount: 2,
+            repsList: [9, 8],
+            totalMin: 8.75, // 8분 45초
+            restSec: 72,
+            assistOnSet3: false,
+            isShortSession: true,
+            coachFeedback: '주중 피로 누적과 시간 제약으로 2세트 단축 완료. 일시적으로 템포가 지연되었으나 부상 없이 안전하게 마쳤습니다.'
+        };
+    }
+
+    // [역성장 / 시간 부족 숏 세션 3] 9/24 (Day 23, 목): 67.5kg 진행 중 퀵 루틴(2세트 8/7회, 7분 50초)
+    if (dayIdx === 23) {
+        return {
+            phaseName: '67.5kg 3차 증량기 (급한 일정 퀵 루틴)',
+            baseWeight: 67.5,
+            baseTempo: 2.18, // 템포 살짝 지연
+            setCount: 2,
+            repsList: [8, 7],
+            totalMin: 7.83, // 7분 50초
+            restSec: 68,
+            assistOnSet3: false,
+            isShortSession: true,
+            coachFeedback: '시간 부족으로 2세트 퀵 루틴 완료. 짧은 세션이지만 67.5kg 고중량 핵심 수축 자극을 확보했습니다.'
+        };
+    }
+
+    // [역성장 / 시간 부족 숏 세션 4] 10/2 (Day 31, 금): 70.0kg 진행 중 컨디션 조절형 단축 세션(2세트 8/8회, 8분 15초)
+    if (dayIdx === 31) {
+        return {
+            phaseName: '70.0kg 목표 부하기 (피로 관리형 단축 세션)',
+            baseWeight: 70.0,
+            baseTempo: 2.08, // 살짝 지연
+            setCount: 2,
+            repsList: [8, 8],
+            totalMin: 8.25, // 8분 15초
+            restSec: 65,
+            assistOnSet3: false,
+            isShortSession: true,
+            coachFeedback: '제한된 훈련 시간으로 인해 2세트 집중 루틴 진행. 고중량 피로 누적 구간에서 스마트하게 볼륨을 조절했습니다.'
+        };
+    }
+
+    // [역성장 / 시간 부족 숏 세션 5] 10/5 (Day 34, 월): 72.5kg 월요 단축 훈련(2세트 9/8회, 8분 30초)
+    if (dayIdx === 34) {
+        return {
+            phaseName: '72.5kg 초과 과부하기 (월요 단축 숏 세션)',
+            baseWeight: 72.5,
+            baseTempo: 1.94,
+            setCount: 2,
+            repsList: [9, 8],
+            totalMin: 8.50, // 8분 30초
+            restSec: 62,
+            assistOnSet3: false,
+            isShortSession: true,
+            coachFeedback: '월요일 일정 제약으로 2세트 고강도 숏 세션 완료. 짧은 시간 내 72.5kg 상위 파워를 유지했습니다.'
+        };
+    }
+
+    // [블록 1] 60.0kg 적응 (6일간: 9/1 ~ 9/6)
     if (dayIdx <= 5) {
-        // [블록 1] 60.0kg 적응 (6일간: 9/1 ~ 9/6)
         const step = dayIdx;
         return {
             phaseName: '60.0kg 기초 VBT 리듬 적응기',
@@ -230,8 +312,9 @@ function getDayBlockConfig(dayIdx) {
                 ? '60.0kg 부하 적응 중. 3세트 후반 템포 지연에 맞춰 스마트 감량이 안전하게 개입했습니다.'
                 : '60.0kg 완벽 적응! 세트당 평균 템포가 빨라지고 총 운동 시간이 1분 30초 단축되었습니다.'
         };
-    } else if (dayIdx <= 12) {
-        // [블록 2] 62.5kg 1차 증량 및 적응 (7일간: 9/7 ~ 9/13)
+    }
+    // [블록 2] 62.5kg 1차 증량 및 적응 (7일간: 9/7 ~ 9/13)
+    else if (dayIdx <= 12) {
         const step = dayIdx - 6;
         return {
             phaseName: '62.5kg 1차 점진적 과부하 증량기',
@@ -244,8 +327,9 @@ function getDayBlockConfig(dayIdx) {
                 ? '+2.5kg 최초 증량(62.5kg) 도전. 부하 증가에 따라 템포가 일시 조정되었으나 가동범위는 우수합니다.'
                 : '62.5kg 부하에 신경근이 완전히 적응했습니다. 동일 3세트 소요 시간이 17분대에서 15분대로 단축되었습니다.'
         };
-    } else if (dayIdx <= 19) {
-        // [블록 3] 65.0kg 2차 증량 및 근지구력 확장 (7일간: 9/14 ~ 9/20)
+    }
+    // [블록 3] 65.0kg 2차 증량 및 근지구력 확장 (7일간: 9/14 ~ 9/20)
+    else if (dayIdx <= 19) {
         const step = dayIdx - 13;
         return {
             phaseName: '65.0kg 2차 증량 및 근지구력 확장기',
@@ -258,8 +342,9 @@ function getDayBlockConfig(dayIdx) {
                 ? '65.0kg 진입. 목표 10회 반복을 달성하며 새로운 중량에서 안정적인 수축 리듬을 형성하고 있습니다.'
                 : '65.0kg 완벽 소화! 총 운동 시간이 15분 미만으로 단축되었으며 세트 간 빠른 회복력을 보였습니다.'
         };
-    } else if (dayIdx <= 26) {
-        // [블록 4] 67.5kg 3차 증량 및 고출력화 (7일간: 9/21 ~ 9/27)
+    }
+    // [블록 4] 67.5kg 3차 증량 및 고출력화 (7일간: 9/21 ~ 9/27)
+    else if (dayIdx <= 26) {
         const step = dayIdx - 20;
         return {
             phaseName: '67.5kg 3차 증량 및 고출력 VBT 파워화',
@@ -272,8 +357,9 @@ function getDayBlockConfig(dayIdx) {
                 ? '67.5kg 고중량 도전기. 템포 손실률 15% 미만으로 근지구력이 견고하게 뒷받침됩니다.'
                 : '67.5kg 적응 완료! 평균 템포 1.9초대 진입, 폭발적인 풀업 추진력으로 총 운동 시간을 13분대로 단축했습니다.'
         };
-    } else if (dayIdx <= 32) {
-        // [블록 5] 70.0kg 목표 체중 완전 도달 및 고속 수축 (6일간: 9/28 ~ 10/3)
+    }
+    // [블록 5] 70.0kg 목표 체중 완전 도달 및 고속 수축 (6일간: 9/28 ~ 10/3)
+    else if (dayIdx <= 32) {
         const step = dayIdx - 27;
         return {
             phaseName: '70.0kg 목표 체중 완전 도달 및 고속 수축기',
@@ -286,8 +372,9 @@ function getDayBlockConfig(dayIdx) {
                 ? '성인 표준 목표 체중 70.0kg 달성! 무보조 10회 풀업을 안정적인 궤적으로 완수했습니다.'
                 : '70.0kg 완전 마스터! 초기 60kg 대비 총 운동 시간이 약 6분 단축되었으며 VBT 출력 효율이 정점에 도달했습니다.'
         };
-    } else if (dayIdx <= 35) {
-        // [블록 6] 72.5kg 초과 과부하 훈련 (3일간: 10/4 ~ 10/6)
+    }
+    // [블록 6] 72.5kg 초과 과부하 훈련 (3일간: 10/4 ~ 10/6)
+    else if (dayIdx <= 35) {
         const step = dayIdx - 33;
         return {
             phaseName: '72.5kg 초과 과부하 도전기',
@@ -298,8 +385,9 @@ function getDayBlockConfig(dayIdx) {
             assistOnSet3: false,
             coachFeedback: '72.5kg 초과 과부하 훈련. 강력한 광배근 수축 속도로 템포 1.8초대를 안정적으로 견인했습니다.'
         };
-    } else {
-        // [블록 7] 75.0kg 정점 VBT 파워 신기록 (2일간: 10/7 ~ 10/8 오늘)
+    }
+    // [블록 7] 75.0kg 정점 VBT 파워 신기록 (2일간: 10/7 ~ 10/8 오늘)
+    else {
         const step = dayIdx - 36;
         return {
             phaseName: '75.0kg 정점 VBT 파워 신기록 및 마스터',
@@ -336,8 +424,18 @@ function generateWorkoutHistory() {
         // 요일 계산 (2026-09-01은 화요일)
         const dayOfWeek = (dayIdx + 2) % 7; // 0: 일, 1: 월, ... 6: 토
         const isSunday = (dayOfWeek === 0);
-        // 오늘(10월 8일)은 최고 성과 4세트 완수, 일요일은 가벼운 2세트 회복, 평일은 3~4세트
-        const setCount = dayIdx === 37 ? 4 : (isSunday ? 2 : (dayIdx % 3 === 0 ? 4 : 3));
+
+        // 세트 수 결정: 설정에 명시되어 있으면(숏 세션) 우선 적용, 없으면 요일별 기본 규칙
+        let setCount = 3;
+        if (typeof config.setCount === 'number') {
+            setCount = config.setCount;
+        } else if (dayIdx === 37) {
+            setCount = 4; // 오늘 10월 8일은 최고 집중 4세트
+        } else if (isSunday) {
+            setCount = 2; // 일요일 가벼운 회복 2세트
+        } else if (dayIdx % 3 === 0) {
+            setCount = 4;
+        }
 
         // 총 운동 시간(초) 산출
         const totalDurationSec = Math.round(config.totalMin * 60);
@@ -351,6 +449,11 @@ function generateWorkoutHistory() {
             const startStr = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
 
             let reps = 10;
+            // 숏 세션의 경우 세트별 랩 수 리스트(repsList) 적용 (예: 8회, 7회 등)
+            if (config.repsList && config.repsList[s - 1]) {
+                reps = config.repsList[s - 1];
+            }
+
             let assistLvl = 0;
             let startLoadKg = baseWeight;
             let finalLoadKg = baseWeight;
@@ -362,13 +465,13 @@ function generateWorkoutHistory() {
             let repTempos = [];
 
             if (s === 1) {
-                reps = 10;
+                if (!config.repsList) reps = 10;
                 assistLvl = 0;
-                repTempos = Array.from({ length: 10 }, (_, i) => Number((baseTempo + i * 0.03).toFixed(1)));
+                repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo + i * 0.03).toFixed(1)));
             } else if (s === 2) {
-                reps = 10;
+                if (!config.repsList) reps = 10;
                 assistLvl = 0;
-                repTempos = Array.from({ length: 10 }, (_, i) => Number((baseTempo + 0.05 + i * 0.04).toFixed(1)));
+                repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo + 0.05 + i * 0.04).toFixed(1)));
             } else if (s === 3) {
                 if (config.assistOnSet3 && !isSunday) {
                     reps = 9;
