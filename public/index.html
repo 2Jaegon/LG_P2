@@ -3830,7 +3830,6 @@
                         <line x1="16" y1="17" x2="8" y2="17"></line>
                     </svg>
                     <span>운동 일지</span>
-                    <span class="gnb-tab-badge">JOURNAL</span>
                 </button>
             </div>
 
@@ -3967,9 +3966,12 @@
                 <div class="setting-row">
                     <span class="setting-label">아나운서 음성 보이스 (TTS Voice)</span>
                     <div class="chip-group" id="voiceChipGroup">
-                        <button type="button" class="setting-chip active" data-val="ko-KR-InJoonNeural">🎙️ 인준 (스포츠 아나운서 · 추천)</button>
-                        <button type="button" class="setting-chip" data-val="ko-KR-HyunsuMultilingualNeural">🎙️ 현수 (자연스러운 코치)</button>
-                        <button type="button" class="setting-chip" data-val="ko-KR-SunHiNeural">🎙️ 선희 (기존 여성 안내원)</button>
+                        <button type="button" class="setting-chip active" data-val="ko-KR-InJoonNeural">🎙️ 인준 (스포츠 아나운서
+                            · 추천)</button>
+                        <button type="button" class="setting-chip" data-val="ko-KR-HyunsuMultilingualNeural">🎙️ 현수
+                            (자연스러운 코치)</button>
+                        <button type="button" class="setting-chip" data-val="ko-KR-SunHiNeural">🎙️ 선희 (기존 여성
+                            안내원)</button>
                     </div>
                 </div>
 
@@ -3984,7 +3986,8 @@
                 </div>
 
                 <div class="setting-row" style="margin-top: 6px;">
-                    <button type="button" class="setting-chip" id="btnPreviewVoice" style="border-color: #0066FF; color: #0066FF; font-weight: 700; width: 100%; justify-content: center; padding: 9px 12px; background: rgba(0, 102, 255, 0.06); cursor: pointer;">
+                    <button type="button" class="setting-chip" id="btnPreviewVoice"
+                        style="border-color: #0066FF; color: #0066FF; font-weight: 700; width: 100%; justify-content: center; padding: 9px 12px; background: rgba(0, 102, 255, 0.06); cursor: pointer;">
                         🔊 선택한 음성 미리듣기 ("정체 감지. 무게 5kg 감소합니다.")
                     </button>
                 </div>
@@ -4080,7 +4083,8 @@
             <div class="modal-header">
                 <div>
                     <h3 class="modal-title" id="telModalTitle">SET 1 상세 텔레메트리</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;" id="telModalSub">2026.10.06 11:30:15 기록</p>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;" id="telModalSub">2026.10.06
+                        11:30:15 기록</p>
                 </div>
                 <button type="button" class="modal-close-btn" id="btnCloseTelemetryModal" aria-label="닫기">✕</button>
             </div>
@@ -4309,7 +4313,6 @@
                 </button>
                 <div class="journal-title-wrap">
                     <h1 class="journal-title">운동 일지</h1>
-                    <span class="journal-badge-pill">BIOMECHANICAL TELEMETRY</span>
                 </div>
             </div>
             <div class="journal-header-actions">
@@ -4384,7 +4387,8 @@
                     </div>
                     <div class="agent-hero-orb-area journal-orb-area">
                         <div class="agent-hero-orb-backdrop journal-orb-backdrop"></div>
-                        <div class="agent-hero-orb-container journal-orb-container" id="journalOrbWrap" title="클릭하여 AI 지능 모드 전환">
+                        <div class="agent-hero-orb-container journal-orb-container" id="journalOrbWrap"
+                            title="클릭하여 AI 지능 모드 전환">
                             <canvas id="journalOrbCanvas" class="agent-hero-orb-canvas"></canvas>
                         </div>
                         <div class="agent-orb-status-caption journal-orb-caption" id="journalOrbCaption">
@@ -4404,10 +4408,14 @@
 
                         <!-- 추천 질문 칩 바 -->
                         <div class="voice-chips-bar journal-chips-bar">
-                            <button type="button" class="voice-chip journal-chip" data-cmd="오늘 운동 분석해줘">오늘 운동 분석</button>
-                            <button type="button" class="voice-chip journal-chip" data-cmd="다음 세트 무게 제안해줘">다음 세트 무게 제안</button>
-                            <button type="button" class="voice-chip journal-chip" data-cmd="피로도 상태 진단해줘">피로도 상태 진단</button>
-                            <button type="button" class="voice-chip journal-chip" data-cmd="운동 템포 분석해줘">운동 템포 분석</button>
+                            <button type="button" class="voice-chip journal-chip" data-cmd="오늘 운동 분석해줘">오늘 운동
+                                분석</button>
+                            <button type="button" class="voice-chip journal-chip" data-cmd="다음 세트 무게 제안해줘">다음 세트 무게
+                                제안</button>
+                            <button type="button" class="voice-chip journal-chip" data-cmd="피로도 상태 진단해줘">피로도 상태
+                                진단</button>
+                            <button type="button" class="voice-chip journal-chip" data-cmd="운동 템포 분석해줘">운동 템포
+                                분석</button>
                         </div>
 
                         <!-- 사용자 질문 및 명령 입력창 -->
@@ -4437,6 +4445,8 @@
         const socket = io();
         let setHistory = [];
         let currentHistoryList = [];
+        let currentSetAssistTriggers = 0;
+        let lastRepDuration = 0;
 
         // 페이지 로드 시 전체 일지 히스토리 즉시 동기화
         fetch('/api/history')
@@ -5182,7 +5192,11 @@
                 if (badge) badge.textContent = 'STANDBY';
             } else {
                 const lastSet = history[history.length - 1];
-                const hadStall = currentSetAssistTriggers > 0 || (lastSet.loadChanges && lastSet.loadChanges.length > 0);
+                const hadStall = (lastSet.loadChanges && lastSet.loadChanges.length > 0) ||
+                    (lastSet.loadChangeHistory && lastSet.loadChangeHistory.length > 0) ||
+                    (lastSet.assistCount && lastSet.assistCount > 0) ||
+                    (lastSet.assistLevel && lastSet.assistLevel > 0) ||
+                    (typeof currentSetAssistTriggers !== 'undefined' && currentSetAssistTriggers > 0);
                 const lastTempo = lastSet.avgTempo || 2.1;
 
                 if (hadStall || parseFloat(lastTempo) >= 3.0) {
@@ -5260,7 +5274,11 @@
                 return `[피로도 및 회복 진단]\n현재 운동 시작 전 상태입니다. 신경계 및 근육 피로도 정상 (READY).`;
             }
             const lastSet = history[history.length - 1];
-            const hadStall = currentSetAssistTriggers > 0 || (lastSet.loadChanges && lastSet.loadChanges.length > 0);
+            const hadStall = (lastSet.loadChanges && lastSet.loadChanges.length > 0) ||
+                (lastSet.loadChangeHistory && lastSet.loadChangeHistory.length > 0) ||
+                (lastSet.assistCount && lastSet.assistCount > 0) ||
+                (lastSet.assistLevel && lastSet.assistLevel > 0) ||
+                (typeof currentSetAssistTriggers !== 'undefined' && currentSetAssistTriggers > 0);
             const lastTempo = parseFloat(lastSet.avgTempo || 2.1);
 
             if (hadStall || lastTempo >= 3.0) {
@@ -7133,7 +7151,7 @@
                             renderHistory(data.setHistory);
                         }
                     })
-                    .catch(() => {});
+                    .catch(() => { });
             }
 
             initJournalAgentOrb();
@@ -7221,9 +7239,13 @@
             const lastSet = history[history.length - 1];
             const totalRepsDone = history.reduce((sum, s) => sum + (s.reps || 0), 0);
             const avgTempoAcrossSets = (history.reduce((sum, s) => sum + (s.avgTempo || 2.0), 0) / history.length).toFixed(1);
-            const lastTempo = lastSet.avgTempo ? lastSet.avgTempo.toFixed(1) : (lastRepDuration > 0 ? lastRepDuration.toFixed(1) : '2.1');
+            const lastTempo = lastSet.avgTempo ? Number(lastSet.avgTempo).toFixed(1) : (typeof lastRepDuration !== 'undefined' && lastRepDuration > 0 ? Number(lastRepDuration).toFixed(1) : '2.1');
             const lastRom = lastSet.romRating || 'GOOD';
-            const hadStall = currentSetAssistTriggers > 0 || (lastSet.loadChanges && lastSet.loadChanges.length > 0);
+            const hadStall = (lastSet.loadChanges && lastSet.loadChanges.length > 0) ||
+                (lastSet.loadChangeHistory && lastSet.loadChangeHistory.length > 0) ||
+                (lastSet.assistCount && lastSet.assistCount > 0) ||
+                (lastSet.assistLevel && lastSet.assistLevel > 0) ||
+                (typeof currentSetAssistTriggers !== 'undefined' && currentSetAssistTriggers > 0);
 
             let proposalRationale = '';
             let proposedKg = baseKg;
