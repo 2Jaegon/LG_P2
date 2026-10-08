@@ -399,7 +399,7 @@ const THRESHOLD_TOP = 740;    // 상단 최고점 기준
 // =================== 실시간 안전 및 모션 타이밍 임계치 (단위: ms) ===================
 let DANGER_TRIGGER_MS = 2500;      // 바텀 탈진 꼼질거림 위험 감지 시간: 2.5초 (신속 감지)
 let MID_STALL_TRIGGER_MS = 3000;   // 바텀-탑 중간 정체 감지 시간: 3.0초 (3초 정체 시 5kg 감소)
-let CONT_STALL_TRIGGER_MS = 3000;  // 정체 지속 시 추가 감경 간격: 3.0초 (3초마다 5kg 연속 감소)
+let CONT_STALL_TRIGGER_MS = 5000;  // 정체 지속 시 추가 감경 간격: 5.0초 (5초마다 5kg 연속 감소)
 let SET_COMPLETE_STILL_MS = 3500;  // 세트 완료 완전 정지 판정 시간: 3.5초
 
 function getWorkoutStatePayload() {
@@ -1054,9 +1054,9 @@ function processSensorValue(value) {
 
                     const stallDuration = now - midStallStartTime;
                     // 1) 최초 정체 3초 경과 (MID_STALL_TRIGGER_MS: 3000ms)
-                    // 2) 직전 감량 후 최소 3초 경과 (CONT_STALL_TRIGGER_MS: 3000ms)
+                    // 2) 직전 감량 후 최소 5초 경과 (CONT_STALL_TRIGGER_MS: 5000ms)
                     // 3) 최저 무게(10kg) 초과일 때만 발동
-                    // (1랩 완수 제한 없이 정체 지속 시 3초마다 누적 감량)
+                    // (1랩 완수 제한 없이 정체 지속 시 5초마다 누적 감량)
                     const canTriggerAssist = (stallDuration >= MID_STALL_TRIGGER_MS) &&
                         (now - lastAssistTimestamp >= CONT_STALL_TRIGGER_MS) &&
                         (userWeightKg > 10.0);
