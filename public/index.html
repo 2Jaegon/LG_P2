@@ -3437,7 +3437,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 18px 22px;
+            padding: 16px 20px;
             background: var(--surface);
             border: 1px solid var(--line);
             border-radius: var(--radius-md);
@@ -3446,8 +3446,8 @@
             text-align: left;
             width: 100%;
             font-family: inherit;
-            gap: 16px;
-            flex-wrap: wrap;
+            gap: 14px;
+            flex-wrap: nowrap;
         }
 
         .history-date-card:hover {
@@ -3504,16 +3504,24 @@
         .hdc-metrics-strip {
             display: flex;
             align-items: center;
-            gap: 22px;
-            flex-wrap: wrap;
+            gap: 18px;
+            flex-wrap: nowrap;
             flex: 1;
-            justify-content: flex-start;
+            justify-content: space-between;
+            min-width: 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .hdc-metrics-strip::-webkit-scrollbar {
+            display: none;
         }
 
         .hdc-m-cell {
             display: flex;
             flex-direction: column;
             gap: 2px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .hdc-m-k {
@@ -3596,7 +3604,7 @@
 
         .history-detail-summary-bar {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 12px;
             padding: 14px 18px;
             background: var(--surface-2);
@@ -3604,7 +3612,13 @@
             border-radius: var(--radius-sm);
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 860px) {
+            .history-detail-summary-bar {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 560px) {
             .history-detail-summary-bar {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -3614,6 +3628,7 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
+            white-space: nowrap;
         }
 
         .hds-k {
@@ -3638,7 +3653,7 @@
 
         .history-item {
             cursor: pointer;
-            padding: 14px 18px;
+            padding: 12px 16px;
             background: var(--surface-2);
             border: 1px solid var(--line);
             border-radius: var(--radius-sm);
@@ -3646,7 +3661,7 @@
             justify-content: space-between;
             align-items: center;
             transition: all 0.2s ease;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 12px;
         }
 
@@ -3659,8 +3674,22 @@
         .history-item-left {
             display: flex;
             align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            gap: 8px;
+            flex-wrap: nowrap;
+            min-width: 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .history-item-left::-webkit-scrollbar {
+            display: none;
+        }
+
+        .history-item-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .set-tag {
@@ -6908,6 +6937,15 @@
                 const maxLoadKg = Math.max(...sets.map(s => s.finalLoadKg || s.baseWeightKg || 0));
                 const warmupKg = warmupSet ? (warmupSet.finalLoadKg || warmupSet.startLoadKg) : 0;
 
+                // 시작 부하(Start Weight) & 종료 부하(End Weight) 산출
+                const startLoadKg = mainSets.length > 0 
+                    ? (mainSets[0].startLoadKg || mainSets[0].finalLoadKg || mainSets[0].baseWeightKg || 60)
+                    : (sets[0]?.startLoadKg || sets[0]?.finalLoadKg || 30);
+                const endLoadKg = sets.length > 0
+                    ? (sets[sets.length - 1].finalLoadKg || sets[sets.length - 1].startLoadKg || sets[sets.length - 1].baseWeightKg || 55)
+                    : 55;
+                const hasDayAssist = sets.some(s => (s.loadChanges && s.loadChanges.length > 0) || ((s.startLoadKg || 0) > (s.finalLoadKg || 0))) || (startLoadKg > endLoadKg);
+
                 // 사용자 가용 시간 버짓(Time Budget) 정보 추출
                 const timeBudget = firstSet.timeBudget || (dayDurationSec < 1800 ? 'UNDER_30M' : (dayDurationSec < 3600 ? 'UNDER_60M' : 'OVER_60M'));
                 const timeBudgetLabel = firstSet.timeBudgetLabel || (timeBudget === 'UNDER_30M' ? '30분 미만' : (timeBudget === 'OVER_60M' ? '1시간 이상' : '1시간 미만'));
@@ -6927,7 +6965,10 @@
                     warmupSet: warmupSet,
                     mainSets: mainSets,
                     maxLoadKg: maxLoadKg,
-                    warmupKg: warmupKg
+                    warmupKg: warmupKg,
+                    startLoadKg: startLoadKg,
+                    endLoadKg: endLoadKg,
+                    hasAssist: hasDayAssist
                 };
             });
         }
@@ -7020,10 +7061,11 @@
                                 ${formatDisplayDate(grp.date)} 기록
                             </span>
                         </div>
-                        <div class="history-detail-summary-bar" style="padding: 8px 14px; font-size: 0.82rem;">
+                        <div class="history-detail-summary-bar" style="padding: 8px 14px; font-size: 0.82rem; white-space: nowrap; overflow-x: auto;">
                             <span><strong>SET</strong> ${grp.totalSets}</span> · 
                             <span><strong>REPS</strong> ${grp.totalReps}</span> · 
-                            <span><strong>WEIGHT</strong> ${(grp.maxLoadKg || 70).toFixed(1)}kg</span> · 
+                            <span><strong>START WEIGHT</strong> ${(grp.startLoadKg || 60).toFixed(1)}kg</span> · 
+                            <span><strong>END WEIGHT</strong> <strong style="${grp.hasAssist ? 'color: #0066FF;' : ''}">${(grp.endLoadKg || 55).toFixed(1)}kg</strong></span> · 
                             <span><strong>TEMPO</strong> ${grp.avgTempo}s</span> · 
                             <span><strong>TIME</strong> <strong style="color: #0066FF;">${grp.durationStr}</strong></span>
                         </div>
@@ -7098,10 +7140,11 @@
                                 <div class="hdc-date-row" style="display: flex; align-items: center; gap: 8px;">
                                     <span class="hdc-date" style="font-size: 0.95rem;">${formatDisplayDate(grp.date)}</span>
                                 </div>
-                                <div class="hdc-meta" style="font-size: 0.82rem; margin-top: 2px;">
+                                <div class="hdc-meta" style="font-size: 0.82rem; margin-top: 2px; white-space: nowrap;">
                                     <span><strong>SET</strong> ${grp.totalSets}</span> · 
                                     <span><strong>REPS</strong> ${grp.totalReps}</span> · 
-                                    <span><strong>WEIGHT</strong> ${(grp.maxLoadKg || 70).toFixed(1)}kg</span> · 
+                                    <span><strong>START WEIGHT</strong> ${(grp.startLoadKg || 60).toFixed(1)}kg</span> · 
+                                    <span><strong>END WEIGHT</strong> <strong style="${grp.hasAssist ? 'color: #0066FF;' : ''}">${(grp.endLoadKg || 55).toFixed(1)}kg</strong></span> · 
                                     <span><strong>TEMPO</strong> ${grp.avgTempo}s</span> · 
                                     <span><strong>TIME</strong> <strong style="color: #0066FF;">${grp.durationStr}</strong></span>
                                 </div>
@@ -7210,8 +7253,12 @@
                                 <span class="hds-v">${grp.totalReps} REPS</span>
                             </div>
                             <div class="hds-cell">
-                                <span class="hds-k">WEIGHT</span>
-                                <span class="hds-v">${(grp.maxLoadKg || 70).toFixed(1)}kg</span>
+                                <span class="hds-k">START WEIGHT</span>
+                                <span class="hds-v">${(grp.startLoadKg || 60).toFixed(1)}kg</span>
+                            </div>
+                            <div class="hds-cell">
+                                <span class="hds-k">END WEIGHT</span>
+                                <span class="hds-v" style="${grp.hasAssist ? 'color: #0066FF;' : ''}">${(grp.endLoadKg || 55).toFixed(1)}kg</span>
                             </div>
                             <div class="hds-cell">
                                 <span class="hds-k">TEMPO</span>
@@ -7299,8 +7346,12 @@
                                     <span class="hdc-m-v">${grp.totalReps} REPS</span>
                                 </div>
                                 <div class="hdc-m-cell">
-                                    <span class="hdc-m-k">WEIGHT</span>
-                                    <span class="hdc-m-v">${(grp.maxLoadKg || 70).toFixed(1)}kg</span>
+                                    <span class="hdc-m-k">START WEIGHT</span>
+                                    <span class="hdc-m-v">${(grp.startLoadKg || 60).toFixed(1)}kg</span>
+                                </div>
+                                <div class="hdc-m-cell">
+                                    <span class="hdc-m-k">END WEIGHT</span>
+                                    <span class="hdc-m-v" style="${grp.hasAssist ? 'color: #0066FF;' : ''}">${(grp.endLoadKg || 55).toFixed(1)}kg</span>
                                 </div>
                                 <div class="hdc-m-cell">
                                     <span class="hdc-m-k">TEMPO</span>
