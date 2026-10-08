@@ -2960,6 +2960,324 @@
             background: var(--lg-red-dark);
         }
 
+        /* ==================== SPA 화면 전환 & 운동 일지 전용 페이지 스타일 ==================== */
+        .page-fade-in {
+            animation: pageFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes pageFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* GNB 탭 스위처 */
+        .gnb-nav-tabs {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--surface-2);
+            padding: 4px 6px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+        }
+
+        .gnb-tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .gnb-tab-btn:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .gnb-tab-btn.active {
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--line);
+        }
+
+        .gnb-tab-dot.live {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: var(--ok);
+            box-shadow: 0 0 8px var(--ok);
+        }
+
+        .gnb-tab-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: var(--lg-red);
+            background: var(--lg-red-soft);
+            padding: 1px 6px;
+            border-radius: 999px;
+        }
+
+        /* 운동 일지 풀스크린 페이지 레이아웃 */
+        .journal-page {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 24px 80px;
+            min-height: calc(100vh - 70px);
+        }
+
+        .journal-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--line);
+            flex-wrap: wrap;
+        }
+
+        .journal-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .journal-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 4px;
+            transition: color 0.18s;
+            font-family: inherit;
+        }
+
+        .journal-back-btn:hover {
+            color: var(--lg-red);
+        }
+
+        .journal-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .journal-title {
+            font-size: 1.65rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0;
+            color: var(--text);
+        }
+
+        .journal-badge-pill {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--lg-red);
+            background: var(--lg-red-soft);
+            border: 1px solid var(--lg-red-line);
+            padding: 3px 10px;
+            border-radius: 999px;
+            letter-spacing: 0.04em;
+        }
+
+        .journal-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .journal-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .journal-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            color: var(--text);
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .journal-action-btn:hover {
+            border-color: var(--text-muted);
+            background: var(--surface);
+        }
+
+        .journal-action-btn.primary {
+            background: var(--lg-red);
+            border-color: var(--lg-red);
+            color: #fff;
+        }
+
+        .journal-action-btn.primary:hover {
+            background: var(--lg-red-dark);
+        }
+
+        /* 6-KPI 통계 카드 그리드 */
+        .journal-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        @media (max-width: 1200px) {
+            .journal-kpi-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .journal-kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .journal-kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .journal-kpi-card:hover {
+            border-color: rgba(255, 255, 255, 0.16);
+            transform: translateY(-2px);
+        }
+
+        .jk-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+
+        .jk-val {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: baseline;
+            gap: 3px;
+        }
+
+        .jk-val span {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .jk-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        /* 메인 일지 레이아웃 (좌측 타임라인 + 우측 AI 분석 리포트) */
+        .journal-layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+        }
+
+        @media (max-width: 1040px) {
+            .journal-layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .journal-timeline-section {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .journal-sidebar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .journal-ai-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            padding: 20px;
+        }
+
+        .jac-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 14px;
+        }
+
+        .jac-body {
+            font-size: 0.84rem;
+            color: var(--text-2);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .jac-action-btn {
+            width: 100%;
+            padding: 11px;
+            background: var(--lg-red-soft);
+            border: 1px solid var(--lg-red-line);
+            color: var(--lg-red);
+            font-weight: 800;
+            font-size: 0.85rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .jac-action-btn:hover {
+            background: var(--lg-red);
+            color: #fff;
+        }
+
         @media (max-width: 1160px) {
             .workout-metrics {
                 grid-template-columns: repeat(3, 1fr);
@@ -3021,6 +3339,25 @@
                 </button>
                 <img src="/logo.png" alt="Life's Good." class="brand-logo-img">
             </div>
+
+            <!-- GNB 모드 전환 탭 (실시간 코칭 vs 운동 일지) -->
+            <div class="gnb-nav-tabs">
+                <button type="button" class="gnb-tab-btn active" id="gnbTabLive">
+                    <span class="gnb-tab-dot live"></span>
+                    <span>실시간 코칭</span>
+                </button>
+                <button type="button" class="gnb-tab-btn" id="gnbTabJournal">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <span>운동 일지</span>
+                    <span class="gnb-tab-badge">JOURNAL</span>
+                </button>
+            </div>
+
             <span id="connState" class="conn-state">Offline</span>
         </div>
     </nav>
@@ -3254,7 +3591,7 @@
         </div>
     </div>
 
-    <main class="dashboard">
+    <main class="dashboard page-fade-in" id="liveDashboardView">
         <section class="hero" style="margin-bottom: 16px;">
         </section>
 
@@ -3446,6 +3783,103 @@
         </section>
 
         <footer>
+            <img src="/logo.png" alt="Life's Good." style="height: 18px; opacity: 0.45;">
+        </footer>
+    </main>
+
+    <!-- ==================== 운동 일지 (Workout Journal) 전용 풀스크린 페이지 화면 ==================== -->
+    <main class="journal-page page-fade-in" id="workoutJournalView" style="display: none;" aria-label="운동 일지 화면">
+        <header class="journal-page-header">
+            <div class="journal-header-left">
+                <button type="button" class="journal-back-btn" id="btnJournalBackToLive" title="실시간 코칭 화면으로 복귀">
+                    ‹ 실시간 풀업 코칭으로 돌아가기
+                </button>
+                <div class="journal-title-wrap">
+                    <h1 class="journal-title">운동 일지 (Workout Journal)</h1>
+                    <span class="journal-badge-pill">BIOMECHANICAL TELEMETRY</span>
+                </div>
+                <p class="journal-desc">VBT 센서 기반 세트별 템포 지체 분석 · 스마트 부하 감경 이력 및 AI 바이오메트릭스 센서 일지</p>
+            </div>
+            <div class="journal-header-actions">
+                <button type="button" class="journal-action-btn" id="btnJournalCopyJson">
+                    <span>📋 전체 일지 JSON 복사</span>
+                </button>
+                <button type="button" class="journal-action-btn primary" id="btnJournalStartWorkout">
+                    <span>🏋️ 실시간 코칭 시작</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 6-KPI 대시보드 통계 카드 그리드 -->
+        <section class="journal-kpi-grid">
+            <div class="journal-kpi-card">
+                <span class="jk-label">총 운동 일수</span>
+                <div class="jk-val" id="pageStatDays">0<span>일</span></div>
+                <span class="jk-sub">누적 운동 활동일</span>
+            </div>
+            <div class="journal-kpi-card">
+                <span class="jk-label">완료 세트수</span>
+                <div class="jk-val" id="pageStatSets">0<span>세트</span></div>
+                <span class="jk-sub">기록 완료 세트</span>
+            </div>
+            <div class="journal-kpi-card">
+                <span class="jk-label">총 반복 횟수</span>
+                <div class="jk-val" id="pageStatReps">0<span>회</span></div>
+                <span class="jk-sub">누적 Rep 수행</span>
+            </div>
+            <div class="journal-kpi-card">
+                <span class="jk-label">전체 평균 템포</span>
+                <div class="jk-val" id="pageStatTempo">0.0<span>초</span></div>
+                <span class="jk-sub">1회 반복당 평균 소요</span>
+            </div>
+            <div class="journal-kpi-card">
+                <span class="jk-label">추정 누적 볼륨</span>
+                <div class="jk-val" id="pageStatVolume">0<span>kg</span></div>
+                <span class="jk-sub">반복수 × 부하 환산</span>
+            </div>
+            <div class="journal-kpi-card">
+                <span class="jk-label">스마트 감량 지원</span>
+                <div class="jk-val" id="pageStatAssists" style="color: #0066FF;">0<span>회</span></div>
+                <span class="jk-sub">정체/지침 부하 경감</span>
+            </div>
+        </section>
+
+        <!-- 일지 메인 콘텐츠 레이아웃 -->
+        <div class="journal-layout-grid">
+            <!-- 좌측: 날짜별 일지 및 세트 상세 타임라인 -->
+            <div class="journal-timeline-section" id="pageJournalListContainer">
+                <div class="history-empty">운동 일지 기록을 불러오는 중...</div>
+            </div>
+
+            <!-- 우측: AI 운동 패턴 정밀 분석 및 코칭 리포트 -->
+            <aside class="journal-sidebar-section">
+                <div class="journal-ai-card">
+                    <div class="jac-head">
+                        <span style="color: var(--lg-red);">📊</span>
+                        <span>AI 운동 패턴 정밀 진단</span>
+                    </div>
+                    <div class="jac-body" id="journalAiReportContent">
+                        누적 세트와 평균 템포를 분석하여 피로도 및 최적 무게를 진단합니다.
+                    </div>
+                    <button type="button" class="jac-action-btn" id="btnJournalAiDiagnose">
+                        AI 패턴 진단 새로고침
+                    </button>
+                </div>
+
+                <div class="journal-ai-card" style="background: var(--surface-2);">
+                    <div class="jac-head">
+                        <span style="color: #0066FF;">💡</span>
+                        <span>VBT 바이오메트릭스 안내</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.55;">
+                        • 각 세트의 <strong>[상세 텔레메트리 보기]</strong>를 누르면 실시간 VBT 센서 그래프와 피크 속도를 확인할 수 있습니다.<br>
+                        • 탑-바텀 사이 정체 시 5초마다 5kg씩 자동 감경된 내역이 세트별로 기록됩니다.
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <footer style="margin-top: 40px;">
             <img src="/logo.png" alt="Life's Good." style="height: 18px; opacity: 0.45;">
         </footer>
     </main>
@@ -4765,10 +5199,168 @@
             });
         }
 
+        // ==================== 운동 일지 (Workout Journal) 전용 풀스크린 페이지 렌더러 ====================
+        let selectedJournalDate = null;
+
+        function renderJournalPageView() {
+            const container = document.getElementById('pageJournalListContainer');
+            if (!container) return;
+
+            const groups = groupHistoryByDate(currentHistoryList);
+
+            // 6-KPI 통계 카드 계산 및 실시간 반영
+            const totalDays = groups.length;
+            const totalSets = currentHistoryList.length;
+            const totalReps = currentHistoryList.reduce((acc, s) => acc + (s.reps || 0), 0);
+            const overallTempo = totalSets > 0
+                ? (currentHistoryList.reduce((acc, s) => acc + (s.avgTempo || 0), 0) / totalSets).toFixed(1)
+                : '0.0';
+            const totalVolumeKg = currentHistoryList.reduce((acc, s) => {
+                return acc + (s.totalVolumeKg || ((s.reps || 0) * (s.finalLoadKg || 70)));
+            }, 0);
+            const totalAssists = currentHistoryList.reduce((acc, s) => {
+                return acc + ((s.loadChanges && s.loadChanges.length) || (s.assistLevel > 0 ? s.assistLevel : 0));
+            }, 0);
+
+            const pageStatDays = document.getElementById('pageStatDays');
+            const pageStatSets = document.getElementById('pageStatSets');
+            const pageStatReps = document.getElementById('pageStatReps');
+            const pageStatTempo = document.getElementById('pageStatTempo');
+            const pageStatVolume = document.getElementById('pageStatVolume');
+            const pageStatAssists = document.getElementById('pageStatAssists');
+
+            if (pageStatDays) pageStatDays.innerHTML = `${totalDays}<span>일</span>`;
+            if (pageStatSets) pageStatSets.innerHTML = `${totalSets}<span>세트</span>`;
+            if (pageStatReps) pageStatReps.innerHTML = `${totalReps}<span>회</span>`;
+            if (pageStatTempo) pageStatTempo.innerHTML = `${overallTempo}<span>초</span>`;
+            if (pageStatVolume) pageStatVolume.innerHTML = `${Math.round(totalVolumeKg).toLocaleString()}<span>kg</span>`;
+            if (pageStatAssists) pageStatAssists.innerHTML = `${totalAssists}<span>회</span>`;
+
+            // 우측 AI 진단 리포트 업데이트
+            const aiReportEl = document.getElementById('journalAiReportContent');
+            if (aiReportEl) {
+                const diagText = analyzeWorkoutPatternAndProposeWeight();
+                aiReportEl.innerHTML = diagText.replace(/\n/g, '<br>');
+            }
+
+            if (groups.length === 0) {
+                container.innerHTML = `
+                    <div class="history-empty" style="padding: 60px 20px; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md);">
+                        <div style="font-size: 2.2rem; margin-bottom: 12px;">🏋️</div>
+                        <strong style="font-size: 1.1rem; color: var(--text); display: block; margin-bottom: 6px;">아직 완료된 운동 일지 기록이 없습니다.</strong>
+                        <span style="color: var(--text-muted); font-size: 0.88rem;">풀업 바를 당겨 세트를 완료하시면 실시간 VBT 센서 로그와 AI 분석 일지가 여기에 자동으로 기록됩니다.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            // [모드 1] 특정 날짜 상세 세트 일지 보기
+            if (selectedJournalDate) {
+                const grp = groups.find(g => g.date === selectedJournalDate);
+                if (!grp) {
+                    selectedJournalDate = null;
+                    renderJournalPageView();
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="history-detail-wrap" style="background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 22px;">
+                        <div class="history-detail-nav" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+                            <button type="button" class="history-back-btn" id="btnPageBackToDates" style="font-size: 0.88rem; font-weight: 700; color: var(--lg-red); cursor: pointer; background: none; border: none; padding: 0;">
+                                ‹ 전체 날짜 목록으로 돌아가기
+                            </button>
+                            <span class="history-detail-date-title" style="font-size: 1.1rem; font-weight: 800; color: var(--text);">
+                                ${formatDisplayDate(grp.date)} ${grp.isToday ? '<span class="hdc-today-pill" style="margin-left: 6px; font-size: 0.72rem; padding: 2px 8px;">오늘</span>' : ''}
+                            </span>
+                        </div>
+                        <div class="history-detail-summary-bar" style="display: flex; gap: 20px; padding: 12px 18px; background: var(--surface-2); border-radius: var(--radius-sm); margin-bottom: 18px; font-size: 0.86rem; color: var(--text-muted); flex-wrap: wrap;">
+                            <span>완료 세트: <strong style="color: var(--text);">${grp.totalSets}세트</strong></span>
+                            <span>총 반복수: <strong style="color: var(--text);">${grp.totalReps}회</strong></span>
+                            <span>평균 템포: <strong style="color: var(--text);">${grp.avgTempo}초</strong></span>
+                        </div>
+                        <div class="history-sets-wrap" style="display: flex; flex-direction: column; gap: 12px;">
+                            ${grp.sets.map((item, idx) => `
+                                <div class="history-item" data-set-id="${item.id || ''}" data-idx="${idx}" style="cursor: pointer; padding: 16px 20px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; flex-wrap: wrap; gap: 12px;">
+                                    <div class="history-item-left" style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                                        <span class="set-tag" style="font-size: 0.78rem; font-weight: 800; color: var(--lg-red); background: var(--lg-red-soft); padding: 3px 10px; border-radius: 999px;">SET ${item.set}</span>
+                                        <span class="set-reps" style="font-weight: 700; font-size: 0.95rem; color: var(--text);">
+                                            <strong>${item.reps || 0}</strong>회 <span style="color: var(--text-muted); font-size: 0.8rem;">/ ${item.targetReps || 10}회 목표</span>
+                                        </span>
+                                        <span class="set-tempo" style="font-size: 0.84rem; color: var(--text-2);">평균 <strong>${(item.avgTempo || 0).toFixed(1)}s</strong></span>
+                                        <span class="rom-mini-badge" style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.06); color: var(--text);">${item.romRating || 'GOOD'}</span>
+                                        <span class="set-load-badge" style="font-weight: 700; color: var(--text); font-size: 0.85rem;">최종 ${item.finalLoadKg || item.baseWeightKg || 70}kg</span>
+                                        ${(item.loadChanges && item.loadChanges.length > 0) ? `
+                                            <span style="font-size: 0.74rem; color: #0066FF; font-weight: 700; background: rgba(0,102,255,0.1); border: 1px solid rgba(0,102,255,0.25); padding: 2px 8px; border-radius: 999px;">
+                                                정체 감량 ${item.loadChanges.length}회 (-${(item.loadChanges.length * 5)}kg)
+                                            </span>
+                                        ` : ''}
+                                    </div>
+                                    <div class="history-item-right" style="display: flex; align-items: center; gap: 12px;">
+                                        <span class="set-time" style="color: var(--text-muted); font-size: 0.8rem;">${item.completedAt || ''}</span>
+                                        <button type="button" class="btn-set-detail" style="background: none; border: 1px solid var(--line); color: var(--text); border-radius: 999px; padding: 5px 14px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.18s;">
+                                            상세 텔레메트리 보기 ›
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                const btnBack = document.getElementById('btnPageBackToDates');
+                if (btnBack) {
+                    btnBack.addEventListener('click', () => {
+                        selectedJournalDate = null;
+                        renderJournalPageView();
+                    });
+                }
+
+                container.querySelectorAll('.btn-set-detail, .history-item').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        const itemEl = el.closest('.history-item');
+                        const sId = itemEl.getAttribute('data-set-id');
+                        const setItem = grp.sets.find(s => s.id === sId) || grp.sets[parseInt(itemEl.getAttribute('data-idx'), 10)];
+                        if (setItem) openSetTelemetryModal(setItem);
+                    });
+                });
+                return;
+            }
+
+            // [모드 2] 전체 날짜 카드 목록 보기
+            container.innerHTML = `
+                <div class="history-date-list" style="display: flex; flex-direction: column; gap: 14px;">
+                    ${groups.map(grp => `
+                        <div class="history-date-card" data-page-date="${grp.date}" style="padding: 20px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s;">
+                            <div class="hdc-info">
+                                <div class="hdc-date-row" style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="hdc-date" style="font-size: 1.1rem; font-weight: 800; color: var(--text);">${formatDisplayDate(grp.date)}</span>
+                                    ${grp.isToday ? '<span class="hdc-today-pill" style="font-size: 0.72rem; padding: 2px 8px;">오늘</span>' : ''}
+                                </div>
+                                <div class="hdc-meta" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; display: flex; gap: 14px; flex-wrap: wrap;">
+                                    <span>완료 <strong style="color: var(--text);">${grp.totalSets}</strong>세트</span> · 
+                                    <span>누적 <strong style="color: var(--text);">${grp.totalReps}</strong>회</span> · 
+                                    <span>평균 템포 <strong style="color: var(--text);">${grp.avgTempo}초</strong></span>
+                                </div>
+                            </div>
+                            <span class="hdc-btn" style="padding: 8px 18px; font-size: 0.84rem; font-weight: 700; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; color: var(--text);">세트 일지 보기 ›</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            container.querySelectorAll('.history-date-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    selectedJournalDate = card.getAttribute('data-page-date');
+                    renderJournalPageView();
+                });
+            });
+        }
+
         function renderHistory(list) {
             currentHistoryList = list || [];
             renderCardHistory();
             renderModalHistory();
+            renderJournalPageView();
         }
 
         // ------------------ 텔레메트리 모달 뷰어 제어 ------------------
@@ -5597,24 +6189,105 @@
         const btnCloseHistoryModal = document.getElementById('btnCloseHistoryModal');
         const btnCloseHistoryModalBottom = document.getElementById('btnCloseHistoryModalBottom');
 
-        function openHistoryModal() {
+        // ==================== SPA 화면 전환 엔진: 실시간 코칭 <-> 운동 일지 ====================
+        let currentActiveView = 'live'; // 'live' or 'journal'
+
+        function showLiveDashboard() {
+            currentActiveView = 'live';
+            const liveView = document.getElementById('liveDashboardView');
+            const journalView = document.getElementById('workoutJournalView');
+            const gnbTabLive = document.getElementById('gnbTabLive');
+            const gnbTabJournal = document.getElementById('gnbTabJournal');
+            const menuLive = document.getElementById('menuLiveDashboard');
+            const menuJournal = document.getElementById('menuWorkoutJournal');
+
+            if (liveView) liveView.style.display = 'block';
+            if (journalView) journalView.style.display = 'none';
+
+            if (gnbTabLive) gnbTabLive.classList.add('active');
+            if (gnbTabJournal) gnbTabJournal.classList.remove('active');
+            if (menuLive) menuLive.classList.add('active');
+            if (menuJournal) menuJournal.classList.remove('active');
+
             closeSidebar();
-            if (historyStatsModal) {
-                historyStatsModal.classList.add('active');
-                renderModalHistory();
-            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showWorkoutJournalView() {
+            currentActiveView = 'journal';
+            const liveView = document.getElementById('liveDashboardView');
+            const journalView = document.getElementById('workoutJournalView');
+            const gnbTabLive = document.getElementById('gnbTabLive');
+            const gnbTabJournal = document.getElementById('gnbTabJournal');
+            const menuLive = document.getElementById('menuLiveDashboard');
+            const menuJournal = document.getElementById('menuWorkoutJournal');
+
+            if (liveView) liveView.style.display = 'none';
+            if (journalView) journalView.style.display = 'block';
+
+            if (gnbTabLive) gnbTabLive.classList.remove('active');
+            if (gnbTabJournal) gnbTabJournal.classList.add('active');
+            if (menuLive) menuLive.classList.remove('active');
+            if (menuJournal) menuJournal.classList.add('active');
+
+            renderJournalPageView();
+            closeSidebar();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openHistoryModal() {
+            // 사용자 요청: 팝업이 아니라 전용 페이지로 화면 전환!
+            showWorkoutJournalView();
         }
 
         function closeHistoryModal() {
             if (historyStatsModal) historyStatsModal.classList.remove('active');
         }
 
-        if (btnOpenHistoryModal) btnOpenHistoryModal.addEventListener('click', openHistoryModal);
+        // GNB 탭 스위처 이벤트 바인딩
+        const gnbTabLive = document.getElementById('gnbTabLive');
+        const gnbTabJournal = document.getElementById('gnbTabJournal');
+        if (gnbTabLive) gnbTabLive.addEventListener('click', showLiveDashboard);
+        if (gnbTabJournal) gnbTabJournal.addEventListener('click', showWorkoutJournalView);
+
+        // 운동 일지 화면 내 액션 버튼 바인딩
+        const btnJournalBackToLive = document.getElementById('btnJournalBackToLive');
+        const btnJournalStartWorkout = document.getElementById('btnJournalStartWorkout');
+        if (btnJournalBackToLive) btnJournalBackToLive.addEventListener('click', showLiveDashboard);
+        if (btnJournalStartWorkout) btnJournalStartWorkout.addEventListener('click', showLiveDashboard);
+
+        const btnJournalAiDiagnose = document.getElementById('btnJournalAiDiagnose');
+        if (btnJournalAiDiagnose) {
+            btnJournalAiDiagnose.addEventListener('click', () => {
+                const aiReportEl = document.getElementById('journalAiReportContent');
+                if (aiReportEl) {
+                    const diagText = analyzeWorkoutPatternAndProposeWeight();
+                    aiReportEl.innerHTML = diagText.replace(/\n/g, '<br>');
+                }
+            });
+        }
+
+        const btnJournalCopyJson = document.getElementById('btnJournalCopyJson');
+        if (btnJournalCopyJson) {
+            btnJournalCopyJson.addEventListener('click', () => {
+                const jsonStr = JSON.stringify(currentHistoryList, null, 2);
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(jsonStr).then(() => {
+                        alert('전체 운동 일지 데이터(JSON)가 클립보드에 복사되었습니다.');
+                    }).catch(() => {
+                        prompt('아래 JSON 데이터를 복사하세요:', jsonStr);
+                    });
+                } else {
+                    prompt('아래 JSON 데이터를 복사하세요:', jsonStr);
+                }
+            });
+        }
+
+        if (btnOpenHistoryModal) btnOpenHistoryModal.addEventListener('click', showWorkoutJournalView);
         const historyWidgetCard = document.getElementById('historyWidgetCard');
         if (historyWidgetCard) {
             historyWidgetCard.addEventListener('click', (e) => {
-                if (e.target && e.target.closest('#btnOpenHistoryModal')) return;
-                openHistoryModal();
+                showWorkoutJournalView();
             });
         }
         if (btnCloseHistoryModal) btnCloseHistoryModal.addEventListener('click', closeHistoryModal);
@@ -5691,23 +6364,21 @@
             });
         }
 
-        // 메뉴 항목 1: 실시간 풀업 코칭
+        // 메뉴 항목 1: 실시간 풀업 코칭 -> 메인 대시보드 화면 전환
         const menuLiveDashboard = document.getElementById('menuLiveDashboard');
         if (menuLiveDashboard) {
             menuLiveDashboard.addEventListener('click', () => {
-                closeSidebar();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                showLiveDashboard();
             });
         }
 
-        // 메뉴 항목 2: 운동 일지 & 통계 -> 전용 모달 열기 및 HISTORY 카드로 스크롤
+        // 메뉴 항목 2: 운동 일지 -> 풀스크린 일지 페이지 화면 전환
         const menuWorkoutJournal = document.getElementById('menuWorkoutJournal');
         const menuHistory = document.getElementById('menuHistory');
         [menuWorkoutJournal, menuHistory].forEach(btn => {
             if (btn) {
                 btn.addEventListener('click', () => {
-                    closeSidebar();
-                    openHistoryModal();
+                    showWorkoutJournalView();
                 });
             }
         });
