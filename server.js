@@ -70,6 +70,11 @@ app.get('/api/tts', async (req, res) => {
     }
 });
 
+// 전체 운동 일지 및 세트 기록 반환 API
+app.get('/api/history', (req, res) => {
+    res.json({ success: true, count: setHistory.length, setHistory });
+});
+
 // Set your Arduino COM port here
 const ARDUINO_PORT = 'COM3';
 const BAUD_RATE = 9600;
@@ -340,55 +345,9 @@ function createDetailedSetRecord(data) {
     };
 }
 
-let setHistory = [
-    createDetailedSetRecord({
-        date: '2026-10-04', set: 1, reps: 10, targetReps: 10, baseWeightKg: 70.0, assistLevel: 0,
-        repTempos: [2.0, 2.0, 2.1, 2.1, 2.2, 2.2, 2.3, 2.4, 2.5, 2.6],
-        completedAt: '18:15:20', startTime: '18:14:55',
-        coachFeedbackSnippet: "첫 세트 가동범위와 템포가 매우 균일하고 안정적이었습니다."
-    }),
-    createDetailedSetRecord({
-        date: '2026-10-04', set: 2, reps: 9, targetReps: 10, baseWeightKg: 70.0, assistLevel: 1,
-        startLoadKg: 70.0, finalLoadKg: 59.5, startIntensityPercent: 100, finalIntensityPercent: 85,
-        loadChangeHistory: [{ time: '18:18:25', fromKg: 70.0, toKg: 59.5, fromPercent: 100, toPercent: 85, reason: '7회차 정체 7초 감지 (-15% 부하 감소 적용)' }],
-        repTempos: [2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.8, 2.4, 2.5],
-        completedAt: '18:18:45', startTime: '18:18:20', restBeforeSetSeconds: 62,
-        coachFeedbackSnippet: "무게 부담 감지 시 스마트 어시스트가 신속히 개입하여 목표 반복을 거의 채웠습니다."
-    }),
-    createDetailedSetRecord({
-        date: '2026-10-04', set: 3, reps: 8, targetReps: 10, baseWeightKg: 70.0, assistLevel: 1,
-        startLoadKg: 59.5, finalLoadKg: 59.5, startIntensityPercent: 85, finalIntensityPercent: 85,
-        repTempos: [2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 3.0, 3.2],
-        completedAt: '18:22:10', startTime: '18:21:45', restBeforeSetSeconds: 65,
-        coachFeedbackSnippet: "누적 피로 속에서도 감경된 부하를 유지하며 끝까지 집중했습니다."
-    }),
-    createDetailedSetRecord({
-        date: '2026-10-05', set: 1, reps: 10, targetReps: 10, baseWeightKg: 70.0, assistLevel: 0,
-        repTempos: [1.9, 2.0, 2.0, 2.1, 2.1, 2.2, 2.2, 2.3, 2.3, 2.4],
-        completedAt: '19:05:12', startTime: '19:04:48',
-        coachFeedbackSnippet: "최상의 컨디션으로 빠른 템포와 완벽한 ROM을 유지했습니다."
-    }),
-    createDetailedSetRecord({
-        date: '2026-10-05', set: 2, reps: 10, targetReps: 10, baseWeightKg: 70.0, assistLevel: 0,
-        repTempos: [2.0, 2.1, 2.1, 2.2, 2.3, 2.3, 2.4, 2.5, 2.6, 2.7],
-        completedAt: '19:08:40', startTime: '19:08:15', restBeforeSetSeconds: 60,
-        coachFeedbackSnippet: "2세트 연속 10회 완수 달성!"
-    }),
-    createDetailedSetRecord({
-        date: '2026-10-05', set: 3, reps: 9, targetReps: 10, baseWeightKg: 70.0, assistLevel: 1,
-        startLoadKg: 70.0, finalLoadKg: 59.5, startIntensityPercent: 100, finalIntensityPercent: 85,
-        loadChangeHistory: [{ time: '19:12:00', fromKg: 70.0, toKg: 59.5, fromPercent: 100, toPercent: 85, reason: '중간 정체 7초 감지 (-15% 부하 감소)' }],
-        repTempos: [2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.5, 2.6],
-        completedAt: '19:12:15', startTime: '19:11:50', restBeforeSetSeconds: 58
-    }),
-    createDetailedSetRecord({
-        date: '2026-10-05', set: 4, reps: 8, targetReps: 10, baseWeightKg: 70.0, assistLevel: 2,
-        startLoadKg: 59.5, finalLoadKg: 49.0, startIntensityPercent: 85, finalIntensityPercent: 70,
-        loadChangeHistory: [{ time: '19:15:45', fromKg: 59.5, toKg: 49.0, fromPercent: 85, toPercent: 70, reason: '추가 정체 3초 감지 (-30% 부하 감소)' }],
-        repTempos: [2.4, 2.5, 2.6, 2.7, 2.8, 2.8, 2.6, 2.7],
-        completedAt: '19:16:02', startTime: '19:15:35', restBeforeSetSeconds: 70
-    })
-];
+// 2026년 9월 1일부터 10월 7일(어제)까지의 일지 데이터 로드
+const { initialSetHistory } = require('./workoutHistoryData');
+let setHistory = initialSetHistory;
 
 let isResting = false;
 let restStartTime = 0;
