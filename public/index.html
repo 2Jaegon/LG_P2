@@ -3326,7 +3326,7 @@
         /* 메인 일지 레이아웃 (좌측 타임라인 + 우측 AI 분석 리포트) */
         .journal-layout-grid {
             display: grid;
-            grid-template-columns: 1fr 340px;
+            grid-template-columns: 1fr 380px;
             gap: 24px;
         }
 
@@ -3672,20 +3672,19 @@
             background: var(--surface);
         }
 
-        /* 운동 일지 전용 에이전트 Orb 카드 */
+        /* 운동 일지 전용 에이전트 Orb & 챗 카드 */
         .journal-agent-card {
             background: var(--surface);
             border: 1px solid var(--line);
-            border-radius: var(--radius-md);
-            padding: 24px 20px;
+            border-radius: var(--radius-lg);
+            padding: 22px 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+            justify-content: flex-start;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            box-sizing: border-box;
         }
 
         .journal-orb-header {
@@ -3693,8 +3692,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
+            margin-bottom: 8px;
+            padding-bottom: 10px;
             border-bottom: 1px solid var(--line);
         }
 
@@ -3717,51 +3716,41 @@
         }
 
         .journal-orb-area {
-            padding: 16px 0;
-            min-height: 230px;
+            padding: 10px 0;
+            min-height: 205px;
         }
 
         .journal-orb-backdrop {
-            width: 230px;
-            height: 230px;
+            width: 215px;
+            height: 215px;
         }
 
         .journal-orb-container {
-            width: 176px;
-            height: 176px;
+            width: 168px;
+            height: 168px;
         }
 
-        .journal-orb-metrics-card {
+        .journal-control-area {
             width: 100%;
-            background: var(--surface-2);
-            border: 1px solid var(--line);
-            border-radius: var(--radius-sm);
-            padding: 14px 16px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-top: 14px;
+            margin-top: 10px;
             text-align: left;
         }
 
-        .jom-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.78rem;
+        .journal-action-box {
+            min-height: 60px;
+            max-height: 100px;
+            text-align: left;
         }
 
-        .jom-lbl {
-            font-weight: 700;
-            color: var(--text-muted);
-            letter-spacing: 0.02em;
+        .journal-action-box .action-box-content {
+            max-height: 76px;
         }
 
-        .jom-val {
-            font-weight: 800;
-            color: var(--text);
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 0.02em;
+        .journal-chips-bar {
+            padding: 2px 0;
         }
 
         @media (max-width: 1160px) {
@@ -4386,12 +4375,12 @@
                 <div class="history-empty">운동 일지 기록을 불러오는 중...</div>
             </div>
 
-            <!-- 우측: AI Agent Thinking Orb 시각화 카드 -->
+            <!-- 우측: AI Agent Thinking Orb & 챗 시스템 카드 -->
             <aside class="journal-sidebar-section">
                 <section class="card journal-agent-card">
                     <div class="journal-orb-header">
                         <span class="joh-title">LG WELL AI AGENT</span>
-                        <span class="joh-badge">ONLINE</span>
+                        <span class="joh-badge" id="journalTelemetryStatusBadge">ONLINE</span>
                     </div>
                     <div class="agent-hero-orb-area journal-orb-area">
                         <div class="agent-hero-orb-backdrop journal-orb-backdrop"></div>
@@ -4400,22 +4389,40 @@
                         </div>
                         <div class="agent-orb-status-caption journal-orb-caption" id="journalOrbCaption">
                             <span class="orb-status-dot"></span>
-                            <span id="journalOrbStatusText">운동 일지 바이오메트릭스 동기화 완료</span>
+                            <span id="journalOrbStatusText">운동 일지 AI 코치 대기 중</span>
                         </div>
                     </div>
-                    <div class="journal-orb-metrics-card">
-                        <div class="jom-row">
-                            <span class="jom-lbl">지능 모드</span>
-                            <span class="jom-val" id="journalOrbModeVal">BIOMECHANICAL ANALYZER</span>
+
+                    <!-- 일지 AI 판단/행동 시각화 박스 & 명령 입력창 -->
+                    <div class="agent-control-area journal-control-area">
+                        <!-- AI 판단 및 코칭 디스플레이 -->
+                        <div class="agent-action-box journal-action-box" id="journalActionBox">
+                            <div class="action-box-content" id="journalAgentDecision">
+                                <span class="agent-line">운동 일지 데이터를 기반으로 AI 코칭을 제공합니다. 질문을 입력하세요.</span>
+                            </div>
                         </div>
-                        <div class="jom-row">
-                            <span class="jom-lbl">텔레메트리 스트림</span>
-                            <span class="jom-val" style="color: #00AA77;">CONNECTED</span>
+
+                        <!-- 추천 질문 칩 바 -->
+                        <div class="voice-chips-bar journal-chips-bar">
+                            <button type="button" class="voice-chip journal-chip" data-cmd="오늘 운동 분석해줘">오늘 운동 분석</button>
+                            <button type="button" class="voice-chip journal-chip" data-cmd="다음 세트 무게 제안해줘">다음 세트 무게 제안</button>
+                            <button type="button" class="voice-chip journal-chip" data-cmd="피로도 상태 진단해줘">피로도 상태 진단</button>
+                            <button type="button" class="voice-chip journal-chip" data-cmd="운동 템포 분석해줘">운동 템포 분석</button>
                         </div>
-                        <div class="jom-row">
-                            <span class="jom-lbl">피로도 분석 엔진</span>
-                            <span class="jom-val" id="journalOrbFatigueVal">READY</span>
-                        </div>
+
+                        <!-- 사용자 질문 및 명령 입력창 -->
+                        <form id="journalChatForm" class="voice-chat-form" onsubmit="return false;">
+                            <input type="text" id="journalChatInput" class="voice-chat-input"
+                                placeholder="일지 데이터 질문이나 코칭 요청을 입력하세요... (Enter)" autocomplete="off" />
+                            <button type="button" id="btnJournalChatSend" class="voice-send-btn" title="전송">
+                                <span>전송</span>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13" />
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                </svg>
+                            </button>
+                        </form>
                     </div>
                 </section>
             </aside>
@@ -5128,8 +5135,8 @@
                                 journalAgentOrb.setState(nextState);
                                 const statusText = document.getElementById('journalOrbStatusText');
                                 if (statusText) statusText.textContent = `${nextState.toUpperCase()} 모드 전환`;
-                                const modeVal = document.getElementById('journalOrbModeVal');
-                                if (modeVal) modeVal.textContent = nextState.toUpperCase();
+                                const badge = document.getElementById('journalTelemetryStatusBadge');
+                                if (badge) badge.textContent = nextState.toUpperCase();
                             }
                         });
                     }
@@ -5141,17 +5148,26 @@
             }
         }
 
+        function setJournalOrbState(state, caption, speed = 1.0) {
+            if (journalAgentOrb) {
+                journalAgentOrb.setState(state);
+                journalAgentOrb.speed = speed;
+            }
+            const statusText = document.getElementById('journalOrbStatusText');
+            if (statusText && caption) {
+                statusText.textContent = caption;
+            }
+        }
+
         function updateJournalOrbTelemetryStatus() {
             const statusText = document.getElementById('journalOrbStatusText');
-            const fatigueVal = document.getElementById('journalOrbFatigueVal');
-            const modeVal = document.getElementById('journalOrbModeVal');
+            const badge = document.getElementById('journalTelemetryStatusBadge');
 
             const history = Array.isArray(setHistory) ? setHistory : [];
             if (history.length === 0) {
                 if (journalAgentOrb) journalAgentOrb.setState('listening');
-                if (statusText) statusText.textContent = '운동 일지 바이오메트릭스 동기화 완료';
-                if (fatigueVal) fatigueVal.textContent = 'READY';
-                if (modeVal) modeVal.textContent = 'STANDBY';
+                if (statusText) statusText.textContent = '운동 일지 AI 코치 대기 중';
+                if (badge) badge.textContent = 'STANDBY';
             } else {
                 const lastSet = history[history.length - 1];
                 const hadStall = currentSetAssistTriggers > 0 || (lastSet.loadChanges && lastSet.loadChanges.length > 0);
@@ -5160,20 +5176,174 @@
                 if (hadStall || parseFloat(lastTempo) >= 3.0) {
                     if (journalAgentOrb) journalAgentOrb.setState('solving');
                     if (statusText) statusText.textContent = '피로 누적 감지 · 부하 감량 권장';
-                    if (fatigueVal) fatigueVal.textContent = 'FATIGUE DETECTED';
-                    if (modeVal) modeVal.textContent = 'LOAD ASSIST';
+                    if (badge) badge.textContent = 'LOAD ASSIST';
                 } else if (parseFloat(lastTempo) <= 2.0) {
                     if (journalAgentOrb) journalAgentOrb.setState('working');
                     if (statusText) statusText.textContent = '최상위 VBT 파워 출력 유지';
-                    if (fatigueVal) fatigueVal.textContent = 'OPTIMAL POWER';
-                    if (modeVal) modeVal.textContent = 'PROGRESSIVE OVERLOAD';
+                    if (badge) badge.textContent = 'OPTIMAL POWER';
                 } else {
                     if (journalAgentOrb) journalAgentOrb.setState('working');
                     if (statusText) statusText.textContent = '안정적 수축·이완 리듬 유지';
-                    if (fatigueVal) fatigueVal.textContent = 'NORMAL PACE';
-                    if (modeVal) modeVal.textContent = 'BIOMECHANICAL ANALYZER';
+                    if (badge) badge.textContent = 'BIOMECHANICAL ANALYZER';
                 }
             }
+        }
+
+        function renderJournalDecision(rawText) {
+            const display = document.getElementById('journalAgentDecision');
+            if (!rawText || !display) return;
+            let clean = rawText.replace(/\[LG Well\]/gi, '').trim();
+
+            let formatted = clean
+                .replace(/(?<=[^0-9][.!?]|[!?])(?:\s+|\n+)(?=[가-힣a-zA-Z0-9(\[])/g, '\n')
+                .replace(/\n{2,}/g, '\n');
+
+            const lines = formatted.split('\n').map(l => l.trim()).filter(Boolean);
+            if (lines.length === 0) {
+                display.innerHTML = '<span class="agent-line">운동 일지 데이터를 기반으로 AI 코칭을 제공합니다. 질문을 입력하세요.</span>';
+                return;
+            }
+
+            display.innerHTML = lines
+                .map(line => `<span class="agent-line">${escapeHtml(line)}</span>`)
+                .join('');
+
+            // AI 음성 발화 (진행/분석 안내 문구 제외)
+            if (clean && !clean.includes('분석 중') && !clean.includes('분석하고 있습니다') && !clean.includes('질문을 입력하세요')) {
+                speakAgentVoice(clean);
+            }
+
+            if (journalAgentOrb) {
+                journalAgentOrb.setState('composing');
+                const statusText = document.getElementById('journalOrbStatusText');
+                if (statusText) statusText.textContent = '일지 분석 코칭 전달 중';
+                setTimeout(() => {
+                    if (journalAgentOrb) {
+                        journalAgentOrb.setState('working');
+                        if (statusText) statusText.textContent = '운동 일지 AI 코치 대기 중';
+                    }
+                }, 4500);
+            }
+        }
+
+        function generateJournalWorkoutSummary() {
+            const history = Array.isArray(setHistory) ? setHistory : [];
+            if (history.length === 0) {
+                return `[AI 운동 일지 정밀 분석]\n완료된 세트 기록이 없습니다.\n풀업 운동을 수행하시면 실시간 VBT 템포와 속도 손실률, 누적 볼륨을 정밀 분석해 드립니다.`;
+            }
+            const totalSetsDone = history.length;
+            const totalRepsDone = history.reduce((acc, s) => acc + (s.reps || 0), 0);
+            const avgTempo = (history.reduce((acc, s) => acc + (s.avgTempo || 2.0), 0) / totalSetsDone).toFixed(1);
+            const totalVolume = history.reduce((acc, s) => acc + ((s.weightKg || currentLoadKg) * (s.reps || 0)), 0);
+
+            return `[오늘의 운동 종합 분석 리포트]
+누적 세트: ${totalSetsDone}세트 | 총 반복수: ${totalRepsDone}회
+총 볼륨: ${Math.round(totalVolume)}kg | 평균 VBT 템포: ${avgTempo}초
+평가: 안정적인 가동범위와 일정한 수축 속도로 효과적인 근육 자극을 달성했습니다.`;
+        }
+
+        function generateJournalFatigueDiagnosis() {
+            const history = Array.isArray(setHistory) ? setHistory : [];
+            if (history.length === 0) {
+                return `[피로도 및 회복 진단]\n현재 운동 시작 전 상태입니다. 신경계 및 근육 피로도 정상 (READY).`;
+            }
+            const lastSet = history[history.length - 1];
+            const hadStall = currentSetAssistTriggers > 0 || (lastSet.loadChanges && lastSet.loadChanges.length > 0);
+            const lastTempo = parseFloat(lastSet.avgTempo || 2.1);
+
+            if (hadStall || lastTempo >= 3.0) {
+                return `[피로도 및 회복 정밀 진단]
+진단 결과: [피로 누적 주의]
+직전 세트 템포가 ${lastTempo.toFixed(1)}초로 지연되었으며 정체 구간이 감지되었습니다. 60초 이상의 충분한 휴식과 -5kg 감량을 권장합니다.`;
+            } else if (lastTempo <= 2.0) {
+                return `[피로도 및 회복 정밀 진단]
+진단 결과: [파워 출력 최상]
+속도 손실률 10% 미만으로 근신경계 피로도가 매우 낮습니다. 현재 컨디션이 최상이므로 목표 랩을 적극 도전하세요.`;
+            } else {
+                return `[피로도 및 회복 정밀 진단]
+진단 결과: [안정적 페이스]
+세트 간 피로 누적도가 권장 범위 내에 있습니다. 현재 설정된 휴식 시간을 준수하며 다음 세트를 진행하세요.`;
+            }
+        }
+
+        function generateJournalTempoAnalysis() {
+            const history = Array.isArray(setHistory) ? setHistory : [];
+            if (history.length === 0) {
+                return `[VBT 템포 및 속도 분석]\n측정된 세트 템포 데이터가 없습니다. 풀업 1회를 수행하면 수축 및 이완 속도가 실시간 기록됩니다.`;
+            }
+            const lastSet = history[history.length - 1];
+            const tempoVal = lastSet.avgTempo ? lastSet.avgTempo.toFixed(1) : '2.1';
+            const romVal = lastSet.romRating || 'GOOD';
+
+            return `[VBT 템포 & 가동범위 정밀 분석]
+최근 세트 평균 템포: ${tempoVal}초/rep
+가동범위(ROM) 판정: ${romVal}
+분석: 상승(동심성) 및 하강(원심성) 전환이 매끄러우며, 타깃 광배근에 지속적인 텐션이 안정적으로 전달되고 있습니다.`;
+        }
+
+        function handleJournalChatMessage(userText) {
+            let text = (userText || '').trim();
+            if (!text) return;
+            text = text.replace(/[\.\?!,~\s]+$/g, '').trim();
+
+            const inputEl = document.getElementById('journalChatInput');
+            if (inputEl) inputEl.value = '';
+
+            setJournalOrbState('solving', '일지 데이터 분석 및 판단 중...', 1.45);
+            renderJournalDecision(`"${escapeHtml(text)}" 분석 중...`);
+
+            setTimeout(() => {
+                const lower = text.toLowerCase();
+
+                // 1. 무게 제안 / 추천
+                const isWeightProposal = /(?:패턴|제안|추천|진단|다음\s*무게|무게\s*어때|무게\s*추천|무게\s*제안)/i.test(lower);
+                if (isWeightProposal) {
+                    const reply = analyzeWorkoutPatternAndProposeWeight();
+                    renderJournalDecision(reply);
+                    return;
+                }
+
+                // 2. 오늘 운동 분석 / 통계
+                const isTodayAnalysis = /(?:오늘\s*운동|운동\s*분석|요약|통계|전체\s*기록|총\s*볼륨|수행\s*평가)/i.test(lower);
+                if (isTodayAnalysis) {
+                    const reply = generateJournalWorkoutSummary();
+                    renderJournalDecision(reply);
+                    return;
+                }
+
+                // 3. 피로도 / 회복
+                const isFatigueQuery = /(?:피로|지침|힘듦|회복|컨디션|휴식|탈진)/i.test(lower);
+                if (isFatigueQuery) {
+                    const reply = generateJournalFatigueDiagnosis();
+                    renderJournalDecision(reply);
+                    return;
+                }
+
+                // 4. 템포 / VBT 속도
+                const isTempoQuery = /(?:템포|속도|vbt|가동범위|rom|수축|이완|리듬)/i.test(lower);
+                if (isTempoQuery) {
+                    const reply = generateJournalTempoAnalysis();
+                    renderJournalDecision(reply);
+                    return;
+                }
+
+                // 5. 일반 질의 및 코칭 요청 -> LLM 연동
+                setJournalOrbState('solving', 'AI 코치가 일지 데이터를 검토하는 중...', 1.45);
+                renderJournalDecision(`"${escapeHtml(text)}"\nAI 코치가 분석하고 답변을 생각하는 중입니다...`);
+
+                socket.emit('userChatMessage', {
+                    message: text,
+                    context: {
+                        source: 'journal',
+                        totalSets: (Array.isArray(setHistory) ? setHistory.length : 0),
+                        totalReps: totalReps,
+                        currentLoadKg: currentLoadKg,
+                        historySummary: (Array.isArray(setHistory) && setHistory.length > 0)
+                            ? `총 ${setHistory.length}세트 완료, 누적 ${totalReps}회, 현재 부하 ${currentLoadKg}kg`
+                            : '완료된 세트 기록 없음'
+                    }
+                });
+            }, 380);
         }
 
         function updateAgentOrbState(status, isRest, isDanger, isAssisting) {
@@ -5201,21 +5371,25 @@
         // 로컬 LLM(Ollama) 실시간 대화형 코칭 응답 수신
         socket.on('agentChatResponse', (data) => {
             if (data && data.reply) {
-                renderAgentDecision(data.reply);
-                lastSpokenDecision = data.reply;
-                setOrbStateWithCaption('composing', 'AI 코치 답변 전달 중', 1.25);
-                speakAgentVoice(data.reply);
+                if (currentActiveView === 'journal') {
+                    renderJournalDecision(data.reply);
+                } else {
+                    renderAgentDecision(data.reply);
+                    lastSpokenDecision = data.reply;
+                    setOrbStateWithCaption('composing', 'AI 코치 답변 전달 중', 1.25);
+                    speakAgentVoice(data.reply);
 
-                setTimeout(() => {
-                    if (agentOrb && !document.body.classList.contains('danger')) {
-                        updateAgentOrbState(
-                            isWorkoutResting ? 'REST' : (currentVal > 300 ? 'NORMAL' : 'WAITING'),
-                            isWorkoutResting,
-                            false,
-                            false
-                        );
-                    }
-                }, 4500);
+                    setTimeout(() => {
+                        if (agentOrb && !document.body.classList.contains('danger')) {
+                            updateAgentOrbState(
+                                isWorkoutResting ? 'REST' : (currentVal > 300 ? 'NORMAL' : 'WAITING'),
+                                isWorkoutResting,
+                                false,
+                                false
+                            );
+                        }
+                    }, 4500);
+                }
             }
         });
 
@@ -6786,15 +6960,15 @@
             }, 380);
         }
 
-        // 추천 음성 칩 클릭 이벤트 바인딩
-        document.querySelectorAll('.voice-chip').forEach(chip => {
+        // 추천 음성 칩 클릭 이벤트 바인딩 (실시간 코칭 전용)
+        document.querySelectorAll('.voice-chip:not(.journal-chip)').forEach(chip => {
             chip.addEventListener('click', () => {
                 const cmd = chip.getAttribute('data-cmd') || chip.textContent.replace(/"/g, '').trim();
                 handleUserVoiceCommand(cmd);
             });
         });
 
-        // 폼 제출 & 전송 버튼 & 엔터 키 이벤트 바인딩
+        // 폼 제출 & 전송 버튼 & 엔터 키 이벤트 바인딩 (실시간 코칭)
         function sendChatMessage() {
             const text = voiceChatInput ? voiceChatInput.value.trim() : '';
             if (text) {
@@ -6825,6 +6999,47 @@
                 }
             });
         }
+
+        // ==================== 운동 일지 전용 챗 바인딩 ====================
+        const journalChatForm = document.getElementById('journalChatForm');
+        const journalChatInput = document.getElementById('journalChatInput');
+        const btnJournalChatSend = document.getElementById('btnJournalChatSend');
+
+        function sendJournalChatMessage() {
+            const text = journalChatInput ? journalChatInput.value.trim() : '';
+            if (text) {
+                handleJournalChatMessage(text);
+                if (journalChatInput) journalChatInput.value = '';
+            }
+        }
+
+        if (journalChatForm) {
+            journalChatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                sendJournalChatMessage();
+            });
+        }
+        if (btnJournalChatSend) {
+            btnJournalChatSend.addEventListener('click', (e) => {
+                e.preventDefault();
+                sendJournalChatMessage();
+            });
+        }
+        if (journalChatInput) {
+            journalChatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendJournalChatMessage();
+                }
+            });
+        }
+
+        document.querySelectorAll('.journal-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const cmd = chip.getAttribute('data-cmd') || chip.textContent.replace(/"/g, '').trim();
+                handleJournalChatMessage(cmd);
+            });
+        });
 
         // 아두이노 실시간 센서 연동 모드 (가상 시뮬레이션 인터벌 및 버튼 제거됨)
 
