@@ -484,57 +484,7 @@ function generateWorkoutHistory() {
 
     const history = [];
 
-    // 특정 날짜 및 고중량/피로 세트에서의 현실적인 스마트 보조 개입 이벤트 설정
-    const assistEventMap = {
-        // 1. 2026-09-08: 첫 주말 직후 4세트 마지막 드랍세트 9회차 시도 중
-        '2026-09-08_4': {
-            repAtTrigger: 9,
-            reductionKg: 5.0,
-            heightPct: 42,
-            reason: '중간 정체 1.4초 감지 (-5.0kg 감경 보조)',
-            feedback: '[본 세트 3] 9회차 수축 지연으로 스마트 보조(-5.0kg) 개입. 안전하게 목표 반복 완수.'
-        },
-        // 2. 2026-09-15: 첫 65kg 증량 탑세트 7회차 시도 중
-        '2026-09-15_2': {
-            repAtTrigger: 7,
-            reductionKg: 10.0,
-            heightPct: 52,
-            reason: '첫 65kg 증량 구간 7회차 정체 감지 (-10.0kg 감경 보조)',
-            feedback: '[본 세트 1] 첫 65kg 탑 세트 7회차에서 정체 감지되어 스마트 보조(-10kg) 개입. 실패 지점 없이 목표 10회 안전 완수.'
-        },
-        // 3. 2026-09-22: 1시간 이상 고볼륨 세션 마지막 세트 8회차
-        '2026-09-22_5': {
-            repAtTrigger: 8,
-            reductionKg: 7.5,
-            heightPct: 46,
-            reason: '후반 속도 급감 및 1.4초 정체 감지 (-7.5kg 부하 감경)',
-            feedback: '[본 세트 4] 5세트 누적 피로 도달 시점에 스마트 감경(-7.5kg) 가동. 잔여 근섬유 안전 완수.'
-        },
-        // 4. 2026-09-29: 70kg 증량 탑세트 8회차 시도 중
-        '2026-09-29_2': {
-            repAtTrigger: 8,
-            reductionKg: 10.0,
-            heightPct: 55,
-            reason: '70kg 고부하 중간 정체 1.4초 감지 (-10.0kg 감경 보조)',
-            feedback: '[본 세트 1] 70kg 신기록 도전 탑세트 8회차에서 부하 한계 도달, 스마트 보조(-10kg)로 10회 돌파.'
-        },
-        // 5. 2026-10-04: 주말 고볼륨 4세트 9회차 시도 중
-        '2026-10-04_4': {
-            repAtTrigger: 9,
-            reductionKg: 7.5,
-            heightPct: 38,
-            reason: '바텀 2.5초 지연 탈진 위험 감지 (-7.5kg 안전 리프트 보조)',
-            feedback: '[본 세트 3] 바텀 피로 정체 감지 즉시 안전 보조(-7.5kg) 개입. 부상 방지 및 세트 완수.'
-        },
-        // 6. 2026-10-08: 오늘 75kg 최고 부하 도전 탑세트 8회차 시도 중!
-        '2026-10-08_2': {
-            repAtTrigger: 8,
-            reductionKg: 10.0,
-            heightPct: 54,
-            reason: '최고 부하 75kg 구간 8회차 정체 감지 (-10.0kg 스마트 감경)',
-            feedback: '[본 세트 1] 오늘 75kg 최고 부하 도전 중 8회차에서 스마트 보조(-10kg)가 즉시 개입하여 안전하게 10회 유효 수축을 완성했습니다.'
-        }
-    };
+
 
     dates.forEach((dateStr, dayIdx) => {
         const config = getDayBlockConfig(dayIdx);
@@ -555,7 +505,13 @@ function generateWorkoutHistory() {
         let currentSeconds = 20;
 
         const warmupWeight = Math.round((baseWeight * 0.5) * 2) / 2;
-        const dropWeight = Math.max(20, Math.round((baseWeight - 10.0) * 10) / 10);
+
+        // [지능형 세트별 부하 하향 추적 상태]
+        // 탑세트(baseWeight)에서 시작하여, 직전 세트의 템포 지연/가동범위 감소/보조 개입을 감지했을 때만 단계적으로 -5kg씩 하향 조정
+        let currentSetLoad = baseWeight;
+        let prevSetHadFatigue = false;
+        let prevSetFatigueReason = '';
+        let prevSetAvgTempo = baseTempo;
 
         for (let s = 1; s <= setCount; s++) {
             const startStr = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
@@ -575,7 +531,7 @@ function generateWorkoutHistory() {
             let repTempos = [];
 
             if (s === 1) {
-                // Set 1: 워밍업 세트 (가벼운 무게로 20~30회 고반복 예열)
+                // Set 1: 워밍업 세트 (가벼운 무게로 20~25회 고반복 예열)
                 setType = 'WARMUP';
                 setTypeLabel = '워밍업';
                 reps = (budgetInfo.tier === 'UNDER_30M') ? 20 : 25;
@@ -584,65 +540,147 @@ function generateWorkoutHistory() {
                 finalLoadKg = warmupWeight;
                 repTempos = Array.from({ length: reps }, (_, i) => Number((1.36 + (i % 5) * 0.03).toFixed(1)));
                 coachFeedback = `[워밍업] 가벼운 부하(${warmupWeight}kg)로 ${reps}회 고반복 예열 완료 (${budgetInfo.label} 루틴). 관절 윤활액 분비 및 신경계 활성화.`;
+                prevSetHadFatigue = false;
+                prevSetFatigueReason = '';
             } else if (s === 2) {
-                // Set 2: 본 세트 1 (탑 세트) - 최고 부하로 무게 확 늘림!
+                // Set 2: 본 세트 1 (탑 세트) - 그날의 최고 목표 부하(baseWeight)로 시도!
                 setType = 'MAIN';
                 setTypeLabel = '본 세트';
                 reps = (budgetInfo.tier === 'UNDER_30M' && config.repsList && config.repsList[1]) ? config.repsList[1] : 10;
                 targetReps = 10;
                 startLoadKg = baseWeight;
                 finalLoadKg = baseWeight;
-                repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo + i * 0.03).toFixed(1)));
-                coachFeedback = `[본 세트 1] 최고 부하 ${baseWeight}kg 탑 세트 완수 (${budgetInfo.label} 맞춤). 최대 수축 장력으로 본 세트 유효 반복 달성.`;
+                currentSetLoad = baseWeight;
+
+                // 탑 세트 피로 및 보조 개입 시뮬레이션:
+                // 고중량(65kg 이상) 도전이거나 피로가 높은 날 7~8회차에서 피로 정체 발생
+                const seed = ((dayIdx * 23 + s * 37) % 100) / 100;
+                const fatigueRisk = baseWeight >= 70 ? 0.65 : (baseWeight >= 65 ? 0.48 : 0.32);
+                const hasFatigue = (seed < fatigueRisk);
+
+                // 고중량 피로 시 약 42% 확률로 스마트 보조 개입
+                const assistSeed = ((dayIdx * 13 + s * 29) % 100);
+                const willAssist = hasFatigue && (assistSeed < 42);
+
+                if (willAssist) {
+                    assistLvl = 1;
+                    const reductionKg = (baseWeight >= 70) ? 10.0 : 5.0;
+                    finalLoadKg = Math.max(20, Math.round((startLoadKg - reductionKg) * 10) / 10);
+                    finalIntensityPct = Math.round((finalLoadKg / startLoadKg) * 100);
+                    const triggerTime = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
+                    loadChanges = [{
+                        time: triggerTime,
+                        set: s,
+                        repAtTrigger: 8,
+                        totalRepsAtTrigger: reps,
+                        heightPct: 52,
+                        fromKg: startLoadKg,
+                        toKg: finalLoadKg,
+                        reductionKg: reductionKg,
+                        fromPercent: 100,
+                        toPercent: finalIntensityPct,
+                        reductionPercent: 100 - finalIntensityPct,
+                        reason: `탑세트 ${startLoadKg}kg 8회차 정체 감지 (-${reductionKg}kg 감경 보조)`,
+                        triggerType: 'smart_assist'
+                    }];
+                    coachFeedback = `[본 세트 1] 최고 부하 ${baseWeight}kg 탑 세트 8회차 정체 감지되어 스마트 보조(-${reductionKg}kg) 개입. 실패 지점 없이 10회 안전 완수.`;
+                    repTempos = Array.from({ length: reps }, (_, i) => {
+                        if (i === 7) return Number((baseTempo + 1.2).toFixed(1)); // 정체
+                        if (i > 7) return Number((baseTempo - 0.1).toFixed(1)); // 감경 후 회복
+                        return Number((baseTempo + i * 0.03).toFixed(1));
+                    });
+                    prevSetHadFatigue = true;
+                    prevSetFatigueReason = `스마트 보조(-${reductionKg}kg) 개입 및 피로`;
+                } else if (hasFatigue) {
+                    // 보조 없이 버텼으나 템포 지연 및 가동범위 감소
+                    repTempos = Array.from({ length: reps }, (_, i) => {
+                        return i >= 7 ? Number((baseTempo + 0.42 + (i - 7) * 0.14).toFixed(1)) : Number((baseTempo + i * 0.03).toFixed(1));
+                    });
+                    coachFeedback = `[본 세트 1] 최고 부하 ${baseWeight}kg 탑 세트 완수. 후반 템포 지연 및 가동범위 감소 신호 포착.`;
+                    prevSetHadFatigue = true;
+                    prevSetFatigueReason = '후반 템포 지연 및 가동범위 감소';
+                } else {
+                    // 쌩쌩하게 완벽 완수!
+                    repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo + i * 0.02).toFixed(1)));
+                    coachFeedback = `[본 세트 1] 최고 부하 ${baseWeight}kg 탑 세트 완수 (${budgetInfo.label} 맞춤). 안정적 템포(${baseTempo}s)로 최대 수축 장력 확보.`;
+                    prevSetHadFatigue = false;
+                    prevSetFatigueReason = '';
+                }
+                prevSetAvgTempo = Number((repTempos.reduce((a, b) => a + b, 0) / repTempos.length).toFixed(1));
             } else {
-                // Set 3 ~ N: 본 세트 2 ~ N (드랍 형식: 탑 세트에서 10kg 낮춰 고볼륨 소화)
+                // Set 3 ~ N: 본 세트 2 ~ N (직전 세트 피로 평가 후 지능적 부하 조정)
                 setType = 'MAIN';
                 setTypeLabel = '본 세트';
-                isDroppedLoad = true;
-                startLoadKg = dropWeight; // 10kg 감량 드랍 형식!
-                finalLoadKg = dropWeight;
-                reps = (s === 3 ? 12 : (s === 4 ? 11 : 10)); // 감량 부하로 10~12회 수행
-                targetReps = 12;
-                repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo - 0.12 + (i % 6) * 0.03).toFixed(1)));
-                const mainSetIdx = s - 1;
-                coachFeedback = `[본 세트 ${mainSetIdx}] 부하 10kg 감량(${dropWeight}kg) 드랍 방식으로 ${reps}회 완수. 잔여 근섬유 완전 소진.`;
-            }
 
-            // 특정 핵심 고부하/피로 세트에 대한 스마트 보조 개입 이벤트 적용
-            const assistKey = `${dateStr}_${s}`;
-            const assistEvent = assistEventMap[assistKey];
-
-            if (assistEvent) {
-                assistLvl = 1;
-                finalLoadKg = Math.max(20, Math.round((startLoadKg - assistEvent.reductionKg) * 10) / 10);
-                startIntensityPct = 100;
-                finalIntensityPct = Math.round((finalLoadKg / startLoadKg) * 100);
-                
-                const triggerTimeStr = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
-                loadChanges = [{
-                    time: triggerTimeStr,
-                    set: s,
-                    repAtTrigger: assistEvent.repAtTrigger,
-                    totalRepsAtTrigger: reps,
-                    heightPct: assistEvent.heightPct,
-                    fromKg: startLoadKg,
-                    toKg: finalLoadKg,
-                    reductionKg: assistEvent.reductionKg,
-                    fromPercent: 100,
-                    toPercent: finalIntensityPct,
-                    reductionPercent: 100 - finalIntensityPct,
-                    reason: assistEvent.reason,
-                    triggerType: 'smart_assist'
-                }];
-                coachFeedback = assistEvent.feedback;
-
-                // 해당 변곡 랩에서 템포 지연 및 감경 후 속도 회복 모델링
-                if (repTempos.length >= assistEvent.repAtTrigger) {
-                    repTempos[assistEvent.repAtTrigger - 1] = Number((repTempos[assistEvent.repAtTrigger - 1] + 1.2).toFixed(1));
-                    for (let r = assistEvent.repAtTrigger; r < repTempos.length; r++) {
-                        repTempos[r] = Number((baseTempo - 0.1).toFixed(1));
-                    }
+                // [지능형 부하 하향 메커니즘: 직전 세트 템포 지연/가동범위 감소/보조 개입 시에만 5kg 하향!]
+                if (prevSetHadFatigue) {
+                    currentSetLoad = Math.max(30, Math.round((currentSetLoad - 5.0) * 10) / 10);
                 }
+                startLoadKg = currentSetLoad;
+                finalLoadKg = currentSetLoad;
+                isDroppedLoad = (currentSetLoad < baseWeight);
+
+                // 부하가 낮아진 상태에서는 10~11회로 볼륨 소화
+                reps = (startLoadKg < baseWeight ? 11 : 10);
+                targetReps = reps;
+
+                // 세트 도중 피로 및 보조 개입 시뮬레이션:
+                const seed = ((dayIdx * 29 + s * 43) % 100) / 100;
+                const fatigueRisk = s >= 4 ? 0.62 : (s === 3 ? 0.44 : 0.35);
+                const hasFatigue = (seed < fatigueRisk);
+
+                // 후반 세트 보조 개입 (약 38% 확률)
+                const assistSeed = ((dayIdx * 17 + s * 31) % 100);
+                const willAssist = hasFatigue && (assistSeed < 38);
+
+                const mainSetIdx = s - 1;
+                if (willAssist) {
+                    assistLvl = 1;
+                    const reductionKg = (startLoadKg >= 65) ? 7.5 : 5.0;
+                    finalLoadKg = Math.max(20, Math.round((startLoadKg - reductionKg) * 10) / 10);
+                    finalIntensityPct = Math.round((finalLoadKg / startLoadKg) * 100);
+                    const triggerTime = `${String(startHour).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
+                    loadChanges = [{
+                        time: triggerTime,
+                        set: s,
+                        repAtTrigger: 8,
+                        totalRepsAtTrigger: reps,
+                        heightPct: 46,
+                        fromKg: startLoadKg,
+                        toKg: finalLoadKg,
+                        reductionKg: reductionKg,
+                        fromPercent: 100,
+                        toPercent: finalIntensityPct,
+                        reductionPercent: 100 - finalIntensityPct,
+                        reason: `후반 누적 피로 8회차 속도 저하 감지 (-${reductionKg}kg 감경 보조)`,
+                        triggerType: 'smart_assist'
+                    }];
+                    repTempos = Array.from({ length: reps }, (_, i) => {
+                        if (i === 7) return Number((baseTempo + 1.1).toFixed(1));
+                        if (i > 7) return Number((baseTempo - 0.1).toFixed(1));
+                        return Number((baseTempo - 0.08 + (i % 5) * 0.03).toFixed(1));
+                    });
+                    coachFeedback = `[본 세트 ${mainSetIdx}] ${startLoadKg}kg 수행 중 8회차 정체 감지되어 스마트 보조(-${reductionKg}kg) 개입. 잔여 랩 안전 완수.`;
+                    prevSetHadFatigue = true;
+                    prevSetFatigueReason = `스마트 보조(-${reductionKg}kg) 개입`;
+                } else if (hasFatigue) {
+                    repTempos = Array.from({ length: reps }, (_, i) => {
+                        return i >= 7 ? Number((baseTempo + 0.38 + (i - 7) * 0.12).toFixed(1)) : Number((baseTempo - 0.05 + (i % 5) * 0.03).toFixed(1));
+                    });
+                    coachFeedback = prevSetHadFatigue
+                        ? `[본 세트 ${mainSetIdx}] 직전 세트 ${prevSetFatigueReason} 감지로 5kg 하향(${startLoadKg}kg) 조정 완수. 유효 수축 텐션 확보.`
+                        : `[본 세트 ${mainSetIdx}] ${startLoadKg}kg 완수. 후반 수축 템포 지연 신호 포착.`;
+                    prevSetHadFatigue = true;
+                    prevSetFatigueReason = '템포 지연 및 가동범위 감소';
+                } else {
+                    repTempos = Array.from({ length: reps }, (_, i) => Number((baseTempo - 0.10 + (i % 5) * 0.02).toFixed(1)));
+                    coachFeedback = prevSetHadFatigue
+                        ? `[본 세트 ${mainSetIdx}] 부하 5kg 하향(${startLoadKg}kg)으로 템포 회복(${Number((repTempos.reduce((a, b) => a + b, 0) / reps).toFixed(1))}s) 및 안정적 가동범위 확보.`
+                        : `[본 세트 ${mainSetIdx}] 직전 세트 안정적 템포 유지로 동일 부하(${startLoadKg}kg) 유지 진행. 최대 근비대 볼륨 축적.`;
+                    prevSetHadFatigue = false;
+                    prevSetFatigueReason = '';
+                }
+                prevSetAvgTempo = Number((repTempos.reduce((a, b) => a + b, 0) / repTempos.length).toFixed(1));
             }
 
             const setDurationSec = Math.max(15, Math.round(repTempos.reduce((a, b) => a + b, 0)));
