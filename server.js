@@ -32,8 +32,10 @@ app.get('/api/tts', async (req, res) => {
         // 기본 음성: ko-KR-InJoonNeural (전문 스포츠 아나운서 스타일)
         // 기본 속도: +20% (경쾌하고 빠른 전달력)
         const voice = req.query.voice || 'ko-KR-InJoonNeural';
-        const rate = req.query.rate || '+20%';
-        const pitch = req.query.pitch || '+0Hz';
+        let rate = (req.query.rate || '+20%').trim();
+        if (!rate.startsWith('+') && !rate.startsWith('-')) rate = '+' + rate;
+        let pitch = (req.query.pitch || '+0Hz').trim();
+        if (!pitch.startsWith('+') && !pitch.startsWith('-')) pitch = '+' + pitch;
 
         const cacheKey = `${voice}_${rate}_${pitch}_${clean}`;
         if (ttsCache.has(cacheKey)) {
@@ -767,11 +769,20 @@ function trackRepetition(value) {
                     }
                 }
 
-                console.log(`[Rep 달성] Set ${currentSet} - ${currentSetReps}회 완료! (템포: ${durationSec.toFixed(1)}s, ROM: ${romRatingVal}, 부하: ${getCurrentLoadKg()}kg [Lv.${assistLevel}])`);
+                const pureKoreanNumbers = [
+                    '', '하나', '둘', '셋', '넷', '다섯', '여섯', '일곱', '여덟', '아홉', '열',
+                    '열하나', '열둘', '열셋', '열넷', '열다섯', '열여섯', '열일곱', '열여덟', '열아홉', '스물',
+                    '스물하나', '스물둘', '스물셋', '스물넷', '스물다섯', '스물여섯', '스물일곱', '스물여덟', '스물아홉', '서른',
+                    '서른하나', '서른둘', '서른셋', '서른넷', '서른다섯', '서른여섯', '서른일곱', '서른여덟', '서른아홉', '마흔',
+                    '마흔하나', '마흔둘', '마흔셋', '마흔넷', '마흔다섯', '마흔여섯', '마흔일곱', '마흔여덟', '마흔아홉', '쉰'
+                ];
+                const countWord = currentSetReps < pureKoreanNumbers.length ? pureKoreanNumbers[currentSetReps] : `${currentSetReps}`;
+                console.log(`[Rep 달성] Set ${currentSet} - ${currentSetReps}회(${countWord}) 완료! (템포: ${durationSec.toFixed(1)}s, ROM: ${romRatingVal}, 부하: ${getCurrentLoadKg()}kg [Lv.${assistLevel}])`);
 
                 io.emit('repCompleted', {
                     currentSet,
                     reps: currentSetReps,
+                    countWord: countWord,
                     totalReps,
                     duration: Number(durationSec.toFixed(1)),
                     avgTempo: Number(avgTempo.toFixed(1)),
