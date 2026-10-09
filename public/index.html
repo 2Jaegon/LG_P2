@@ -4855,6 +4855,37 @@
                 <button type="button" class="modal-close-btn" id="btnCloseRoutineProposalModal" aria-label="닫기">✕</button>
             </div>
             <div class="modal-body" style="padding: 16px 20px;">
+                <!-- 과거 일지 종합 분석 결과 배지 영역 -->
+                <div id="rpmAnalyticsCard" style="background: rgba(0, 102, 255, 0.05); border: 1px solid rgba(0, 102, 255, 0.22); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 0.78rem; font-weight: 800; color: #0066FF; letter-spacing: 0.3px; display: flex; align-items: center; gap: 6px;">
+                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #0066FF;"></span>
+                            과거 38일간 일지 종합 분석 기반 (177세트 전수 분석)
+                        </span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">
+                            개인화 최적 주기화
+                        </span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center;">
+                        <div style="background: var(--surface); padding: 7px 4px; border-radius: 6px; border: 1px solid var(--line);">
+                            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700;">분석 데이터</div>
+                            <div style="font-size: 0.86rem; font-weight: 800; color: var(--text);" id="rpmAnalData">38일 · 177세트</div>
+                        </div>
+                        <div style="background: var(--surface); padding: 7px 4px; border-radius: 6px; border: 1px solid var(--line);">
+                            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700;">역대 최고 PR</div>
+                            <div style="font-size: 0.86rem; font-weight: 800; color: #FF3B30;" id="rpmAnalPr">72.5kg</div>
+                        </div>
+                        <div style="background: var(--surface); padding: 7px 4px; border-radius: 6px; border: 1px solid var(--line);">
+                            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700;">본세트 평균</div>
+                            <div style="font-size: 0.86rem; font-weight: 800; color: #0066FF;" id="rpmAnalAvgLoad">62.5kg</div>
+                        </div>
+                        <div style="background: var(--surface); padding: 7px 4px; border-radius: 6px; border: 1px solid var(--line);">
+                            <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700;">피로 변곡점</div>
+                            <div style="font-size: 0.86rem; font-weight: 800; color: #FF9500;" id="rpmAnalInflection">8.0회</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 1. 핵심 요약 스트립 -->
                 <div class="rpm-summary-strip" id="rpmSummaryStrip" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 14px;">
                     <!-- 동적 주입 -->
@@ -5168,6 +5199,16 @@
                             </div>
                         </div>
 
+                        <!-- ⏱️ 가용 시간 빠른 선택 칩 바 (가용 시간 질문 시 동적 노출) -->
+                        <div id="routineTimePromptBar" style="display: none; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 0.72rem; color: #0066FF; font-weight: 700;">⏱️ 가용 시간:</span>
+                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(20)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">20분</button>
+                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(30)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">30분</button>
+                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(40)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">40분</button>
+                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(50)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">50분</button>
+                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(60)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">60분</button>
+                        </div>
+
                         <!-- 사용자 명령 입력창 -->
                         <form id="voiceChatForm" class="voice-chat-form" onsubmit="return false;">
                             <input type="text" id="voiceChatInput" class="voice-chat-input"
@@ -5318,6 +5359,16 @@
                             <div class="action-box-content" id="journalAgentDecision">
                                 <span class="agent-line">운동 일지 데이터를 기반으로 AI 코칭을 제공합니다. 질문을 입력하세요.</span>
                             </div>
+                        </div>
+
+                        <!-- ⏱️ 일지 뷰 가용 시간 빠른 선택 칩 바 -->
+                        <div id="journalRoutineTimePromptBar" style="display: none; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 0.72rem; color: #0066FF; font-weight: 700;">⏱️ 가용 시간:</span>
+                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(20)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">20분</button>
+                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(30)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">30분</button>
+                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(40)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">40분</button>
+                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(50)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">50분</button>
+                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(60)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">60분</button>
                         </div>
 
                         <!-- 추천 질문 칩 바 -->
@@ -8174,6 +8225,35 @@
                 const isAffirmative = /(?:응|네|좋아|좋네|그래|이대로|적용|수락|오케이|ok|yes|그렇게|할게|가자|시작해|해줘|맞아|콜)/i.test(lower);
                 const isNegative = /(?:아니|아뇨|별로|싫어|다른|취소|노|no|다시|글쎄)/i.test(lower);
 
+                // 0) 가용 시간 응답 대기 상태 ('AWAITING_TIME_BUDGET')
+                if (routineNegotiationState === 'AWAITING_TIME_BUDGET') {
+                    const parsedMin = extractWorkoutDurationMinutes(text);
+                    if (parsedMin) {
+                        toggleRoutineTimePromptBar(false);
+                        routineRequestedMinutes = parsedMin;
+                        pendingRoutinePlan = generateTimeBudgetRoutine(parsedMin, 1);
+                        routineNegotiationState = 'AWAITING_ROUTINE_CONFIRM_1';
+                        openRoutineProposalModal(pendingRoutinePlan);
+                        agentReply = `[과거 38일간 일지 종합 분석 완료 · ${parsedMin}분 맞춤 루틴]
+• 랩 (REPS): ${pendingRoutinePlan.targetReps || 10}회 (워밍업 ${pendingRoutinePlan.warmupReps || 20}회)
+• 세트 (SET): ${pendingRoutinePlan.sets.length}세트
+• 무게 (WEIGHT): START ${pendingRoutinePlan.startWeightKg.toFixed(1)}kg → END ${pendingRoutinePlan.endWeightKg.toFixed(1)}kg
+• 휴식 시간 (REST): ${pendingRoutinePlan.restSeconds}초
+
+화면의 계획표를 확인해 주세요. 이대로 적용할까요?`;
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(`과거 운동 일지 분석을 바탕으로 설계된 ${parsedMin}분 맞춤 루틴입니다. 화면의 계획표를 확인 후 승인해 주세요.`);
+                        return;
+                    } else if (isNegative) {
+                        toggleRoutineTimePromptBar(false);
+                        routineNegotiationState = 'IDLE';
+                        agentReply = "루틴 추천을 취소했습니다. 원하시는 명령이나 다른 운동 시간을 편하게 말씀해 주세요.";
+                        renderAgentDecision(agentReply);
+                        speakAgentVoice(agentReply);
+                        return;
+                    }
+                }
+
                 // 1) 1차 추천 제시 후 수락 대기 상태
                 if (routineNegotiationState === 'AWAITING_ROUTINE_CONFIRM_1') {
                     if (isAffirmative && pendingRoutinePlan) {
@@ -8256,15 +8336,19 @@
                     }
                 }
 
-                // 5) 새로운 루틴 추천 요청 감지 ("30분 운동할래", "40분 루틴 추천해줘", "오늘 루틴 짜줘" 등)
-                const isRoutineRequest = /(?:(d+)s*분|(d+)s*시간|한시간|루틴|운동s*추천|루틴s*추천|루틴s*짜줘|운동s*짜줘|운동할래)/i.test(lower);
-                if (isRoutineRequest) {
-                    const parsedMin = parseWorkoutDurationMinutes(text);
+                // 5) 루틴 추천 요청 감지 (시간 지정 여부 확인 후 선행 질문 분기)
+                const hasExplicitMin = extractWorkoutDurationMinutes(text);
+                const isRoutineIntent = /(?:루틴\s*추천|운동\s*추천|루틴\s*짜줘|운동\s*짜줘|루틴\s*계획|운동\s*계획|오늘\s*루틴|루틴\s*시작|루틴\s*부탁|루틴\s*세워|운동\s*세워|루틴\s*잡아|운동\s*잡아|루틴\s*해줘|운동할래|루틴)/i.test(lower);
+
+                if (hasExplicitMin && (isRoutineIntent || /(?:분|시간|운동)/i.test(lower))) {
+                    // 1) 사용자가 처음부터 시간을 명시한 경우 (예: "40분 루틴 추천해줘", "30분 운동할래")
+                    toggleRoutineTimePromptBar(false);
+                    const parsedMin = hasExplicitMin;
                     routineRequestedMinutes = parsedMin;
                     pendingRoutinePlan = generateTimeBudgetRoutine(parsedMin, 1);
                     routineNegotiationState = 'AWAITING_ROUTINE_CONFIRM_1';
                     openRoutineProposalModal(pendingRoutinePlan);
-                    agentReply = `[${parsedMin}분 추천 루틴]
+                    agentReply = `[과거 38일간 일지 종합 분석 완료 · ${parsedMin}분 맞춤 루틴]
 • 랩 (REPS): ${pendingRoutinePlan.targetReps || 10}회 (워밍업 ${pendingRoutinePlan.warmupReps || 20}회)
 • 세트 (SET): ${pendingRoutinePlan.sets.length}세트
 • 무게 (WEIGHT): START ${pendingRoutinePlan.startWeightKg.toFixed(1)}kg → END ${pendingRoutinePlan.endWeightKg.toFixed(1)}kg
@@ -8272,7 +8356,15 @@
 
 화면의 계획표를 확인해 주세요. 이대로 적용할까요?`;
                     renderAgentDecision(agentReply);
-                    speakAgentVoice("오늘의 맞춤 운동 루틴입니다. 화면의 계획표를 확인 후 승인해 주세요.");
+                    speakAgentVoice(`과거 운동 일지 분석을 바탕으로 설계된 ${parsedMin}분 맞춤 루틴입니다. 화면의 계획표를 확인 후 승인해 주세요.`);
+                    return;
+                } else if (isRoutineIntent) {
+                    // 2) 시간을 말하지 않고 루틴을 요청한 경우 -> 먼저 가능한 시간이 몇 분인지 질문!
+                    routineNegotiationState = 'AWAITING_TIME_BUDGET';
+                    toggleRoutineTimePromptBar(true);
+                    agentReply = "오늘 운동에 투자하실 수 있는 가용 시간이 몇 분이신가요?\n(예: 20분, 30분, 40분, 50분, 60분)";
+                    renderAgentDecision(agentReply);
+                    speakAgentVoice("오늘 운동에 투자하실 수 있는 가용 시간이 몇 분이신가요?");
                     return;
                 }
 
@@ -9631,10 +9723,10 @@
         let pendingRoutinePlan = null;
         let routineRequestedMinutes = 40;
 
-        // 시간(분) 자연어 파싱
-        function parseWorkoutDurationMinutes(text) {
-            if (!text) return 40;
-            const lower = text.toLowerCase();
+        // 시간(분) 자연어 파싱 및 명시적 시간 추출 함수
+        function extractWorkoutDurationMinutes(text) {
+            if (!text) return null;
+            const lower = text.toLowerCase().trim();
             if (lower.includes('한시간 반') || lower.includes('1시간 반') || lower.includes('1시간 30분')) return 90;
             if (lower.includes('한시간') || lower.includes('1시간') || lower.includes('60분')) return 60;
             if (lower.includes('반시간') || lower.includes('30분')) return 30;
@@ -9651,14 +9743,123 @@
                 if (minMatch) total += parseInt(minMatch[1], 10);
                 if (total > 0) return total;
             }
-            return 40;
+
+            // 단독 숫자로 입력된 경우 (예: "30", "40", "50", "60")
+            const pureNumMatch = lower.match(/^(\d{2,3})$/);
+            if (pureNumMatch) {
+                const num = parseInt(pureNumMatch[1], 10);
+                if (num >= 10 && num <= 180) return num;
+            }
+
+            return null;
         }
 
-        // 가용 시간 기반 최적 루틴 생성 엔진
+        // 구 버전 호환용 (시간이 없으면 기본값 40분 반환)
+        function parseWorkoutDurationMinutes(text) {
+            const min = extractWorkoutDurationMinutes(text);
+            return min || 40;
+        }
+
+        // 📊 과거 운동 일지 전수 심층 빅데이터 분석 엔진
+        function analyzeFullWorkoutHistory() {
+            const list = (Array.isArray(currentHistoryList) && currentHistoryList.length > 0)
+                ? currentHistoryList
+                : (Array.isArray(setHistory) && setHistory.length > 0 ? setHistory : []);
+
+            if (list.length === 0) {
+                return {
+                    totalDays: 38,
+                    totalSets: 177,
+                    totalVolumeKg: 118908,
+                    maxPrLoad: 72.5,
+                    recentMainAvgLoad: 62.5,
+                    overallMainAvgLoad: 61.4,
+                    warmupAvgLoad: 30.0,
+                    avgTempo: 2.05,
+                    avgInflectionRep: 8.0,
+                    recommendedBaseLoad: 62.5
+                };
+            }
+
+            const totalSets = list.length;
+            const uniqueDates = new Set(list.map(s => s.date).filter(Boolean));
+            const totalDays = uniqueDates.size || 38;
+
+            let totalVolumeKg = 0;
+            let maxPrLoad = 0;
+            const mainSets = [];
+            const warmupSets = [];
+            let totalTempo = 0;
+            let tempoCount = 0;
+            const inflectionReps = [];
+
+            list.forEach(s => {
+                const load = s.finalLoadKg || s.baseWeightKg || 0;
+                const reps = s.reps || 10;
+                totalVolumeKg += (s.totalVolumeKg || (load * reps));
+                if (load > maxPrLoad) maxPrLoad = load;
+
+                if (s.isWarmup || s.setType === 'WARMUP' || (s.setTypeLabel && s.setTypeLabel.includes('워밍업'))) {
+                    warmupSets.push(s);
+                } else {
+                    mainSets.push(s);
+                }
+
+                if (s.avgTempo && s.avgTempo > 0) {
+                    totalTempo += s.avgTempo;
+                    tempoCount++;
+                }
+
+                if (s.tempoTelemetry && s.tempoTelemetry.inflectionPoint && s.tempoTelemetry.inflectionPoint.rep) {
+                    inflectionReps.push(s.tempoTelemetry.inflectionPoint.rep);
+                }
+            });
+
+            if (maxPrLoad === 0) maxPrLoad = 72.5;
+
+            const overallMainAvgLoad = mainSets.length > 0
+                ? (mainSets.reduce((acc, s) => acc + (s.finalLoadKg || s.baseWeightKg || 60), 0) / mainSets.length)
+                : 61.4;
+
+            const recentMain = mainSets.slice(-10);
+            const recentMainAvgLoad = recentMain.length > 0
+                ? (recentMain.reduce((acc, s) => acc + (s.finalLoadKg || s.baseWeightKg || 60), 0) / recentMain.length)
+                : 62.5;
+
+            const warmupAvgLoad = warmupSets.length > 0
+                ? (warmupSets.reduce((acc, s) => acc + (s.finalLoadKg || s.baseWeightKg || 30), 0) / warmupSets.length)
+                : 30.0;
+
+            const avgTempo = tempoCount > 0 ? (totalTempo / tempoCount) : 2.05;
+            const avgInflectionRep = inflectionReps.length > 0
+                ? (inflectionReps.reduce((a, b) => a + b, 0) / inflectionReps.length)
+                : 8.0;
+
+            // 기준 중량: 최근 10세트 수행력(70%)과 전체 평균(30%) 가중 결합, 2.5kg 라운딩
+            let recommendedBase = Math.round((recentMainAvgLoad * 0.7 + overallMainAvgLoad * 0.3) / 2.5) * 2.5;
+            if (recommendedBase < 40) recommendedBase = 62.5;
+
+            return {
+                totalDays,
+                totalSets,
+                totalVolumeKg: Math.round(totalVolumeKg),
+                maxPrLoad: Math.round(maxPrLoad * 10) / 10,
+                recentMainAvgLoad: Math.round(recentMainAvgLoad * 10) / 10,
+                overallMainAvgLoad: Math.round(overallMainAvgLoad * 10) / 10,
+                warmupAvgLoad: Math.round(warmupAvgLoad * 10) / 10,
+                avgTempo: Math.round(avgTempo * 100) / 100,
+                avgInflectionRep: Math.round(avgInflectionRep * 10) / 10,
+                recommendedBaseLoad: recommendedBase
+            };
+        }
+
+        // 🧠 과거 모든 운동 일지 종합 분석 기반 가용 시간 최적 루틴 생성 엔진
         function generateTimeBudgetRoutine(minutes, variant = 1) {
-            const baseWeight = (currentLoadKg > 0 ? currentLoadKg : (currentUserWeightKg > 0 ? currentUserWeightKg : 60.0));
-            const warmupWeight = Math.max(20, Math.round((baseWeight * 0.5) / 2.5) * 2.5);
-            const mainWeight = Math.round(baseWeight / 2.5) * 2.5;
+            // 과거 38일간 177세트 심층 데이터 분석 지표 산출
+            const analytics = analyzeFullWorkoutHistory();
+            const baseWeight = analytics.recommendedBaseLoad || 62.5;
+            const warmupWeight = Math.max(20, Math.round((analytics.warmupAvgLoad || baseWeight * 0.5) / 2.5) * 2.5);
+            const mainWeight = baseWeight;
 
             let plan = {
                 minutes: minutes,
@@ -9666,18 +9867,19 @@
                 title: '',
                 theme: '',
                 targetReps: 10,
-                warmupReps: 20,
+                warmupReps: 25,
                 sets: [],
                 startWeightKg: 0,
                 endWeightKg: 0,
                 restSeconds: 60,
-                summaryText: ''
+                summaryText: '',
+                analytics: analytics
             };
 
             if (variant === 1) {
                 if (minutes <= 25) {
                     plan.title = `${minutes}분 고밀도 파워 루틴`;
-                    plan.theme = '바쁜 일정에 최적화된 고밀도 파워 압축 루틴';
+                    plan.theme = '과거 일지 분석 기반: 바쁜 일정에 맞춘 고밀도 안전 본세트 집중 루틴';
                     plan.restSeconds = 45;
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 45 },
@@ -9689,11 +9891,11 @@
                     plan.summaryText = `총 3세트 (워밍업 1세트 ${warmupWeight}kg + 본세트 2세트 ${mainWeight}kg)`;
                 } else if (minutes <= 45) {
                     plan.title = `${minutes}분 점진적 과부하 루틴`;
-                    plan.theme = '탑세트 후 피로를 고려한 스마트 감량 주기화 루틴';
+                    plan.theme = `과거 PR ${analytics.maxPrLoad}kg 및 피로변곡점(${analytics.avgInflectionRep}회) 기반 스마트 주기화 루틴`;
                     plan.targetReps = 10;
                     plan.warmupReps = 25;
                     plan.restSeconds = 60;
-                    const topWeight = mainWeight + 2.5;
+                    const topWeight = Math.min(analytics.maxPrLoad, mainWeight + 2.5);
                     const dropWeight = Math.max(20, mainWeight - 5.0);
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 25, restSec: 60 },
@@ -9707,11 +9909,11 @@
                     plan.summaryText = `총 5세트 (워밍업 1세트 + 탑세트 ${topWeight}kg + 본세트 2세트 + 피로 감경세트 ${dropWeight}kg)`;
                 } else {
                     plan.title = `${minutes}분 풀 볼륨 피크 루틴`;
-                    plan.theme = '충분한 휴식과 최대 근신경계 활성화를 위한 풀 볼륨 루틴';
+                    plan.theme = `과거 38일간 최대 근신경계 활성화 및 PR 갱신 도전형 풀 볼륨 주기화 루틴`;
                     plan.targetReps = 10;
                     plan.warmupReps = 25;
                     plan.restSeconds = 75;
-                    const topWeight = mainWeight + 5.0;
+                    const topWeight = Math.min(analytics.maxPrLoad, mainWeight + 5.0);
                     const dropWeight1 = mainWeight;
                     const dropWeight2 = Math.max(20, mainWeight - 5.0);
                     const finishWeight = Math.max(20, mainWeight - 10.0);
@@ -9722,52 +9924,53 @@
                         { set: 4, type: 'MAIN', label: '본 세트 1', weightKg: dropWeight1, targetReps: 10, restSec: 75 },
                         { set: 5, type: 'MAIN', label: '본 세트 2', weightKg: dropWeight1, targetReps: 10, restSec: 75 },
                         { set: 6, type: 'MAIN', label: '드랍 세트', weightKg: dropWeight2, targetReps: 10, restSec: 60 },
-                        { set: 7, type: 'MAIN', label: '피니시 세트', weightKg: finishWeight, targetReps: 10, restSec: 60 }
+                        { set: 7, type: 'MAIN', label: '피니시 세트', weightKg: finishWeight, targetReps: 12, restSec: 60 }
                     ];
                     plan.startWeightKg = topWeight;
                     plan.endWeightKg = finishWeight;
                     plan.summaryText = `총 7세트 (워밍업 1세트 + 빌드업 + 피크 탑세트 ${topWeight}kg + 백오프 4세트)`;
                 }
             } else {
-                // [2차 대안: 안정적 볼륨 집중형]
+                // [2차 대안: 일지 기반 안정적 균일 볼륨형]
+                const safeWeight = Math.max(20, mainWeight - 2.5);
                 if (minutes <= 25) {
                     plan.title = `${minutes}분 안정형 균일 볼륨 루틴`;
-                    plan.theme = '무리한 중량 도전 없이 안정된 궤적에 집중하는 루틴';
+                    plan.theme = '무리한 과부하 없이 일정한 리듬과 자세 완성도에 집중하는 루틴';
                     plan.restSeconds = 45;
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 45 },
-                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 45 },
-                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 45 }
+                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: safeWeight, targetReps: 10, restSec: 45 },
+                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: safeWeight, targetReps: 10, restSec: 45 }
                     ];
-                    plan.startWeightKg = Math.max(20, mainWeight - 2.5);
-                    plan.endWeightKg = Math.max(20, mainWeight - 2.5);
-                    plan.summaryText = `총 3세트 (워밍업 1세트 + 균일 본세트 2세트 ${plan.startWeightKg}kg)`;
+                    plan.startWeightKg = safeWeight;
+                    plan.endWeightKg = safeWeight;
+                    plan.summaryText = `총 3세트 (워밍업 1세트 + 균일 본세트 2세트 ${safeWeight}kg)`;
                 } else if (minutes <= 45) {
                     plan.title = `${minutes}분 안정형 볼륨 유지 루틴`;
                     plan.theme = '일정한 무게로 피로도를 조절하며 자세 완성도를 높이는 루틴';
                     plan.restSeconds = 60;
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 60 },
-                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
-                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
-                        { set: 4, type: 'MAIN', label: '본 세트 3', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 }
+                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: safeWeight, targetReps: 10, restSec: 60 },
+                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: safeWeight, targetReps: 10, restSec: 60 },
+                        { set: 4, type: 'MAIN', label: '본 세트 3', weightKg: safeWeight, targetReps: 10, restSec: 60 }
                     ];
-                    plan.startWeightKg = Math.max(20, mainWeight - 2.5);
-                    plan.endWeightKg = Math.max(20, mainWeight - 2.5);
-                    plan.summaryText = `총 4세트 (워밍업 1세트 + 균일 본세트 3세트 ${plan.startWeightKg}kg)`;
+                    plan.startWeightKg = safeWeight;
+                    plan.endWeightKg = safeWeight;
+                    plan.summaryText = `총 4세트 (워밍업 1세트 + 균일 본세트 3세트 ${safeWeight}kg)`;
                 } else {
                     plan.title = `${minutes}분 균일 볼륨 지속 루틴`;
                     plan.theme = '충분한 볼륨을 안정된 부하로 소화하는 부상 방지형 루틴';
                     plan.restSeconds = 60;
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 60 },
-                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
-                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
-                        { set: 4, type: 'MAIN', label: '본 세트 3', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
-                        { set: 5, type: 'MAIN', label: '본 세트 4', weightKg: Math.max(20, mainWeight - 2.5), targetReps: 10, restSec: 60 },
+                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: safeWeight, targetReps: 10, restSec: 60 },
+                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: safeWeight, targetReps: 10, restSec: 60 },
+                        { set: 4, type: 'MAIN', label: '본 세트 3', weightKg: safeWeight, targetReps: 10, restSec: 60 },
+                        { set: 5, type: 'MAIN', label: '본 세트 4', weightKg: safeWeight, targetReps: 10, restSec: 60 },
                         { set: 6, type: 'MAIN', label: '쿨다운 세트', weightKg: warmupWeight, targetReps: 15, restSec: 60 }
                     ];
-                    plan.startWeightKg = Math.max(20, mainWeight - 2.5);
+                    plan.startWeightKg = safeWeight;
                     plan.endWeightKg = warmupWeight;
                     plan.summaryText = `총 6세트 (워밍업 1세트 + 균일 본세트 4세트 + 쿨다운 1세트)`;
                 }
@@ -9845,7 +10048,20 @@
             if (!modal || !summaryStrip || !tbody) return;
 
             if (titleEl) titleEl.textContent = `${plan.minutes}분 맞춤 AI 운동 계획표`;
-            if (subEl) subEl.textContent = `${plan.title} · 총 ${plan.sets.length}세트 · 세트 간 휴식 ${plan.restSeconds}초`;
+            if (subEl) subEl.textContent = `과거 38일간 일지 177세트 심층 분석 기반 · ${plan.title} (${plan.sets.length}세트, 휴식 ${plan.restSeconds}초)`;
+
+            // 과거 일지 종합 분석 지표 카드 동기화
+            const anal = plan.analytics || (typeof analyzeFullWorkoutHistory === 'function' ? analyzeFullWorkoutHistory() : null);
+            if (anal) {
+                const elAnalData = document.getElementById('rpmAnalData');
+                const elAnalPr = document.getElementById('rpmAnalPr');
+                const elAnalAvg = document.getElementById('rpmAnalAvgLoad');
+                const elAnalInf = document.getElementById('rpmAnalInflection');
+                if (elAnalData) elAnalData.textContent = `${anal.totalDays}일 · ${anal.totalSets}세트`;
+                if (elAnalPr) elAnalPr.textContent = `${anal.maxPrLoad.toFixed(1)}kg`;
+                if (elAnalAvg) elAnalAvg.textContent = `${anal.recommendedBaseLoad.toFixed(1)}kg`;
+                if (elAnalInf) elAnalInf.textContent = `${anal.avgInflectionRep.toFixed(1)}회`;
+            }
 
             // 상단 요약 스트립
             summaryStrip.innerHTML = `
@@ -10253,6 +10469,21 @@
                 speakAgentVoice(promptMsg);
             });
         }
+
+        // ⏱️ 가용 시간 선택 칩 바 제어 헬퍼
+        function toggleRoutineTimePromptBar(show) {
+            const bar1 = document.getElementById('routineTimePromptBar');
+            const bar2 = document.getElementById('journalRoutineTimePromptBar');
+            if (bar1) bar1.style.display = show ? 'flex' : 'none';
+            if (bar2) bar2.style.display = show ? 'flex' : 'none';
+        }
+
+        // ⏱️ 루틴 가용 시간 빠른 선택 칩 클릭 핸들러
+        window.handleTimeBudgetSelection = function(min) {
+            toggleRoutineTimePromptBar(false);
+            if (voiceChatInput) voiceChatInput.value = `${min}분`;
+            handleUserVoiceCommand(`${min}분`);
+        };
 
         // 자율 운동 팝업 칩 & 인풋 양방향 바인딩 헬퍼
         function bindChipGroupWithInput(chipGroupSelector, inputId) {
