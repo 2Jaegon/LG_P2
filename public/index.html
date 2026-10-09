@@ -4932,10 +4932,10 @@
             <div class="metric-box load-box" id="loadBox">
                 <span class="m-label">WEIGHT</span>
                 <div class="m-val-wrap">
-                    <span id="loadKgDisplay" class="m-val">70.0</span>
+                    <span id="loadKgDisplay" class="m-val">0.0</span>
                     <span class="m-unit">kg</span>
                 </div>
-                <div class="m-sub" id="loadSubText">설정 무게: <strong id="baseWeightDisplay" class="num">70.0kg</strong>
+                <div class="m-sub" id="loadSubText">설정 무게: <strong id="baseWeightDisplay" class="num">0.0kg</strong>
                 </div>
             </div>
 
@@ -5772,15 +5772,15 @@
             }
         }
 
-        let currentUserWeightKg = 70.0;
-        let currentLoadKg = 70.0;
+        let currentUserWeightKg = 0.0;
+        let currentLoadKg = 0.0;
         let currentAssistLevel = 0;
 
         function updateLoadDisplay(level, status, weightKg, loadKg) {
-            if (typeof loadKg === 'number' && loadKg > 0) {
+            if (typeof loadKg === 'number' && !isNaN(loadKg)) {
                 currentLoadKg = loadKg;
                 currentUserWeightKg = loadKg;
-            } else if (typeof weightKg === 'number' && weightKg > 0) {
+            } else if (typeof weightKg === 'number' && !isNaN(weightKg)) {
                 currentLoadKg = weightKg;
                 currentUserWeightKg = weightKg;
             }
@@ -5792,7 +5792,7 @@
                 baseWeightDisplay.textContent = `${currentLoadKg.toFixed(1)}kg`;
             }
             if (loadGaugeFill) {
-                const pct = Math.max(10, Math.min(100, Math.round((currentLoadKg / 100) * 100)));
+                const pct = currentLoadKg > 0 ? Math.max(10, Math.min(100, Math.round((currentLoadKg / 100) * 100))) : 0;
                 loadGaugeFill.style.width = `${pct}%`;
             }
 
@@ -7805,7 +7805,9 @@
         const handleWorkoutReset = () => {
             if (confirm('운동 기록을 초기화하시겠습니까?\n모든 세트와 부하가 리셋됩니다.')) {
                 socket.emit('resetWorkout');
-                updateLoadDisplay(0);
+                currentLoadKg = 0.0;
+                currentUserWeightKg = 0.0;
+                updateLoadDisplay(0, 'NORMAL', 0, 0);
                 resetDangerUI();
                 if (mainBodyDetachAlertBanner) mainBodyDetachAlertBanner.style.display = 'none';
                 if (mainImbalanceAlertBanner) mainImbalanceAlertBanner.style.display = 'none';
@@ -7966,7 +7968,10 @@
                     routineNegotiationState = 'IDLE';
                     activeRoutinePlan = null;
                     pendingRoutinePlan = null;
-                    updateRoutineStatusBadge('자율 운동 모드', '원하는 무게와 반복수로 자유롭게 진행 중', '');
+                    currentLoadKg = 0.0;
+                    currentUserWeightKg = 0.0;
+                    updateLoadDisplay(0, 'NORMAL', 0, 0);
+                    updateRoutineStatusBadge('운동 대기 모드', '운동 시작 전 (루틴 추천을 받거나 바를 잡으세요)', '');
                     agentReply = "오늘의 운동 세트 기록을 초기화했습니다. (과거 38일간의 일지 및 차트 데이터는 안전하게 보존되었습니다)";
                     renderAgentDecision(agentReply);
                     speakAgentVoice(agentReply);
@@ -9461,7 +9466,7 @@
 
         // 가용 시간 기반 최적 루틴 생성 엔진
         function generateTimeBudgetRoutine(minutes, variant = 1) {
-            const baseWeight = currentLoadKg || currentUserWeightKg || 60.0;
+            const baseWeight = (currentLoadKg > 0 ? currentLoadKg : (currentUserWeightKg > 0 ? currentUserWeightKg : 60.0));
             const warmupWeight = Math.max(20, Math.round((baseWeight * 0.5) / 2.5) * 2.5);
             const mainWeight = Math.round(baseWeight / 2.5) * 2.5;
 
@@ -9964,8 +9969,10 @@
                     routineNegotiationState = 'IDLE';
                     activeRoutinePlan = null;
                     pendingRoutinePlan = null;
-                    updateRoutineStatusBadge('자율 운동 모드', '원하는 무게와 반복수로 자유롭게 진행 중', '');
-                    updateLoadDisplay(0, 'NORMAL', currentUserWeightKg, currentUserWeightKg);
+                    currentLoadKg = 0.0;
+                    currentUserWeightKg = 0.0;
+                    updateLoadDisplay(0, 'NORMAL', 0, 0);
+                    updateRoutineStatusBadge('운동 대기 모드', '운동 시작 전 (루틴 추천을 받거나 바를 잡으세요)', '');
                     if (dangerSafetyInterval) {
                         clearInterval(dangerSafetyInterval);
                         dangerSafetyInterval = null;
@@ -10011,8 +10018,13 @@
                 routineNegotiationState = 'FREE_WORKOUT';
                 activeRoutinePlan = null;
                 pendingRoutinePlan = null;
+                const freeWeight = currentLoadKg > 0 ? currentLoadKg : 60.0;
+                currentLoadKg = freeWeight;
+                currentUserWeightKg = freeWeight;
+                updateLoadDisplay(0, 'NORMAL', currentLoadKg, currentLoadKg);
+                socket.emit('updateWeight', { weight: currentLoadKg });
                 updateRoutineStatusBadge('자율 운동 모드', '사용자 설정 기반 자율 운동 진행 중', '');
-                const reply = `[자율 운동 모드]로 설정되었습니다. 원하시는 무게와 반복수로 자유롭게 운동을 진행해 주세요!`;
+                const reply = `[자율 운동 모드]로 설정되었습니다. 원하시는 무게(${currentLoadKg.toFixed(1)}kg)와 반복수로 자유롭게 운동을 진행해 주세요!`;
                 renderAgentDecision(reply);
                 speakAgentVoice(reply);
             });

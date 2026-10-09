@@ -137,9 +137,9 @@ function getFormattedDate(d = new Date()) {
     return `${year}-${month}-${day}`;
 }
 
-let userWeightKg = 70.0; // 사용자가 설정한 기준 무게 / 체중 (Kg)
+let userWeightKg = 0.0; // 운동 시작 전 초기 상태: 0.0kg
 let currentSetStartTime = 0;
-let currentSetStartWeightKg = 70.0;
+let currentSetStartWeightKg = 0.0;
 let currentSetStartLevel = 0;
 let currentSetLoadChanges = []; // 세트 내 강도 변화 이력 [{ time, fromKg, toKg, fromPercent, toPercent, reason }]
 let currentSetTempos = []; // 세트 내 각 반복별 템포
@@ -151,8 +151,8 @@ let lastSetRestDurationSec = 0; // 직전 세트 종료 후 이번 세트 시작
 let latestCoachFeedback = ''; // 최신 AI 코치 코멘트
 
 function getCurrentLoadKg(weightKg = userWeightKg, level = assistLevel) {
-    if (typeof weightKg === 'number' && weightKg > 0) return weightKg;
-    return userWeightKg;
+    if (typeof weightKg === 'number' && !isNaN(weightKg)) return weightKg;
+    return typeof userWeightKg === 'number' ? userWeightKg : 0.0;
 }
 
 function createDetailedSetRecord(data) {
@@ -914,6 +914,19 @@ function processSensorValue(value) {
     // 초기값 대비 움직임이 발생하면 사용자가 운동을 개시한 것으로 간주
     if (!hasUserInteracted && (value > THRESHOLD_BOTTOM + 80 || currentSetReps > 0 || totalReps > 0)) {
         hasUserInteracted = true;
+        if (userWeightKg === 0) {
+            userWeightKg = 60.0;
+            currentSetStartWeightKg = 60.0;
+            console.log(`\n[자율 운동 개시] 바 움직임 감지 -> 기본 부하 ${userWeightKg}kg 활성화`);
+            io.emit('sensorData', {
+                value: value,
+                status: currentStatus,
+                assistLevel: assistLevel,
+                loadKg: userWeightKg,
+                userWeightKg: userWeightKg
+            });
+            io.emit('workoutState', getWorkoutStatePayload());
+        }
     }
 
     // 운동량(반복수 및 세트) 실시간 추적
@@ -1494,7 +1507,7 @@ io.on('connection', (socket) => {
         if (data) {
             const w = typeof data.weightKg !== 'undefined' ? data.weightKg : (typeof data.userWeight !== 'undefined' ? data.userWeight : data.weight);
             if (typeof w !== 'undefined') {
-                const targetW = parseFloat(w) || 70.0;
+                const targetW = !isNaN(parseFloat(w)) ? parseFloat(w) : 60.0;
                 // 🔒 불균형 교정 중 증량 차단!
                 if (isWeightLocked && targetW > userWeightKg) {
                     console.log(`[증량 차단] 좌우 불균형 교정 진행 중이므로 증량 거부 (${userWeightKg}kg -> ${targetW}kg)`);
@@ -1505,7 +1518,8 @@ io.on('connection', (socket) => {
                     socket.emit('workoutState', getWorkoutStatePayload());
                     return;
                 }
-                userWeightKg = Math.max(1, Math.min(180, targetW));
+                userWeightKg = Math.max(0, Math.min(180, targetW));
+                if (userWeightKg > 0) hasUserInteracted = true;
             }
             if (typeof data.assistLevel !== 'undefined') {
                 assistLevel = Math.max(0, parseInt(data.assistLevel, 10));
@@ -1593,6 +1607,8 @@ io.on('connection', (socket) => {
         awaitingMainWorkoutConfirm = false;
         lastRepDuration = 0;
         currentStatus = 'WAITING';
+        hasUserInteracted = false;
+        userWeightKg = 0.0;
         assistLevel = 0;
         lastAssistTimestamp = 0;
         bottomMoveStartTime = 0;
@@ -1606,7 +1622,7 @@ io.on('connection', (socket) => {
         currentSetLoadChanges = [];
         currentSetAssistTriggers = 0;
         currentSetDangerTriggers = 0;
-        currentSetStartWeightKg = userWeightKg;
+        currentSetStartWeightKg = 0.0;
         currentSetStartLevel = 0;
 
         if (port && port.isOpen) port.write('N\n');
