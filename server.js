@@ -897,7 +897,7 @@ function processSensorValue(value) {
             status: 'BODY_DETACHED',
             isBodyDetached: true,
             lockedBarValue: freezeVal,
-            decision: "경고: 신체 이탈 감지!\n바에서 손이 떨어져 바의 위치를 안전하게 고정했습니다.\n다시 1번 버튼을 누르면 고정이 해제됩니다."
+            decision: "경고: 신체 이탈 감지!\n바에서 손이 떨어져 바의 위치를 안전하게 고정했습니다."
         });
         return;
     }
