@@ -1413,6 +1413,18 @@ io.on('connection', (socket) => {
         console.log(`\n[로컬 LLM 챗 질문]: "${msg}"`);
         const lower = msg.toLowerCase();
 
+        // 👋 가벼운 일상 인사말 처리 (불필요한 운동 맥락 분석 방지)
+        if (/^(?:안녕|안녕하세요|안뇽|하이|반가워|반갑습니다|hello|hi|hey)[\s!\?~]*$/i.test(lower)) {
+            const reply = "안녕하세요! 오늘 운동도 힘차게 시작해 볼까요? 원하시는 루틴이나 무게가 있으시면 편하게 말씀해 주세요!";
+            socket.emit('agentChatResponse', { reply, originalMessage: msg });
+            return;
+        }
+        if (/^(?:고마워|감사|감사합니다|고맙습니다|땡큐|thanks)[\s!\?~]*$/i.test(lower)) {
+            const reply = "도움이 되어 기쁩니다! 언제든 편하게 말씀해 주세요.";
+            socket.emit('agentChatResponse', { reply, originalMessage: msg });
+            return;
+        }
+
         // 🚨 1) 바텀 위험(DANGER) 탈출 및 안부 대화 응답 처리
         if (awaitingDangerEscapeConfirm || isDangerActive || currentStatus === 'DANGER') {
             const isEscapeAck = /(괜찮|응|탈출|빠져|나왔|해제|풀어|네|안전|다치지|살았|괜춘|문제없|이상없|멀쩡|벗어|벗어났|살았어|상황\s*벗어|살아남|끝났|완료|ok|yes)/i.test(lower);

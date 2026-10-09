@@ -8089,6 +8089,30 @@
 
             if (voiceChatInput) voiceChatInput.value = '';
 
+            const lower = text.toLowerCase();
+
+            // 👋 0) 가벼운 일상 인사 및 감사 표현 Fast-Path (장황한 운동 분석 배제 및 즉각 친절 응답)
+            const isGreeting = /^(?:안녕|안녕하세요|안뇽|하이|반가워|반갑습니다|좋은\s*아침|헬로|hello|hi|hey|굿모닝)[\s!\?~]*$/i.test(lower);
+            const isThanks = /^(?:고마워|감사|감사합니다|고맙습니다|땡큐|thanks|thank\s*you)[\s!\?~]*$/i.test(lower);
+
+            if (isGreeting || isThanks) {
+                let greetingReply = "";
+                if (isThanks) {
+                    greetingReply = "도움이 되어 기쁩니다! 준비되시면 언제든 말씀해 주세요.";
+                } else {
+                    greetingReply = "안녕하세요! 오늘 운동도 힘차게 시작해 볼까요? 원하시는 루틴이나 무게가 있으시면 편하게 말씀해 주세요!";
+                }
+                setOrbStateWithCaption('composing', '인사 전달 중', 1.25);
+                renderAgentDecision(greetingReply);
+                speakAgentVoice(greetingReply);
+                setTimeout(() => {
+                    if (agentOrb && !document.body.classList.contains('danger')) {
+                        updateAgentOrbState(isWorkoutResting ? 'REST' : (currentVal > 300 ? 'NORMAL' : 'WAITING'), isWorkoutResting, false, false);
+                    }
+                }, 3500);
+                return;
+            }
+
             // 1. Thinking Orb '생각 중' 상태 전환 (solving 모드: 빠르게 소용돌이치며 연산)
             setOrbStateWithCaption('solving', '명령 분석 및 판단 중...', 1.45);
             renderAgentDecision(`"${escapeHtml(text)}" 명령을 분석하고 있습니다...`);
