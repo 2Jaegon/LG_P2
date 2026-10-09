@@ -6685,15 +6685,26 @@
             return String(num);
         }
 
-        // 🎙️ 실시간 랩(Rep) 카운트 오디오 캐시 풀 (0ms 무지연 재생)
+        // 🎙️ 실시간 랩(Rep) 카운트 오디오 캐시 풀 (안내와 100% 동일한 아나운서 보이스 공유)
         const repCountAudioPool = new Map();
+        let currentCachedVoiceName = '';
 
-        // 1~30 카운트 음성 백그라운드 프리로드
+        // 안내와 동일한 현재 선택 보이스로 1~30 카운트 음성 백그라운드 프리로드
         function preloadRepCountAudios() {
             try {
+                const targetVoice = currentSelectedVoice || 'ko-KR-InJoonNeural';
+                const targetRate = currentSelectedRate || '+20%';
+                
+                // 이미 동일한 보이스로 프리로드되어 있으면 재사용
+                if (currentCachedVoiceName === targetVoice && repCountAudioPool.size >= 30) return;
+                
+                repCountAudioPool.clear();
+                currentCachedVoiceName = targetVoice;
+
                 for (let i = 1; i <= 30; i++) {
                     const word = getPureKoreanCount(i);
-                    const url = `/api/tts?text=${encodeURIComponent(word)}&voice=ko-KR-InJoonNeural&rate=%2B25%25&v=rep_count_v2`;
+                    const safeRate = encodeURIComponent(targetRate);
+                    const url = `/api/tts?text=${encodeURIComponent(word)}&voice=${encodeURIComponent(targetVoice)}&rate=${safeRate}&v=${targetVoice}_v3`;
                     const audio = new Audio();
                     audio.preload = 'auto';
                     audio.src = url;
@@ -6706,17 +6717,19 @@
 
         // 페이지 로드 및 첫 클릭 시 프리로드 실행
         if (typeof window !== 'undefined') {
-            setTimeout(preloadRepCountAudios, 800);
+            setTimeout(preloadRepCountAudios, 500);
             document.addEventListener('click', () => {
                 if (repCountAudioPool.size === 0) preloadRepCountAudios();
             }, { once: true, passive: true });
         }
 
-        // 🎙️ 실시간 랩(Rep) 고유어 카운트 음성 발화 엔진 (하나, 둘, 셋...)
+        // 🎙️ 실시간 랩(Rep) 고유어 카운트 음성 발화 엔진 (안내와 동일한 단일 아나운서 보이스 보장)
         function speakRepCount(reps, rom, tempoSec, overrideText) {
             if (!isVoiceAudioEnabled) return;
 
             const speechText = overrideText || getPureKoreanCount(reps);
+            const targetVoice = currentSelectedVoice || 'ko-KR-InJoonNeural';
+            const targetRate = currentSelectedRate || '+20%';
 
             // 하단 에이전트 액션 박스에 실시간 카운트 즉각 표시
             if (decisionDisplay) {
@@ -6730,8 +6743,8 @@
                         window.speechSynthesis.cancel();
                         const utter = new SpeechSynthesisUtterance(speechText);
                         utter.lang = 'ko-KR';
-                        utter.rate = 1.3; // 힘차고 빠른 카운트 템포
-                        utter.pitch = 1.05;
+                        utter.rate = 1.25; // 아나운서 템포 통일
+                        utter.pitch = 1.0;
                         if (!koreanVoice) loadKoreanVoice();
                         if (koreanVoice) utter.voice = koreanVoice;
                         window.speechSynthesis.speak(utter);
@@ -6739,11 +6752,13 @@
                 }
             };
 
-            // 1순위: 프리캐시된 고품질 신경망 TTS(InJoon Neural) 오디오 재생
+            // 1순위: 안내와 100% 동일한 고품질 신경망 아나운서 TTS 오디오 재생
             let audio = repCountAudioPool.get(reps);
-            if (!audio) {
+            // 만약 캐시가 없거나 보이스가 변경되었으면 동적 생성
+            if (!audio || currentCachedVoiceName !== targetVoice) {
                 try {
-                    const url = `/api/tts?text=${encodeURIComponent(speechText)}&voice=ko-KR-InJoonNeural&rate=%2B25%25&v=rep_count_v2`;
+                    const safeRate = encodeURIComponent(targetRate);
+                    const url = `/api/tts?text=${encodeURIComponent(speechText)}&voice=${encodeURIComponent(targetVoice)}&rate=${safeRate}&v=${targetVoice}_v3`;
                     audio = new Audio(url);
                     repCountAudioPool.set(reps, audio);
                 } catch (e) { }
@@ -6755,7 +6770,6 @@
                     const playPromise = audio.play();
                     if (playPromise !== undefined) {
                         playPromise.catch((e) => {
-                            // 브라우저 자동재생 정책 등으로 Audio 차단 시 Web Speech로 즉시 폴백
                             fallbackWebSpeech();
                         });
                     }
@@ -9950,6 +9964,8 @@
                 voiceChips.forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
                 currentSelectedVoice = chip.getAttribute('data-val') || 'ko-KR-InJoonNeural';
+                localStorage.setItem('lg_well_tts_voice', currentSelectedVoice);
+                preloadRepCountAudios(); // 카운트 음성도 즉시 동일 보이스로 교체
             });
         });
 
@@ -9959,6 +9975,8 @@
                 voiceRateChips.forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
                 currentSelectedRate = chip.getAttribute('data-val') || '+20%';
+                localStorage.setItem('lg_well_tts_rate', currentSelectedRate);
+                preloadRepCountAudios(); // 카운트 속도도 즉시 동일 템포로 교체
             });
         });
 
