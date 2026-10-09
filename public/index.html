@@ -4943,7 +4943,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <span class="setting-label" style="font-weight: 700; color: var(--text); font-size: 0.88rem;">운동 무게 (WEIGHT)</span>
                         <div style="display: flex; align-items: center; gap: 4px;">
-                            <input type="number" id="fwmWeightInput" min="5" max="180" step="2.5" value="60"
+                            <input type="number" id="fwmWeightInput" min="5" max="180" step="5" value="60"
                                 style="width: 72px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--text); font-weight: 800; font-size: 1rem; text-align: right;">
                             <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">kg</span>
                         </div>
@@ -9760,6 +9760,11 @@
             return min || 40;
         }
 
+        // 5kg 단위 라운딩 헬퍼 (2.5kg 미세 조정을 배제하고 5kg 또는 10kg 감량 패턴 보장)
+        function roundTo5Kg(val, minVal = 20) {
+            return Math.max(minVal, Math.round(val / 5) * 5);
+        }
+
         // 📊 과거 운동 일지 전수 심층 빅데이터 분석 엔진
         function analyzeFullWorkoutHistory() {
             const list = (Array.isArray(currentHistoryList) && currentHistoryList.length > 0)
@@ -9771,13 +9776,14 @@
                     totalDays: 38,
                     totalSets: 177,
                     totalVolumeKg: 118908,
-                    maxPrLoad: 72.5,
-                    recentMainAvgLoad: 62.5,
-                    overallMainAvgLoad: 61.4,
+                    maxPrLoad: 70.0,
+                    recentMainAvgLoad: 60.0,
+                    overallMainAvgLoad: 60.0,
                     warmupAvgLoad: 30.0,
                     avgTempo: 2.05,
                     avgInflectionRep: 8.0,
-                    recommendedBaseLoad: 62.5
+                    recommendedBaseLoad: 60.0,
+                    recommendedTopLoad: 70.0
                 };
             }
 
@@ -9819,7 +9825,7 @@
 
             const overallMainAvgLoad = mainSets.length > 0
                 ? (mainSets.reduce((acc, s) => acc + (s.finalLoadKg || s.baseWeightKg || 60), 0) / mainSets.length)
-                : 61.4;
+                : 60.0;
 
             const recentMain = mainSets.slice(-10);
             const recentMainAvgLoad = recentMain.length > 0
@@ -9835,9 +9841,9 @@
                 ? (inflectionReps.reduce((a, b) => a + b, 0) / inflectionReps.length)
                 : 8.0;
 
-            // 기준 중량: 최근 10세트 수행력(70%)과 전체 평균(30%) 가중 결합, 2.5kg 라운딩
-            let recommendedBase = Math.round((recentMainAvgLoad * 0.7 + overallMainAvgLoad * 0.3) / 2.5) * 2.5;
-            if (recommendedBase < 40) recommendedBase = 62.5;
+            // 5kg 단위로 정돈된 기준 탑세트와 본세트 부하
+            const recommendedTopLoad = roundTo5Kg(Math.min(70, maxPrLoad)); // 70kg
+            const recommendedBaseLoad = roundTo5Kg(recentMainAvgLoad); // 60kg 또는 65kg
 
             return {
                 totalDays,
@@ -9846,20 +9852,29 @@
                 maxPrLoad: Math.round(maxPrLoad * 10) / 10,
                 recentMainAvgLoad: Math.round(recentMainAvgLoad * 10) / 10,
                 overallMainAvgLoad: Math.round(overallMainAvgLoad * 10) / 10,
-                warmupAvgLoad: Math.round(warmupAvgLoad * 10) / 10,
+                warmupAvgLoad: roundTo5Kg(warmupAvgLoad),
                 avgTempo: Math.round(avgTempo * 100) / 100,
                 avgInflectionRep: Math.round(avgInflectionRep * 10) / 10,
-                recommendedBaseLoad: recommendedBase
+                recommendedBaseLoad,
+                recommendedTopLoad
             };
         }
 
         // 🧠 과거 모든 운동 일지 종합 분석 기반 가용 시간 최적 루틴 생성 엔진
+        // (워밍업 후 탑세트부터 다음 세트까지 5~10kg 감량 패턴 적용)
         function generateTimeBudgetRoutine(minutes, variant = 1) {
-            // 과거 38일간 177세트 심층 데이터 분석 지표 산출
             const analytics = analyzeFullWorkoutHistory();
-            const baseWeight = analytics.recommendedBaseLoad || 62.5;
-            const warmupWeight = Math.max(20, Math.round((analytics.warmupAvgLoad || baseWeight * 0.5) / 2.5) * 2.5);
-            const mainWeight = baseWeight;
+
+            // 탑세트 기준 무게: 5kg 단위로 정돈 (기본 70kg)
+            let topWeight = analytics.recommendedTopLoad || 70;
+            if (currentLoadKg >= 40) {
+                topWeight = roundTo5Kg(currentLoadKg);
+            } else if (currentUserWeightKg >= 40) {
+                topWeight = roundTo5Kg(currentUserWeightKg);
+            }
+
+            // 워밍업 무게: 탑세트의 40~50% 수준 (5kg 단위, 기본 30kg)
+            const warmupWeight = roundTo5Kg(topWeight * 0.45);
 
             let plan = {
                 minutes: minutes,
@@ -9878,101 +9893,119 @@
 
             if (variant === 1) {
                 if (minutes <= 25) {
-                    plan.title = `${minutes}분 고밀도 파워 루틴`;
-                    plan.theme = '과거 일지 분석 기반: 바쁜 일정에 맞춘 고밀도 안전 본세트 집중 루틴';
+                    // 20~25분: 워밍업 -> 탑 세트 -> 10kg 감량 본세트 (총 3세트)
+                    plan.title = `${minutes}분 고밀도 탑세트-감량 루틴`;
+                    plan.theme = `워밍업 후 탑세트(${topWeight}kg)에서 10kg 감량한 고밀도 압축 루틴`;
                     plan.restSeconds = 45;
+                    const dropSetWeight = roundTo5Kg(topWeight - 10);
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 45 },
-                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: mainWeight, targetReps: 10, restSec: 45 },
-                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: mainWeight, targetReps: 10, restSec: 45 }
+                        { set: 2, type: 'MAIN', label: '탑 세트', weightKg: topWeight, targetReps: 10, restSec: 60 },
+                        { set: 3, type: 'MAIN', label: '감량 본세트', weightKg: dropSetWeight, targetReps: 10, restSec: 45 }
                     ];
-                    plan.startWeightKg = mainWeight;
-                    plan.endWeightKg = mainWeight;
-                    plan.summaryText = `총 3세트 (워밍업 1세트 ${warmupWeight}kg + 본세트 2세트 ${mainWeight}kg)`;
+                    plan.startWeightKg = topWeight;
+                    plan.endWeightKg = dropSetWeight;
+                    plan.summaryText = `총 3세트 (워밍업 ${warmupWeight}kg + 탑세트 ${topWeight}kg → 10kg 감량 본세트 ${dropSetWeight}kg)`;
                 } else if (minutes <= 45) {
-                    plan.title = `${minutes}분 점진적 과부하 루틴`;
-                    plan.theme = `과거 PR ${analytics.maxPrLoad}kg 및 피로변곡점(${analytics.avgInflectionRep}회) 기반 스마트 주기화 루틴`;
+                    // 30~45분 (대표 40분): 워밍업 -> 탑 세트 -> 5kg 감량 -> 5kg 감량 -> 10kg 감량 (총 5세트)
+                    plan.title = `${minutes}분 피크 탑세트 & 5~10kg 순차 감량 루틴`;
+                    plan.theme = `워밍업 후 탑세트(${topWeight}kg)부터 세트마다 5~10kg씩 체계적으로 감량하는 주기화 루틴`;
                     plan.targetReps = 10;
                     plan.warmupReps = 25;
                     plan.restSeconds = 60;
-                    const topWeight = Math.min(analytics.maxPrLoad, mainWeight + 2.5);
-                    const dropWeight = Math.max(20, mainWeight - 5.0);
+                    const mainWeight1 = roundTo5Kg(topWeight - 5);   // -5kg 감량 (예: 65kg)
+                    const mainWeight2 = roundTo5Kg(topWeight - 10);  // 추가 -5kg 감량 (예: 60kg)
+                    const dropWeight = roundTo5Kg(topWeight - 20);   // 추가 -10kg 감량 (예: 50kg)
+
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 25, restSec: 60 },
-                        { set: 2, type: 'MAIN', label: '탑 세트', weightKg: topWeight, targetReps: 10, restSec: 60 },
-                        { set: 3, type: 'MAIN', label: '본 세트 1', weightKg: mainWeight, targetReps: 10, restSec: 60 },
-                        { set: 4, type: 'MAIN', label: '본 세트 2', weightKg: mainWeight, targetReps: 10, restSec: 60 },
-                        { set: 5, type: 'MAIN', label: '감경 세트', weightKg: dropWeight, targetReps: 10, restSec: 60 }
+                        { set: 2, type: 'MAIN', label: '탑 세트', weightKg: topWeight, targetReps: 10, restSec: 75 },
+                        { set: 3, type: 'MAIN', label: '본 세트 1', weightKg: mainWeight1, targetReps: 10, restSec: 60 },
+                        { set: 4, type: 'MAIN', label: '본 세트 2', weightKg: mainWeight2, targetReps: 10, restSec: 60 },
+                        { set: 5, type: 'MAIN', label: '피로 감경세트', weightKg: dropWeight, targetReps: 12, restSec: 60 }
                     ];
                     plan.startWeightKg = topWeight;
                     plan.endWeightKg = dropWeight;
-                    plan.summaryText = `총 5세트 (워밍업 1세트 + 탑세트 ${topWeight}kg + 본세트 2세트 + 피로 감경세트 ${dropWeight}kg)`;
+                    plan.summaryText = `총 5세트 (워밍업 ${warmupWeight}kg + 탑세트 ${topWeight}kg 후 5~10kg 단계적 감량: ${mainWeight1}kg → ${mainWeight2}kg → ${dropWeight}kg)`;
                 } else {
-                    plan.title = `${minutes}분 풀 볼륨 피크 루틴`;
-                    plan.theme = `과거 38일간 최대 근신경계 활성화 및 PR 갱신 도전형 풀 볼륨 주기화 루틴`;
+                    // 50분 이상 (풀 볼륨, 총 7세트)
+                    plan.title = `${minutes}분 풀 볼륨 피크 & 5~10kg 단계적 드랍 루틴`;
+                    plan.theme = `빌드업 후 피크 탑세트(${topWeight}kg)부터 5~10kg씩 순차 감량하는 풀 볼륨 루틴`;
                     plan.targetReps = 10;
                     plan.warmupReps = 25;
                     plan.restSeconds = 75;
-                    const topWeight = Math.min(analytics.maxPrLoad, mainWeight + 5.0);
-                    const dropWeight1 = mainWeight;
-                    const dropWeight2 = Math.max(20, mainWeight - 5.0);
-                    const finishWeight = Math.max(20, mainWeight - 10.0);
+                    const buildWeight = roundTo5Kg(topWeight - 10);  // 빌드업 (예: 60kg)
+                    const backoff1 = roundTo5Kg(topWeight - 5);      // 백오프 1 (-5kg 감량, 예: 65kg)
+                    const backoff2 = roundTo5Kg(topWeight - 10);     // 백오프 2 (-5kg 감량, 예: 60kg)
+                    const dropSet = roundTo5Kg(topWeight - 20);      // 드랍세트 (-10kg 감량, 예: 50kg)
+                    const finishSet = roundTo5Kg(topWeight - 30);    // 피니시 (-10kg 감량, 예: 40kg)
+
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 25, restSec: 60 },
-                        { set: 2, type: 'MAIN', label: '빌드업', weightKg: Math.max(20, mainWeight - 5.0), targetReps: 10, restSec: 60 },
-                        { set: 3, type: 'MAIN', label: '피크 탑세트', weightKg: topWeight, targetReps: 10, restSec: 75 },
-                        { set: 4, type: 'MAIN', label: '본 세트 1', weightKg: dropWeight1, targetReps: 10, restSec: 75 },
-                        { set: 5, type: 'MAIN', label: '본 세트 2', weightKg: dropWeight1, targetReps: 10, restSec: 75 },
-                        { set: 6, type: 'MAIN', label: '드랍 세트', weightKg: dropWeight2, targetReps: 10, restSec: 60 },
-                        { set: 7, type: 'MAIN', label: '피니시 세트', weightKg: finishWeight, targetReps: 12, restSec: 60 }
+                        { set: 2, type: 'MAIN', label: '빌드업', weightKg: buildWeight, targetReps: 10, restSec: 60 },
+                        { set: 3, type: 'MAIN', label: '피크 탑세트', weightKg: topWeight, targetReps: 8, restSec: 75 },
+                        { set: 4, type: 'MAIN', label: '백오프 1', weightKg: backoff1, targetReps: 10, restSec: 60 },
+                        { set: 5, type: 'MAIN', label: '백오프 2', weightKg: backoff2, targetReps: 10, restSec: 60 },
+                        { set: 6, type: 'MAIN', label: '드랍 세트', weightKg: dropSet, targetReps: 10, restSec: 60 },
+                        { set: 7, type: 'MAIN', label: '피니시 세트', weightKg: finishSet, targetReps: 12, restSec: 60 }
                     ];
                     plan.startWeightKg = topWeight;
-                    plan.endWeightKg = finishWeight;
-                    plan.summaryText = `총 7세트 (워밍업 1세트 + 빌드업 + 피크 탑세트 ${topWeight}kg + 백오프 4세트)`;
+                    plan.endWeightKg = finishSet;
+                    plan.summaryText = `총 7세트 (워밍업 + 빌드업 ${buildWeight}kg + 탑세트 ${topWeight}kg 후 순차 감량: ${backoff1}kg → ${backoff2}kg → ${dropSet}kg → ${finishSet}kg)`;
                 }
             } else {
-                // [2차 대안: 일지 기반 안정적 균일 볼륨형]
-                const safeWeight = Math.max(20, mainWeight - 2.5);
+                // [2차 대안: 안정적 피로 감경형 (5kg 단위)]
+                const altTopWeight = roundTo5Kg(topWeight - 5); // 65kg
                 if (minutes <= 25) {
                     plan.title = `${minutes}분 안정형 균일 볼륨 루틴`;
                     plan.theme = '무리한 과부하 없이 일정한 리듬과 자세 완성도에 집중하는 루틴';
                     plan.restSeconds = 45;
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 45 },
-                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: safeWeight, targetReps: 10, restSec: 45 },
-                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: safeWeight, targetReps: 10, restSec: 45 }
+                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: altTopWeight, targetReps: 10, restSec: 45 },
+                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: altTopWeight, targetReps: 10, restSec: 45 }
                     ];
-                    plan.startWeightKg = safeWeight;
-                    plan.endWeightKg = safeWeight;
-                    plan.summaryText = `총 3세트 (워밍업 1세트 + 균일 본세트 2세트 ${safeWeight}kg)`;
+                    plan.startWeightKg = altTopWeight;
+                    plan.endWeightKg = altTopWeight;
+                    plan.summaryText = `총 3세트 (워밍업 1세트 + 균일 본세트 2세트 ${altTopWeight}kg)`;
                 } else if (minutes <= 45) {
-                    plan.title = `${minutes}분 안정형 볼륨 유지 루틴`;
-                    plan.theme = '일정한 무게로 피로도를 조절하며 자세 완성도를 높이는 루틴';
+                    plan.title = `${minutes}분 안정형 5kg 순차 감량 루틴`;
+                    plan.theme = `적정 탑세트(${altTopWeight}kg) 후 5kg씩 안정적으로 감량하는 부상 방지형 루틴`;
                     plan.restSeconds = 60;
+                    const w1 = altTopWeight;
+                    const w2 = roundTo5Kg(altTopWeight - 5);
+                    const w3 = roundTo5Kg(altTopWeight - 10);
+                    const w4 = roundTo5Kg(altTopWeight - 15);
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 60 },
-                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: safeWeight, targetReps: 10, restSec: 60 },
-                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: safeWeight, targetReps: 10, restSec: 60 },
-                        { set: 4, type: 'MAIN', label: '본 세트 3', weightKg: safeWeight, targetReps: 10, restSec: 60 }
+                        { set: 2, type: 'MAIN', label: '탑 세트', weightKg: w1, targetReps: 10, restSec: 60 },
+                        { set: 3, type: 'MAIN', label: '본 세트 1', weightKg: w2, targetReps: 10, restSec: 60 },
+                        { set: 4, type: 'MAIN', label: '본 세트 2', weightKg: w3, targetReps: 10, restSec: 60 },
+                        { set: 5, type: 'MAIN', label: '쿨다운 세트', weightKg: w4, targetReps: 12, restSec: 60 }
                     ];
-                    plan.startWeightKg = safeWeight;
-                    plan.endWeightKg = safeWeight;
-                    plan.summaryText = `총 4세트 (워밍업 1세트 + 균일 본세트 3세트 ${safeWeight}kg)`;
+                    plan.startWeightKg = w1;
+                    plan.endWeightKg = w4;
+                    plan.summaryText = `총 5세트 (워밍업 + 탑세트 ${w1}kg 후 5kg씩 순차 감량: ${w2}kg → ${w3}kg → ${w4}kg)`;
                 } else {
-                    plan.title = `${minutes}분 균일 볼륨 지속 루틴`;
-                    plan.theme = '충분한 볼륨을 안정된 부하로 소화하는 부상 방지형 루틴';
+                    plan.title = `${minutes}분 점진적 볼륨 분산 루틴`;
+                    plan.theme = '무리 없는 5~10kg 감량 패턴으로 충분한 볼륨을 안정적으로 소화하는 루틴';
                     plan.restSeconds = 60;
+                    const w1 = altTopWeight;
+                    const w2 = roundTo5Kg(altTopWeight - 5);
+                    const w3 = roundTo5Kg(altTopWeight - 10);
+                    const w4 = roundTo5Kg(altTopWeight - 15);
+                    const w5 = roundTo5Kg(altTopWeight - 25);
                     plan.sets = [
                         { set: 1, type: 'WARMUP', label: '워밍업', weightKg: warmupWeight, targetReps: 20, restSec: 60 },
-                        { set: 2, type: 'MAIN', label: '본 세트 1', weightKg: safeWeight, targetReps: 10, restSec: 60 },
-                        { set: 3, type: 'MAIN', label: '본 세트 2', weightKg: safeWeight, targetReps: 10, restSec: 60 },
-                        { set: 4, type: 'MAIN', label: '본 세트 3', weightKg: safeWeight, targetReps: 10, restSec: 60 },
-                        { set: 5, type: 'MAIN', label: '본 세트 4', weightKg: safeWeight, targetReps: 10, restSec: 60 },
-                        { set: 6, type: 'MAIN', label: '쿨다운 세트', weightKg: warmupWeight, targetReps: 15, restSec: 60 }
+                        { set: 2, type: 'MAIN', label: '탑 세트', weightKg: w1, targetReps: 10, restSec: 60 },
+                        { set: 3, type: 'MAIN', label: '본 세트 1', weightKg: w2, targetReps: 10, restSec: 60 },
+                        { set: 4, type: 'MAIN', label: '본 세트 2', weightKg: w3, targetReps: 10, restSec: 60 },
+                        { set: 5, type: 'MAIN', label: '본 세트 3', weightKg: w4, targetReps: 10, restSec: 60 },
+                        { set: 6, type: 'MAIN', label: '쿨다운 세트', weightKg: w5, targetReps: 12, restSec: 60 }
                     ];
-                    plan.startWeightKg = safeWeight;
-                    plan.endWeightKg = warmupWeight;
-                    plan.summaryText = `총 6세트 (워밍업 1세트 + 균일 본세트 4세트 + 쿨다운 1세트)`;
+                    plan.startWeightKg = w1;
+                    plan.endWeightKg = w5;
+                    plan.summaryText = `총 6세트 (워밍업 + 탑세트 ${w1}kg 후 단계적 감량: ${w2}kg → ${w3}kg → ${w4}kg → ${w5}kg)`;
                 }
             }
 
@@ -10048,7 +10081,7 @@
             if (!modal || !summaryStrip || !tbody) return;
 
             if (titleEl) titleEl.textContent = `${plan.minutes}분 맞춤 AI 운동 계획표`;
-            if (subEl) subEl.textContent = `과거 38일간 일지 177세트 심층 분석 기반 · ${plan.title} (${plan.sets.length}세트, 휴식 ${plan.restSeconds}초)`;
+            if (subEl) subEl.textContent = `과거 38일간 일지 177세트 심층 분석 기반 · 탑세트(${plan.startWeightKg}kg) 후 5~10kg 감량 설계 (${plan.sets.length}세트, 휴식 ${plan.restSeconds}초)`;
 
             // 과거 일지 종합 분석 지표 카드 동기화
             const anal = plan.analytics || (typeof analyzeFullWorkoutHistory === 'function' ? analyzeFullWorkoutHistory() : null);
