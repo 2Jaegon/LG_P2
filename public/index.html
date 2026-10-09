@@ -6149,6 +6149,29 @@
                 restTimerBig.style.display = 'none';
             }
         }
+        // 🎯 목표 반복수(REPS)를 대시보드 메트릭/사이드바/모달에 실시간 동기화하는 함수
+        function syncRepsToUI(reps) {
+            if (!reps || isNaN(reps)) return;
+            aiTargetReps = parseInt(reps, 10);
+            if (targetRepsEl) {
+                targetRepsEl.textContent = aiTargetReps;
+            }
+            const sidebarTargetSummary = document.getElementById('sidebarTargetSummary');
+            if (sidebarTargetSummary) {
+                sidebarTargetSummary.textContent = `목표: ${aiTargetReps}회 · ${aiTargetSets}세트 / 휴식: ${aiRestTimeSeconds}초`;
+            }
+            const repsChips = document.querySelectorAll('#repsChipGroup .setting-chip');
+            repsChips.forEach(chip => {
+                const val = parseInt(chip.getAttribute('data-val'), 10);
+                chip.classList.toggle('active', val === aiTargetReps);
+            });
+        }
+
+        // 🎯 목표 세트수 UI 동기화 별칭 함수
+        function syncSetsToUI(sets) {
+            syncTargetSetsToUI(sets);
+        }
+
         // 🎯 목표 세트수를 대시보드 메트릭/사이드바/모달에 실시간 동기화하는 함수
         function syncTargetSetsToUI(sets) {
             if (!sets || isNaN(sets)) return;
@@ -10033,7 +10056,7 @@
             return plan;
         }
 
-        // 루틴 플랜 대시보드 적용
+        // 🚀 루틴 플랜 대시보드 및 장비 즉각 적용 엔진
         function applyRoutinePlan(plan) {
             if (!plan || !plan.sets || plan.sets.length === 0) return;
             routineNegotiationState = 'ROUTINE_ACTIVE';
@@ -10041,18 +10064,44 @@
             activeRoutinePlan.currentSetIndex = 0;
 
             const firstSet = activeRoutinePlan.sets[0];
-            currentLoadKg = firstSet.weightKg;
-            currentUserWeightKg = firstSet.weightKg;
-            aiTargetSets = activeRoutinePlan.sets.length;
-            aiTargetReps = firstSet.targetReps;
-            aiRestTimeSeconds = plan.restSeconds;
-            selectedRestTime = plan.restSeconds;
+            const weightVal = parseFloat(firstSet.weightKg) || 30.0;
+            const repsVal = parseInt(firstSet.targetReps, 10) || 10;
+            const setsVal = activeRoutinePlan.sets.length;
+            const restVal = parseInt(plan.restSeconds, 10) || 60;
 
-            syncRepsToUI(aiTargetReps);
-            syncSetsToUI(aiTargetSets);
-            syncRestTimeToUI(aiRestTimeSeconds);
+            // 1. 전역 상태 동기화
+            currentLoadKg = weightVal;
+            currentUserWeightKg = weightVal;
+            aiTargetReps = repsVal;
+            aiTargetSets = setsVal;
+            aiRestTimeSeconds = restVal;
+            selectedRestTime = restVal;
+
+            // 2. 메인 UI 지표 4대 요소 즉시 반영
+            // ① 무게 (WEIGHT): 디스플레이 및 게이지 갱신
             updateLoadDisplay(0, 'NORMAL', currentLoadKg, currentLoadKg);
+            if (loadKgDisplay) loadKgDisplay.textContent = currentLoadKg.toFixed(1);
+            if (baseWeightDisplay) baseWeightDisplay.textContent = `${currentLoadKg.toFixed(1)}kg`;
 
+            // ② 목표 랩 (REPS): 목표값 세팅 및 현재 랩 카운트 0 초기화
+            syncRepsToUI(aiTargetReps);
+            if (repCountEl) repCountEl.textContent = '0';
+
+            // ③ 세트 (SET): 1세트 리셋 및 총 세트수 세팅
+            syncSetsToUI(aiTargetSets);
+            if (setNumberEl) setNumberEl.textContent = '1';
+            if (restStateBadgeEl) {
+                restStateBadgeEl.textContent = `1세트 진행 중 [${firstSet.label} ${firstSet.weightKg}kg]`;
+                restStateBadgeEl.className = 'm-sub rest-badge';
+            }
+
+            // ④ 휴식 시간 (REST): 타이머 디스플레이 반영
+            syncRestTimeToUI(aiRestTimeSeconds);
+            if (restTimerDisplayEl) {
+                restTimerDisplayEl.textContent = `권장 휴식: ${aiRestTimeSeconds}초`;
+            }
+
+            // 3. 서버 및 아두이노 장비 즉각 반영 (모터 부하 및 카운트 설정 전송)
             socket.emit('updateSettings', {
                 targetReps: aiTargetReps,
                 targetSets: aiTargetSets,
@@ -10067,7 +10116,7 @@
                 restTime: aiRestTimeSeconds
             });
 
-            updateRoutineStatusBadge(`AI 맞춤 루틴 (${plan.minutes}분)`, `${plan.title} (1/${aiTargetSets}세트 진행 준비)`, `1 / ${aiTargetSets}`);
+            // 4. 실시간 상단 배너 및 3중 진행도 시각화 즉시 갱신
             syncRoutineStatusUI();
         }
 
