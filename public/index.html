@@ -4842,6 +4842,58 @@
         </div>
     </div>
 
+    <!-- AI 운동 루틴 추천 & 세트 계획표 승인 팝업 모달 -->
+    <div id="routineProposalModal" class="modal-backdrop">
+        <div class="modal-card modal-card-lg" style="max-width: 620px;">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title" id="rpmModalTitle">오늘의 AI 맞춤 운동 계획표</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;" id="rpmModalSub">
+                        가용 시간에 기반한 최적의 세트·랩·부하·휴식 계획입니다.
+                    </p>
+                </div>
+                <button type="button" class="modal-close-btn" id="btnCloseRoutineProposalModal" aria-label="닫기">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 16px 20px;">
+                <!-- 1. 핵심 요약 스트립 -->
+                <div class="rpm-summary-strip" id="rpmSummaryStrip" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 14px;">
+                    <!-- 동적 주입 -->
+                </div>
+
+                <!-- 2. 세트별 세부 계획표 테이블 -->
+                <div class="rpm-table-wrap" style="max-height: 270px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface);">
+                    <table class="rpm-table" style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.86rem;">
+                        <thead>
+                            <tr style="background: var(--surface-2); border-bottom: 1px solid var(--line); color: var(--text-muted); font-size: 0.74rem;">
+                                <th style="padding: 10px 8px;">세트</th>
+                                <th style="padding: 10px 8px;">구분</th>
+                                <th style="padding: 10px 8px;">목표 랩 (REPS)</th>
+                                <th style="padding: 10px 8px;">설정 무게 (WEIGHT)</th>
+                                <th style="padding: 10px 8px;">세트 후 휴식 (REST)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rpmTableBody">
+                            <!-- 동적 세트 행 주입 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--line);">
+                <button type="button" class="btn-modal-cancel" id="btnRpmFreeWorkout" style="background: transparent; border: 1px solid var(--line); color: var(--text-muted); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 0.82rem; cursor: pointer;">
+                    자율 운동으로 진행
+                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="btnRpmRetry" style="background: var(--surface-2); border: 1px solid var(--line); color: var(--text); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 600; cursor: pointer;">
+                        다른 루틴 추천
+                    </button>
+                    <button type="button" id="btnRpmAccept" style="background: #0066FF; border: 1px solid #0052CC; color: #FFFFFF; padding: 8px 18px; border-radius: var(--radius-sm); font-size: 0.86rem; font-weight: 700; cursor: pointer;">
+                        이 루틴으로 시작
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <main class="dashboard page-fade-in" id="liveDashboardView">
         <section class="hero" style="margin-bottom: 12px;">
         </section>
@@ -7928,6 +7980,7 @@
                 // 1) 1차 추천 제시 후 수락 대기 상태
                 if (routineNegotiationState === 'AWAITING_ROUTINE_CONFIRM_1') {
                     if (isAffirmative && pendingRoutinePlan) {
+                        closeRoutineProposalModal();
                         applyRoutinePlan(pendingRoutinePlan);
                         routineNegotiationState = 'ROUTINE_ACTIVE';
                         const firstSet = pendingRoutinePlan.sets[0];
@@ -7949,13 +8002,14 @@
                     if (isAffirmative || /(?:다시|다른)/i.test(lower)) {
                         pendingRoutinePlan = generateTimeBudgetRoutine(routineRequestedMinutes, 2);
                         routineNegotiationState = 'AWAITING_ROUTINE_CONFIRM_2';
+                        openRoutineProposalModal(pendingRoutinePlan);
                         agentReply = `[2차 대안 루틴]
 • 랩 (REPS): ${pendingRoutinePlan.targetReps || 10}회 (워밍업 ${pendingRoutinePlan.warmupReps || 20}회)
 • 세트 (SET): ${pendingRoutinePlan.sets.length}세트
 • 무게 (WEIGHT): START ${pendingRoutinePlan.startWeightKg.toFixed(1)}kg → END ${pendingRoutinePlan.endWeightKg.toFixed(1)}kg
 • 휴식 시간 (REST): ${pendingRoutinePlan.restSeconds}초
 
-이대로 적용할까요?`;
+화면의 대안 계획표를 확인해 주세요. 이대로 적용할까요?`;
                         renderAgentDecision(agentReply);
                         speakAgentVoice(agentReply);
                         return;
@@ -7990,6 +8044,7 @@
                 // 4) 2차 거절 후 자율 운동 전환 대기 상태
                 if (routineNegotiationState === 'AWAITING_FREE_CONFIRM') {
                     if (isAffirmative || /(?:자율|내맘|알아서)/i.test(lower)) {
+                        closeRoutineProposalModal();
                         routineNegotiationState = 'FREE_WORKOUT';
                         activeRoutinePlan = null;
                         updateRoutineStatusBadge('자율 운동 모드', '사용자 설정 기반 자율 운동 진행 중', '');
@@ -8013,13 +8068,14 @@
                     routineRequestedMinutes = parsedMin;
                     pendingRoutinePlan = generateTimeBudgetRoutine(parsedMin, 1);
                     routineNegotiationState = 'AWAITING_ROUTINE_CONFIRM_1';
+                    openRoutineProposalModal(pendingRoutinePlan);
                     agentReply = `[${parsedMin}분 추천 루틴]
 • 랩 (REPS): ${pendingRoutinePlan.targetReps || 10}회 (워밍업 ${pendingRoutinePlan.warmupReps || 20}회)
 • 세트 (SET): ${pendingRoutinePlan.sets.length}세트
 • 무게 (WEIGHT): START ${pendingRoutinePlan.startWeightKg.toFixed(1)}kg → END ${pendingRoutinePlan.endWeightKg.toFixed(1)}kg
 • 휴식 시간 (REST): ${pendingRoutinePlan.restSeconds}초
 
-이대로 적용할까요?`;
+화면의 계획표를 확인해 주세요. 이대로 적용할까요?`;
                     renderAgentDecision(agentReply);
                     speakAgentVoice(agentReply);
                     return;
@@ -9583,6 +9639,79 @@
             if (prog) prog.textContent = progressText || '';
         }
 
+        // 팝업 창: AI 루틴 계획표 열기
+        function openRoutineProposalModal(plan) {
+            if (!plan) return;
+            const modal = document.getElementById('routineProposalModal');
+            const titleEl = document.getElementById('rpmModalTitle');
+            const subEl = document.getElementById('rpmModalSub');
+            const summaryStrip = document.getElementById('rpmSummaryStrip');
+            const tbody = document.getElementById('rpmTableBody');
+            if (!modal || !summaryStrip || !tbody) return;
+
+            if (titleEl) titleEl.textContent = `${plan.minutes}분 맞춤 AI 운동 계획표`;
+            if (subEl) subEl.textContent = `${plan.title} · 총 ${plan.sets.length}세트 · 세트 간 휴식 ${plan.restSeconds}초`;
+
+            // 상단 요약 스트립
+            summaryStrip.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted);">총 세트 수</span>
+                    <strong style="font-size: 0.95rem; color: var(--text);">${plan.sets.length} SETS</strong>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted);">목표 랩</span>
+                    <strong style="font-size: 0.95rem; color: var(--text);">${plan.targetReps || 10} REPS</strong>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted);">START WEIGHT</span>
+                    <strong style="font-size: 0.95rem; color: var(--text);">${plan.startWeightKg.toFixed(1)}kg</strong>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted);">END WEIGHT</span>
+                    <strong style="font-size: 0.95rem; color: #0066FF;">${plan.endWeightKg.toFixed(1)}kg</strong>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted);">세트 간 휴식</span>
+                    <strong style="font-size: 0.95rem; color: var(--text);">${plan.restSeconds}초</strong>
+                </div>
+            `;
+
+            // 테이블 행 채우기
+            tbody.innerHTML = plan.sets.map((s, idx) => {
+                const isWarm = s.type === 'WARMUP';
+                const isLast = idx === plan.sets.length - 1;
+                const typeClass = isWarm ? 'warmup' : 'main';
+                const restText = isLast ? '운동 완료' : `${s.restSec || plan.restSeconds}초`;
+                return `
+                    <tr style="border-bottom: 1px solid var(--line);">
+                        <td style="padding: 10px 8px; font-weight: 800;">SET ${s.set}</td>
+                        <td style="padding: 10px 8px;">
+                            <span class="set-type-pill ${typeClass}" style="font-size: 0.72rem; padding: 2px 8px;">${s.label}</span>
+                        </td>
+                        <td style="padding: 10px 8px; font-weight: 700;">${s.targetReps}회</td>
+                        <td style="padding: 10px 8px; font-weight: 800; font-variant-numeric: tabular-nums;">
+                            ${s.weightKg.toFixed(1)}kg
+                        </td>
+                        <td style="padding: 10px 8px; color: ${isLast ? '#00AA77' : 'var(--text-2)'}; font-weight: 600;">
+                            ${restText}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            const btnRetry = document.getElementById('btnRpmRetry');
+            if (btnRetry) {
+                btnRetry.style.display = plan.variant === 2 ? 'none' : 'inline-block';
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeRoutineProposalModal() {
+            const modal = document.getElementById('routineProposalModal');
+            if (modal) modal.classList.remove('active');
+        }
+
         // ------------------ AI 운동 패턴 분석 및 챗 기반 무게 제안 엔진 ------------------
         let latestProposedWeightKg = null;
 
@@ -9845,6 +9974,53 @@
                     if (btnDangerClear) btnDangerClear.style.display = 'none';
                 }
             });
+        }
+
+        // AI 루틴 추천 팝업 모달 버튼 이벤트 바인딩
+        const btnRpmAccept = document.getElementById('btnRpmAccept');
+        if (btnRpmAccept) {
+            btnRpmAccept.addEventListener('click', () => {
+                closeRoutineProposalModal();
+                if (pendingRoutinePlan) {
+                    applyRoutinePlan(pendingRoutinePlan);
+                    routineNegotiationState = 'ROUTINE_ACTIVE';
+                    const firstSet = pendingRoutinePlan.sets[0];
+                    const reply = `네! [${pendingRoutinePlan.title}]을 적용했습니다. 1세트(${firstSet.label} ${firstSet.weightKg}kg, ${firstSet.targetReps}회) 준비되시면 바를 잡고 시작하세요!`;
+                    renderAgentDecision(reply);
+                    speakAgentVoice(reply);
+                }
+            });
+        }
+
+        const btnRpmRetry = document.getElementById('btnRpmRetry');
+        if (btnRpmRetry) {
+            btnRpmRetry.addEventListener('click', () => {
+                pendingRoutinePlan = generateTimeBudgetRoutine(routineRequestedMinutes, 2);
+                routineNegotiationState = 'AWAITING_ROUTINE_CONFIRM_2';
+                openRoutineProposalModal(pendingRoutinePlan);
+                const reply = `[2차 대안 루틴]\n• 랩 (REPS): ${pendingRoutinePlan.targetReps}회\n• 세트 (SET): ${pendingRoutinePlan.sets.length}세트\n• 무게 (WEIGHT): START ${pendingRoutinePlan.startWeightKg.toFixed(1)}kg → END ${pendingRoutinePlan.endWeightKg.toFixed(1)}kg\n• 휴식 시간 (REST): ${pendingRoutinePlan.restSeconds}초\n\n화면의 대안 계획표를 확인해 주세요. 이대로 적용할까요?`;
+                renderAgentDecision(reply);
+                speakAgentVoice(reply);
+            });
+        }
+
+        const btnRpmFreeWorkout = document.getElementById('btnRpmFreeWorkout');
+        if (btnRpmFreeWorkout) {
+            btnRpmFreeWorkout.addEventListener('click', () => {
+                closeRoutineProposalModal();
+                routineNegotiationState = 'FREE_WORKOUT';
+                activeRoutinePlan = null;
+                pendingRoutinePlan = null;
+                updateRoutineStatusBadge('자율 운동 모드', '사용자 설정 기반 자율 운동 진행 중', '');
+                const reply = `[자율 운동 모드]로 설정되었습니다. 원하시는 무게와 반복수로 자유롭게 운동을 진행해 주세요!`;
+                renderAgentDecision(reply);
+                speakAgentVoice(reply);
+            });
+        }
+
+        const btnCloseRpmModal = document.getElementById('btnCloseRoutineProposalModal');
+        if (btnCloseRpmModal) {
+            btnCloseRpmModal.addEventListener('click', closeRoutineProposalModal);
         }
 
         window.addEventListener('resize', layoutGuides);
