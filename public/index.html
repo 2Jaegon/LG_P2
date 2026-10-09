@@ -5086,6 +5086,8 @@
                         <strong id="targetSetsDisplay" style="color: var(--text-main);">5</strong></span>
                 </div>
                 <div id="restStateBadge" class="m-sub rest-badge">1세트 진행 중</div>
+                <!-- 루틴 미니 진행 스텝 도트 인디케이터 -->
+                <div id="metricRoutineDots" style="display: none; align-items: center; justify-content: center; gap: 5px; margin-top: 5px;"></div>
             </div>
 
             <div class="metric-box load-box" id="loadBox">
@@ -5120,7 +5122,20 @@
         <div class="layout">
             <!-- Pull-up visualization: 시각화 중심의 Hero Stage -->
             <section class="card stage-card" aria-label="실시간 풀업 모션 시각화">
-                <div class="stage-wrap">
+                <div class="stage-wrap" style="position: relative;">
+                    <!-- 스마트 바 루틴 진행 HUD 바 (루틴 활성 시 상단 고정 노출) -->
+                    <div id="stageRoutineHud" style="display: none; position: absolute; top: 10px; left: 14px; right: 14px; z-index: 10; align-items: center; justify-content: space-between; padding: 6px 12px; background: rgba(10, 15, 29, 0.78); backdrop-filter: blur(8px); border: 1px solid rgba(0, 102, 255, 0.4); border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.4);">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #0066FF; box-shadow: 0 0 8px #0066FF;"></span>
+                            <span style="font-size: 0.75rem; font-weight: 800; color: #FFFFFF;" id="stageHudTitle">AI 맞춤 루틴 진행 중</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 0.72rem; font-weight: 800; color: #0066FF;" id="stageHudProgress">1 / 5 SETS</span>
+                            <div style="width: 55px; height: 4px; background: rgba(255,255,255,0.12); border-radius: 999px; overflow: hidden;">
+                                <div id="stageHudBar" style="width: 20%; height: 100%; background: #0066FF; transition: width 0.3s ease;"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="scale" id="scale"></div>
                     <div class="stage" id="stage">
                         <div class="rail left"></div>
@@ -6268,6 +6283,7 @@
                 document.body.classList.toggle('danger', isDanger || isDetach);
                 document.body.classList.toggle('assist', data.status === 'ASSIST' || isImbalanceState);
                 updateAgentOrbState(data.status, isWorkoutResting, isDanger || isDetach, data.status === 'ASSIST');
+                syncRoutineStatusUI();
             }
 
             if (isDanger) {
@@ -6974,6 +6990,7 @@
             restStateBadgeEl.className = 'm-sub rest-badge';
             updateRestDisplay(false, 0, aiRestTimeSeconds);
             updateAgentOrbState('NORMAL', false, false, typeof data.assistLevel !== 'undefined' && data.assistLevel > 0);
+            syncRoutineStatusUI();
 
             if (typeof data.assistLevel !== 'undefined') {
                 updateLoadDisplay(data.assistLevel, 'NORMAL', data.userWeightKg, data.currentLoadKg);
@@ -7027,7 +7044,7 @@
                 } else {
                     updateRoutineStatusBadge('AI 맞춤 루틴 완료', '오늘의 모든 추천 세트를 성공적으로 완수했습니다!', '완료');
                 }
-                renderRoutineProgressPipeline(activeRoutinePlan);
+                syncRoutineStatusUI();
             }
 
             // 세트 완료 음성 피드백: 사용자가 변경한 휴식 시간(예: 30초)을 정확히 반영하여 안내!
@@ -10051,10 +10068,35 @@
             });
 
             updateRoutineStatusBadge(`AI 맞춤 루틴 (${plan.minutes}분)`, `${plan.title} (1/${aiTargetSets}세트 진행 준비)`, `1 / ${aiTargetSets}`);
-            renderRoutineProgressPipeline(activeRoutinePlan);
+            syncRoutineStatusUI();
         }
 
-        // 📊 루틴 진행 현황 파이프라인 렌더링 함수
+        // 대시보드 상태 배지 UI 갱신
+        function updateRoutineStatusBadge(tagText, descText, progressText) {
+            const tag = document.getElementById('routineModeTag');
+            const desc = document.getElementById('routineModeDesc');
+            const prog = document.getElementById('routineModeProgress');
+            if (!tag || !desc) return;
+
+            tag.textContent = tagText;
+            if (tagText.includes('AI')) {
+                tag.style.background = 'rgba(0, 102, 255, 0.15)';
+                tag.style.color = '#0066FF';
+                tag.style.borderColor = 'rgba(0, 102, 255, 0.35)';
+            } else if (tagText.includes('자율')) {
+                tag.style.background = 'rgba(255, 255, 255, 0.08)';
+                tag.style.color = 'var(--text)';
+                tag.style.borderColor = 'var(--line)';
+            } else {
+                tag.style.background = 'rgba(255, 255, 255, 0.05)';
+                tag.style.color = 'var(--text-muted)';
+                tag.style.borderColor = 'var(--line)';
+            }
+            desc.textContent = descText || (tagText.includes('자율') ? '원하는 무게와 반복수로 자유롭게 진행 중' : '');
+            if (prog) prog.textContent = progressText || '';
+        }
+
+        // 📊 루틴 진행 현황 및 메인 UI 진행도 시각화 렌더링 함수
         function renderRoutineProgressPipeline(plan) {
             const pipelineEl = document.getElementById('routineProgressPipeline');
             const btnView = document.getElementById('btnViewRoutinePlan');
@@ -10062,16 +10104,22 @@
             const currentBrief = document.getElementById('rppCurrentSetBrief');
             const progressBar = document.getElementById('rppProgressBar');
             const gridEl = document.getElementById('rppSetsGrid');
+            const metricDots = document.getElementById('metricRoutineDots');
+            const stageHud = document.getElementById('stageRoutineHud');
+            const stageHudTitle = document.getElementById('stageHudTitle');
+            const stageHudProgress = document.getElementById('stageHudProgress');
+            const stageHudBar = document.getElementById('stageHudBar');
 
-            if (!pipelineEl || !gridEl) return;
-
-            if (!plan || !plan.sets || plan.sets.length === 0) {
-                pipelineEl.style.display = 'none';
+            if (!plan || !plan.sets || plan.sets.length === 0 || routineNegotiationState !== 'ROUTINE_ACTIVE') {
+                if (pipelineEl) pipelineEl.style.display = 'none';
                 if (btnView) btnView.style.display = 'none';
+                if (metricDots) metricDots.style.display = 'none';
+                if (stageHud) stageHud.style.display = 'none';
                 return;
             }
 
-            pipelineEl.style.display = 'block';
+            // 1. 상단 대형 파이프라인 표시
+            if (pipelineEl) pipelineEl.style.display = 'block';
             if (btnView) btnView.style.display = 'inline-block';
 
             const totalSets = plan.sets.length;
@@ -10082,7 +10130,7 @@
             if (progressBar) progressBar.style.width = `${percent}%`;
             if (progressLabel) {
                 if (currentIdx >= totalSets) {
-                    progressLabel.textContent = `진행률: 100% (총 ${totalSets}세트 완주 완료! 🎉)`;
+                    progressLabel.textContent = `진행률: 100% (총 ${totalSets}세트 전 세트 완주 완료! 🎉)`;
                 } else {
                     progressLabel.textContent = `진행률: ${percent}% (${completedSets} / ${totalSets} 세트 완료)`;
                 }
@@ -10090,7 +10138,7 @@
 
             if (currentBrief) {
                 if (currentIdx >= totalSets) {
-                    currentBrief.textContent = '루틴 모든 세트 완주 완료! 수고하셨습니다.';
+                    currentBrief.textContent = '루틴 완주 완료! 수고하셨습니다.';
                     currentBrief.style.color = '#00AA77';
                 } else {
                     const curSet = plan.sets[currentIdx];
@@ -10099,70 +10147,135 @@
                 }
             }
 
-            // 각 세트별 카드 렌더링
-            gridEl.innerHTML = plan.sets.map((s, idx) => {
-                const isDone = idx < currentIdx;
-                const isCurrent = idx === currentIdx;
+            // 2. 각 세트별 스텝 카드 렌더링
+            if (gridEl) {
+                gridEl.innerHTML = plan.sets.map((s, idx) => {
+                    const isDone = idx < currentIdx;
+                    const isCurrent = idx === currentIdx;
 
-                let cardBg = 'var(--surface)';
-                let cardBorder = '1px solid var(--line)';
-                let statusBadge = '<span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">대기</span>';
-                let weightColor = 'var(--text)';
-                let pulseStyle = '';
+                    let cardBg = 'var(--surface)';
+                    let cardBorder = '1px solid var(--line)';
+                    let statusBadge = '<span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">대기</span>';
+                    let weightColor = 'var(--text)';
+                    let pulseStyle = '';
 
-                if (isDone) {
-                    cardBg = 'rgba(0, 170, 119, 0.08)';
-                    cardBorder = '1px solid rgba(0, 170, 119, 0.35)';
-                    statusBadge = '<span style="font-size:0.65rem; font-weight:800; color:#00AA77;">✓ 완료</span>';
-                    weightColor = 'var(--text-muted)';
-                } else if (isCurrent) {
-                    cardBg = 'rgba(0, 102, 255, 0.14)';
-                    cardBorder = '1.5px solid #0066FF';
-                    statusBadge = '<span style="font-size:0.65rem; font-weight:800; color:#0066FF;">🔥 진행 중</span>';
-                    weightColor = '#0066FF';
-                    pulseStyle = 'box-shadow: 0 0 12px rgba(0, 102, 255, 0.25);';
+                    if (isDone) {
+                        cardBg = 'rgba(0, 170, 119, 0.08)';
+                        cardBorder = '1px solid rgba(0, 170, 119, 0.4)';
+                        statusBadge = '<span style="font-size:0.65rem; font-weight:800; color:#00AA77;">✓ 완료</span>';
+                        weightColor = 'var(--text-muted)';
+                    } else if (isCurrent) {
+                        cardBg = 'rgba(0, 102, 255, 0.16)';
+                        cardBorder = '1.8px solid #0066FF';
+                        statusBadge = '<span style="font-size:0.65rem; font-weight:800; color:#0066FF;">🔥 진행 중</span>';
+                        weightColor = '#0066FF';
+                        pulseStyle = 'box-shadow: 0 0 14px rgba(0, 102, 255, 0.35); transform: translateY(-1px);';
+                    }
+
+                    return `
+                        <div style="background: ${cardBg}; border: ${cardBorder}; ${pulseStyle} border-radius: 8px; padding: 10px 8px; text-align: center; transition: all 0.25s ease;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-size: 0.68rem; font-weight: 800; color: var(--text-2);">SET ${s.set}</span>
+                                ${statusBadge}
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; margin-bottom: 2px;">
+                                ${s.label}
+                            </div>
+                            <div style="font-size: 0.96rem; font-weight: 800; color: ${weightColor}; font-variant-numeric: tabular-nums;">
+                                ${s.weightKg.toFixed(1)}kg
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-2); font-weight: 600; margin-top: 2px;">
+                                ${s.targetReps}회
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // 3. SET 메트릭 박스 내부 미니 도트 인디케이터 동기화
+            if (metricDots) {
+                metricDots.style.display = 'flex';
+                metricDots.innerHTML = plan.sets.map((s, idx) => {
+                    const isDone = idx < currentIdx;
+                    const isCurrent = idx === currentIdx;
+                    let dotColor = 'rgba(255, 255, 255, 0.2)';
+                    let dotBorder = 'none';
+                    let dotShadow = 'none';
+                    if (isDone) {
+                        dotColor = '#00AA77';
+                    } else if (isCurrent) {
+                        dotColor = '#0066FF';
+                        dotShadow = '0 0 6px #0066FF';
+                        dotBorder = '1.5px solid #FFFFFF';
+                    }
+                    return `<span title="SET ${s.set}: ${s.label} ${s.weightKg}kg" style="display:inline-block; width:7px; height:7px; border-radius:50%; background:${dotColor}; border:${dotBorder}; box-shadow:${dotShadow}; transition:all 0.2s ease;"></span>`;
+                }).join('');
+            }
+
+            // 4. Stage 스마트 바 상단 HUD 동기화
+            if (stageHud) {
+                stageHud.style.display = 'flex';
+                if (stageHudTitle) {
+                    if (currentIdx >= totalSets) {
+                        stageHudTitle.textContent = 'AI 맞춤 루틴 완주 완료! 🎉';
+                    } else {
+                        const curSet = plan.sets[currentIdx];
+                        stageHudTitle.textContent = `AI 맞춤 루틴: [${curSet.label}] ${curSet.weightKg.toFixed(1)}kg 진행 중`;
+                    }
                 }
-
-                return `
-                    <div style="background: ${cardBg}; border: ${cardBorder}; ${pulseStyle} border-radius: 8px; padding: 10px 8px; text-align: center; transition: all 0.2s ease;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                            <span style="font-size: 0.68rem; font-weight: 800; color: var(--text-2);">SET ${s.set}</span>
-                            ${statusBadge}
-                        </div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; margin-bottom: 2px;">
-                            ${s.label}
-                        </div>
-                        <div style="font-size: 0.95rem; font-weight: 800; color: ${weightColor}; font-variant-numeric: tabular-nums;">
-                            ${s.weightKg.toFixed(1)}kg
-                        </div>
-                        <div style="font-size: 0.72rem; color: var(--text-2); font-weight: 600; margin-top: 2px;">
-                            ${s.targetReps}회
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                if (stageHudProgress) stageHudProgress.textContent = `${Math.min(totalSets, currentIdx + 1)} / ${totalSets} SETS`;
+                if (stageHudBar) stageHudBar.style.width = `${percent}%`;
+            }
         }
 
-        // 대시보드 상태 배지 UI 갱신
-        function updateRoutineStatusBadge(tagText, descText, progressText) {
-            const banner = document.getElementById('routineStatusBanner');
-            const tag = document.getElementById('routineModeTag');
-            const desc = document.getElementById('routineModeDesc');
-            const prog = document.getElementById('routineModeProgress');
-            if (!banner || !tag || !desc) return;
+        // 🔄 실시간 루틴 및 운동 상태 동기화 엔진 (운동 중 '대기 모드' 표기 원천 차단)
+        function syncRoutineStatusUI() {
+            // 1) AI 맞춤 루틴이 활성화된 경우
+            if (activeRoutinePlan && routineNegotiationState === 'ROUTINE_ACTIVE') {
+                const total = activeRoutinePlan.sets.length;
+                const curIdx = typeof activeRoutinePlan.currentSetIndex === 'number' ? activeRoutinePlan.currentSetIndex : 0;
 
-            tag.textContent = tagText;
-            if (tagText.includes('AI')) {
-                tag.style.background = 'rgba(0, 102, 255, 0.15)';
-                tag.style.color = '#0066FF';
-                tag.style.borderColor = 'rgba(0, 102, 255, 0.35)';
-            } else {
-                tag.style.background = 'rgba(255, 255, 255, 0.08)';
-                tag.style.color = 'var(--text)';
-                tag.style.borderColor = 'var(--line)';
+                if (curIdx >= total) {
+                    updateRoutineStatusBadge('AI 맞춤 루틴 완주', '오늘의 모든 추천 세트를 성공적으로 완수했습니다! 🎉', '완료');
+                } else {
+                    const curSet = activeRoutinePlan.sets[curIdx];
+                    if (isWorkoutResting) {
+                        updateRoutineStatusBadge(
+                            `AI 맞춤 루틴 (${activeRoutinePlan.minutes}분)`,
+                            `☕ 세트 간 휴식 중 · 다음 ${curIdx + 1}/${total}세트: [${curSet.label}] ${curSet.weightKg.toFixed(1)}kg 대기`,
+                            `${curIdx + 1} / ${total}`
+                        );
+                    } else {
+                        updateRoutineStatusBadge(
+                            `AI 맞춤 루틴 (${activeRoutinePlan.minutes}분)`,
+                            `🔥 ${curIdx + 1}/${total}세트 진행 중: [${curSet.label}] ${curSet.weightKg.toFixed(1)}kg (목표 ${curSet.targetReps}회)`,
+                            `${curIdx + 1} / ${total}`
+                        );
+                    }
+                }
+                renderRoutineProgressPipeline(activeRoutinePlan);
+                return;
             }
-            desc.textContent = descText || (tagText.includes('자율') ? '원하는 무게와 반복수로 자유롭게 진행 중' : '');
-            if (prog) prog.textContent = progressText || '';
+
+            // 2) 자율 운동 모드이거나 바를 잡고 운동 중인 경우 (currentVal > 80 또는 렙 수 진행)
+            const isBarExercising = (currentVal > 80 || parseInt(repCountEl.textContent, 10) > 0 || routineNegotiationState === 'FREE_WORKOUT');
+            if (isBarExercising) {
+                if (routineNegotiationState === 'IDLE' || routineNegotiationState.startsWith('AWAITING_')) {
+                    routineNegotiationState = 'FREE_WORKOUT';
+                }
+                const curSetNum = setNumberEl.textContent || '1';
+                if (isWorkoutResting) {
+                    updateRoutineStatusBadge('자율 운동 모드', `☕ ${curSetNum}세트 완료 후 휴식 중`, `${curSetNum}세트`);
+                } else {
+                    updateRoutineStatusBadge('자율 운동 모드', `🔥 ${curSetNum}세트 진행 중 (설정 부하 ${currentLoadKg.toFixed(1)}kg)`, `${curSetNum}세트`);
+                }
+                renderRoutineProgressPipeline(null);
+                return;
+            }
+
+            // 3) 운동 시작 전 대기 모드 (바가 하단 정지해 있고 렙수 0, 루틴 미지정)
+            updateRoutineStatusBadge('운동 대기 모드', '운동 시작 전 (루틴 추천을 받거나 바를 잡으세요)', '');
+            renderRoutineProgressPipeline(null);
         }
 
         // 팝업 창: AI 루틴 계획표 열기
