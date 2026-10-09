@@ -7935,12 +7935,13 @@
                     if (isAffirmative || /(?:다시|다른)/i.test(lower)) {
                         pendingRoutinePlan = generateTimeBudgetRoutine(routineRequestedMinutes, 2);
                         routineNegotiationState = 'AWAITING_ROUTINE_CONFIRM_2';
-                        agentReply = `[2차 대안: ${pendingRoutinePlan.title}]
-• 세트 구성: ${pendingRoutinePlan.summaryText}
-• 부하: START ${pendingRoutinePlan.startWeightKg}kg → END ${pendingRoutinePlan.endWeightKg}kg
-• 휴식: ${pendingRoutinePlan.restSeconds}초
+                        agentReply = `[2차 대안 루틴]
+• 랩 (REPS): ${pendingRoutinePlan.targetReps || 10}회 (워밍업 ${pendingRoutinePlan.warmupReps || 20}회)
+• 세트 (SET): ${pendingRoutinePlan.sets.length}세트
+• 무게 (WEIGHT): START ${pendingRoutinePlan.startWeightKg.toFixed(1)}kg → END ${pendingRoutinePlan.endWeightKg.toFixed(1)}kg
+• 휴식 시간 (REST): ${pendingRoutinePlan.restSeconds}초
 
-이 루틴으로 적용할까요?`;
+이대로 적용할까요?`;
                         renderAgentDecision(agentReply);
                         speakAgentVoice(agentReply);
                         return;
@@ -7998,10 +7999,11 @@
                     routineRequestedMinutes = parsedMin;
                     pendingRoutinePlan = generateTimeBudgetRoutine(parsedMin, 1);
                     routineNegotiationState = 'AWAITING_ROUTINE_CONFIRM_1';
-                    agentReply = `[${parsedMin}분 맞춤 AI 루틴: ${pendingRoutinePlan.title}]
-• 세트 구성: ${pendingRoutinePlan.summaryText}
-• 부하: START ${pendingRoutinePlan.startWeightKg}kg → END ${pendingRoutinePlan.endWeightKg}kg
-• 세트 간 휴식: ${pendingRoutinePlan.restSeconds}초
+                    agentReply = `[${parsedMin}분 추천 루틴]
+• 랩 (REPS): ${pendingRoutinePlan.targetReps || 10}회 (워밍업 ${pendingRoutinePlan.warmupReps || 20}회)
+• 세트 (SET): ${pendingRoutinePlan.sets.length}세트
+• 무게 (WEIGHT): START ${pendingRoutinePlan.startWeightKg.toFixed(1)}kg → END ${pendingRoutinePlan.endWeightKg.toFixed(1)}kg
+• 휴식 시간 (REST): ${pendingRoutinePlan.restSeconds}초
 
 이대로 적용할까요?`;
                     renderAgentDecision(agentReply);
@@ -9398,6 +9400,8 @@
                 variant: variant,
                 title: '',
                 theme: '',
+                targetReps: 10,
+                warmupReps: 20,
                 sets: [],
                 startWeightKg: 0,
                 endWeightKg: 0,
@@ -9421,6 +9425,8 @@
                 } else if (minutes <= 45) {
                     plan.title = `${minutes}분 점진적 과부하 루틴`;
                     plan.theme = '탑세트 후 피로를 고려한 스마트 감량 주기화 루틴';
+                    plan.targetReps = 10;
+                    plan.warmupReps = 25;
                     plan.restSeconds = 60;
                     const topWeight = mainWeight + 2.5;
                     const dropWeight = Math.max(20, mainWeight - 5.0);
@@ -9437,6 +9443,8 @@
                 } else {
                     plan.title = `${minutes}분 풀 볼륨 피크 루틴`;
                     plan.theme = '충분한 휴식과 최대 근신경계 활성화를 위한 풀 볼륨 루틴';
+                    plan.targetReps = 10;
+                    plan.warmupReps = 25;
                     plan.restSeconds = 75;
                     const topWeight = mainWeight + 5.0;
                     const dropWeight1 = mainWeight;
@@ -9613,13 +9621,16 @@
             const deltaKg = proposedKg - baseKg;
             const deltaStr = deltaKg > 0 ? `+${deltaKg.toFixed(1)}kg` : (deltaKg < 0 ? `${deltaKg.toFixed(1)}kg` : '유지');
 
-            return `[AI 운동 패턴 정밀 진단]
-누적 세트: ${history.length}세트 (${totalRepsDone}회)
-최근 세트 템포: ${lastTempo}초 | ROM: ${lastRom}
-피로도 상태: ${hadStall ? '주의 (정체 발생)' : (parseFloat(lastTempo) <= 2.0 ? '최상 (파워 여유)' : '안정적')}
+            const nextSetNum = history.length + 1;
+            const targetReps = aiTargetReps || 10;
+            const restSec = aiRestTimeSeconds || 60;
+            return `[다음 세트 추천]
+• 랩 (REPS): ${targetReps}회
+• 세트 (SET): ${nextSetNum}세트
+• 무게 (WEIGHT): ${proposedKg.toFixed(1)}kg (${deltaStr})
+• 휴식 시간 (REST): ${restSec}초
 
-AI 권장 부하: ${proposedKg.toFixed(1)}kg (${deltaStr})
-진단 근거: ${proposalRationale}`;
+이대로 적용할까요?`;
         }
 
 
