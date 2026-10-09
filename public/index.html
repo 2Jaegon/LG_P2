@@ -5032,14 +5032,39 @@
         <section class="hero" style="margin-bottom: 12px;">
         </section>
 
-        <!-- 루틴 상태 표시 배너 (AI 맞춤 루틴 vs 자율 운동) -->
-        <div id="routineStatusBanner" class="routine-status-banner" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm);">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="routine-mode-tag" id="routineModeTag" style="font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); color: var(--text); border: 1px solid var(--line);">자율 운동 모드</span>
-                <span id="routineModeDesc" style="font-size: 0.82rem; color: var(--text-2); font-weight: 600;">원하는 무게와 반복수로 자유롭게 진행 중</span>
+        <!-- 루틴 상태 및 실시간 세트 진행 현황 위젯 -->
+        <section id="routineStatusBanner" class="routine-status-banner" style="margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 16px; transition: all 0.25s ease;">
+            <!-- 1. 기본 상태 헤더 바 -->
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="routine-mode-tag" id="routineModeTag" style="font-size: 0.74rem; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); color: var(--text); border: 1px solid var(--line);">운동 대기 모드</span>
+                    <strong id="routineModeDesc" style="font-size: 0.86rem; color: var(--text); font-weight: 700;">운동 시작 전 (루틴 추천을 받거나 바를 잡으세요)</strong>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button type="button" id="btnViewRoutinePlan" style="display: none; background: rgba(0, 102, 255, 0.1); border: 1px solid rgba(0, 102, 255, 0.3); color: #0066FF; font-size: 0.74rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+                        📋 전체 계획표 보기
+                    </button>
+                    <span id="routineModeProgress" style="font-size: 0.82rem; font-weight: 800; color: #0066FF; font-variant-numeric: tabular-nums;"></span>
+                </div>
             </div>
-            <span id="routineModeProgress" style="font-size: 0.78rem; color: var(--text-muted); font-variant-numeric: tabular-nums;"></span>
-        </div>
+
+            <!-- 2. AI 루틴 활성 시 실시간 세트 진행 현황 파이프라인 (동적 렌더링) -->
+            <div id="routineProgressPipeline" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line);">
+                <!-- 상단 프로그레스 바 & 현 세트 브리핑 -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                    <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);" id="rppProgressLabel">진행률: 0% (0 / 5 세트 완료)</span>
+                    <span style="font-size: 0.74rem; font-weight: 800; color: #0066FF;" id="rppCurrentSetBrief">현재 진행: [워밍업] 30.0kg · 25회</span>
+                </div>
+                <div style="width: 100%; height: 5px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden; margin-bottom: 12px;">
+                    <div id="rppProgressBar" style="width: 0%; height: 100%; background: #0066FF; border-radius: 999px; transition: width 0.35s ease;"></div>
+                </div>
+
+                <!-- 세트별 진행 현황 스텝 카드 그리드 -->
+                <div id="rppSetsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap: 8px;">
+                    <!-- 동적 세트 카드 주입 -->
+                </div>
+            </div>
+        </section>
 
         <!-- 운동 메트릭스 (직관적 대형 지표) -->
         <section class="workout-metrics" aria-label="운동 지표">
@@ -6924,6 +6949,7 @@
                 routineNegotiationState = 'FREE_WORKOUT';
                 activeRoutinePlan = null;
                 updateRoutineStatusBadge('자율 운동 모드', '사용자 설정 기반 자율 운동 진행 중', '');
+                if (typeof renderRoutineProgressPipeline === "function") renderRoutineProgressPipeline(null);
             }
             hasNotifiedRestDone = false;
             repCountEl.textContent = data.reps;
@@ -7001,6 +7027,7 @@
                 } else {
                     updateRoutineStatusBadge('AI 맞춤 루틴 완료', '오늘의 모든 추천 세트를 성공적으로 완수했습니다!', '완료');
                 }
+                renderRoutineProgressPipeline(activeRoutinePlan);
             }
 
             // 세트 완료 음성 피드백: 사용자가 변경한 휴식 시간(예: 30초)을 정확히 반영하여 안내!
@@ -8195,6 +8222,7 @@
                     currentUserWeightKg = 0.0;
                     updateLoadDisplay(0, 'NORMAL', 0, 0);
                     updateRoutineStatusBadge('운동 대기 모드', '운동 시작 전 (루틴 추천을 받거나 바를 잡으세요)', '');
+                    if (typeof renderRoutineProgressPipeline === "function") renderRoutineProgressPipeline(null);
                     agentReply = "오늘의 운동 세트 기록을 초기화했습니다. (과거 38일간의 일지 및 차트 데이터는 안전하게 보존되었습니다)";
                     renderAgentDecision(agentReply);
                     speakAgentVoice(agentReply);
@@ -9991,6 +10019,7 @@
         // 루틴 플랜 대시보드 적용
         function applyRoutinePlan(plan) {
             if (!plan || !plan.sets || plan.sets.length === 0) return;
+            routineNegotiationState = 'ROUTINE_ACTIVE';
             activeRoutinePlan = JSON.parse(JSON.stringify(plan));
             activeRoutinePlan.currentSetIndex = 0;
 
@@ -10022,6 +10051,96 @@
             });
 
             updateRoutineStatusBadge(`AI 맞춤 루틴 (${plan.minutes}분)`, `${plan.title} (1/${aiTargetSets}세트 진행 준비)`, `1 / ${aiTargetSets}`);
+            renderRoutineProgressPipeline(activeRoutinePlan);
+        }
+
+        // 📊 루틴 진행 현황 파이프라인 렌더링 함수
+        function renderRoutineProgressPipeline(plan) {
+            const pipelineEl = document.getElementById('routineProgressPipeline');
+            const btnView = document.getElementById('btnViewRoutinePlan');
+            const progressLabel = document.getElementById('rppProgressLabel');
+            const currentBrief = document.getElementById('rppCurrentSetBrief');
+            const progressBar = document.getElementById('rppProgressBar');
+            const gridEl = document.getElementById('rppSetsGrid');
+
+            if (!pipelineEl || !gridEl) return;
+
+            if (!plan || !plan.sets || plan.sets.length === 0) {
+                pipelineEl.style.display = 'none';
+                if (btnView) btnView.style.display = 'none';
+                return;
+            }
+
+            pipelineEl.style.display = 'block';
+            if (btnView) btnView.style.display = 'inline-block';
+
+            const totalSets = plan.sets.length;
+            const currentIdx = typeof plan.currentSetIndex === 'number' ? plan.currentSetIndex : 0;
+            const completedSets = Math.min(totalSets, currentIdx);
+            const percent = Math.round((completedSets / totalSets) * 100);
+
+            if (progressBar) progressBar.style.width = `${percent}%`;
+            if (progressLabel) {
+                if (currentIdx >= totalSets) {
+                    progressLabel.textContent = `진행률: 100% (총 ${totalSets}세트 완주 완료! 🎉)`;
+                } else {
+                    progressLabel.textContent = `진행률: ${percent}% (${completedSets} / ${totalSets} 세트 완료)`;
+                }
+            }
+
+            if (currentBrief) {
+                if (currentIdx >= totalSets) {
+                    currentBrief.textContent = '루틴 모든 세트 완주 완료! 수고하셨습니다.';
+                    currentBrief.style.color = '#00AA77';
+                } else {
+                    const curSet = plan.sets[currentIdx];
+                    currentBrief.textContent = `현재 진행: [${curSet.label}] ${curSet.weightKg.toFixed(1)}kg · ${curSet.targetReps}회`;
+                    currentBrief.style.color = '#0066FF';
+                }
+            }
+
+            // 각 세트별 카드 렌더링
+            gridEl.innerHTML = plan.sets.map((s, idx) => {
+                const isDone = idx < currentIdx;
+                const isCurrent = idx === currentIdx;
+
+                let cardBg = 'var(--surface)';
+                let cardBorder = '1px solid var(--line)';
+                let statusBadge = '<span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">대기</span>';
+                let weightColor = 'var(--text)';
+                let pulseStyle = '';
+
+                if (isDone) {
+                    cardBg = 'rgba(0, 170, 119, 0.08)';
+                    cardBorder = '1px solid rgba(0, 170, 119, 0.35)';
+                    statusBadge = '<span style="font-size:0.65rem; font-weight:800; color:#00AA77;">✓ 완료</span>';
+                    weightColor = 'var(--text-muted)';
+                } else if (isCurrent) {
+                    cardBg = 'rgba(0, 102, 255, 0.14)';
+                    cardBorder = '1.5px solid #0066FF';
+                    statusBadge = '<span style="font-size:0.65rem; font-weight:800; color:#0066FF;">🔥 진행 중</span>';
+                    weightColor = '#0066FF';
+                    pulseStyle = 'box-shadow: 0 0 12px rgba(0, 102, 255, 0.25);';
+                }
+
+                return `
+                    <div style="background: ${cardBg}; border: ${cardBorder}; ${pulseStyle} border-radius: 8px; padding: 10px 8px; text-align: center; transition: all 0.2s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <span style="font-size: 0.68rem; font-weight: 800; color: var(--text-2);">SET ${s.set}</span>
+                            ${statusBadge}
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; margin-bottom: 2px;">
+                            ${s.label}
+                        </div>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: ${weightColor}; font-variant-numeric: tabular-nums;">
+                            ${s.weightKg.toFixed(1)}kg
+                        </div>
+                        <div style="font-size: 0.72rem; color: var(--text-2); font-weight: 600; margin-top: 2px;">
+                            ${s.targetReps}회
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // 대시보드 상태 배지 UI 갱신
@@ -10430,6 +10549,7 @@
                     currentUserWeightKg = 0.0;
                     updateLoadDisplay(0, 'NORMAL', 0, 0);
                     updateRoutineStatusBadge('운동 대기 모드', '운동 시작 전 (루틴 추천을 받거나 바를 잡으세요)', '');
+                    if (typeof renderRoutineProgressPipeline === "function") renderRoutineProgressPipeline(null);
                     if (dangerSafetyInterval) {
                         clearInterval(dangerSafetyInterval);
                         dangerSafetyInterval = null;
@@ -10548,10 +10668,20 @@
 
                 closeFreeWorkoutModal();
                 updateRoutineStatusBadge('자율 운동 모드', `설정 부하 ${currentLoadKg.toFixed(1)}kg · 세트당 ${aiTargetReps}회`, `1 / ${aiTargetSets}`);
+                if (typeof renderRoutineProgressPipeline === "function") renderRoutineProgressPipeline(null);
 
                 const successReply = `[자율 운동 모드] 설정 무게 ${currentLoadKg.toFixed(1)}kg, 목표 ${aiTargetReps}회, 총 ${aiTargetSets}세트로 설정되었습니다. 준비되시면 바를 잡고 시작하세요!`;
                 renderAgentDecision(successReply);
                 speakAgentVoice(`자율 운동 설정을 적용했습니다. 설정 무게 ${currentLoadKg.toFixed(1)}kg, 목표 ${aiTargetReps}회, 총 ${aiTargetSets}세트입니다. 준비되시면 시작하세요!`);
+            });
+        }
+
+        const btnViewRoutinePlan = document.getElementById('btnViewRoutinePlan');
+        if (btnViewRoutinePlan) {
+            btnViewRoutinePlan.addEventListener('click', () => {
+                if (activeRoutinePlan) {
+                    openRoutineProposalModal(activeRoutinePlan);
+                }
             });
         }
 
