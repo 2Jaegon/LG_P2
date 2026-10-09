@@ -4894,6 +4894,109 @@
         </div>
     </div>
 
+    <!-- 자율 운동 목표 설정 팝업 모달 -->
+    <div id="freeWorkoutModal" class="modal-backdrop">
+        <div class="modal-card" style="max-width: 500px;">
+            <div class="modal-header">
+                <div>
+                    <h3 class="modal-title">자율 운동 목표 설정</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin: 3px 0 0;">
+                        원하시는 운동 무게, 목표 반복수(랩), 세트 수를 입력해 주세요.
+                    </p>
+                </div>
+                <button type="button" class="modal-close-btn" id="btnCloseFreeWorkoutModal" aria-label="닫기">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 16px 20px;">
+                <!-- 1. 무게 설정 (WEIGHT) -->
+                <div class="setting-row" style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span class="setting-label" style="font-weight: 700; color: var(--text); font-size: 0.88rem;">운동 무게 (WEIGHT)</span>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <input type="number" id="fwmWeightInput" min="5" max="180" step="2.5" value="60"
+                                style="width: 72px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--text); font-weight: 800; font-size: 1rem; text-align: right;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">kg</span>
+                        </div>
+                    </div>
+                    <div class="chip-group" id="fwmWeightChips">
+                        <button type="button" class="setting-chip" data-val="30">30kg</button>
+                        <button type="button" class="setting-chip" data-val="40">40kg</button>
+                        <button type="button" class="setting-chip" data-val="50">50kg</button>
+                        <button type="button" class="setting-chip active" data-val="60">60kg</button>
+                        <button type="button" class="setting-chip" data-val="70">70kg</button>
+                        <button type="button" class="setting-chip" data-val="80">80kg</button>
+                    </div>
+                </div>
+
+                <!-- 2. 목표 랩 (REPS) -->
+                <div class="setting-row" style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span class="setting-label" style="font-weight: 700; color: var(--text); font-size: 0.88rem;">목표 랩 (REPS)</span>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <input type="number" id="fwmRepsInput" min="1" max="50" step="1" value="10"
+                                style="width: 72px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--text); font-weight: 800; font-size: 1rem; text-align: right;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">회</span>
+                        </div>
+                    </div>
+                    <div class="chip-group" id="fwmRepsChips">
+                        <button type="button" class="setting-chip" data-val="5">5회</button>
+                        <button type="button" class="setting-chip" data-val="8">8회</button>
+                        <button type="button" class="setting-chip active" data-val="10">10회</button>
+                        <button type="button" class="setting-chip" data-val="12">12회</button>
+                        <button type="button" class="setting-chip" data-val="15">15회</button>
+                        <button type="button" class="setting-chip" data-val="20">20회</button>
+                    </div>
+                </div>
+
+                <!-- 3. 총 세트 수 (SETS) -->
+                <div class="setting-row" style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span class="setting-label" style="font-weight: 700; color: var(--text); font-size: 0.88rem;">총 목표 세트 (SETS)</span>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <input type="number" id="fwmSetsInput" min="1" max="20" step="1" value="5"
+                                style="width: 72px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--text); font-weight: 800; font-size: 1rem; text-align: right;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">세트</span>
+                        </div>
+                    </div>
+                    <div class="chip-group" id="fwmSetsChips">
+                        <button type="button" class="setting-chip" data-val="3">3세트</button>
+                        <button type="button" class="setting-chip" data-val="4">4세트</button>
+                        <button type="button" class="setting-chip active" data-val="5">5세트</button>
+                        <button type="button" class="setting-chip" data-val="6">6세트</button>
+                        <button type="button" class="setting-chip" data-val="8">8세트</button>
+                        <button type="button" class="setting-chip" data-val="10">10세트</button>
+                    </div>
+                </div>
+
+                <!-- 4. 세트 간 휴식 시간 (REST) -->
+                <div class="setting-row">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span class="setting-label" style="font-weight: 700; color: var(--text); font-size: 0.88rem;">세트 간 휴식 시간 (REST)</span>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <input type="number" id="fwmRestInput" min="15" max="300" step="15" value="60"
+                                style="width: 72px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--text); font-weight: 800; font-size: 1rem; text-align: right;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">초</span>
+                        </div>
+                    </div>
+                    <div class="chip-group" id="fwmRestChips">
+                        <button type="button" class="setting-chip" data-val="30">30초</button>
+                        <button type="button" class="setting-chip" data-val="45">45초</button>
+                        <button type="button" class="setting-chip active" data-val="60">60초</button>
+                        <button type="button" class="setting-chip" data-val="90">90초</button>
+                        <button type="button" class="setting-chip" data-val="120">120초</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--line);">
+                <button type="button" class="btn-modal-cancel" id="btnCancelFreeWorkoutModal" style="background: transparent; border: 1px solid var(--line); color: var(--text-muted); padding: 8px 16px; border-radius: var(--radius-sm); font-size: 0.85rem; cursor: pointer;">
+                    취소
+                </button>
+                <button type="button" id="btnApplyFreeWorkoutModal" style="background: #0066FF; border: 1px solid #0052CC; color: #FFFFFF; padding: 8px 20px; border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 700; cursor: pointer;">
+                    자율 운동 시작
+                </button>
+            </div>
+        </div>
+    </div>
+
     <main class="dashboard page-fade-in" id="liveDashboardView">
         <section class="hero" style="margin-bottom: 12px;">
         </section>
@@ -8081,7 +8184,7 @@
 
 화면의 대안 계획표를 확인해 주세요. 이대로 적용할까요?`;
                         renderAgentDecision(agentReply);
-                        speakAgentVoice(agentReply);
+                        speakAgentVoice("2차 대안 운동 루틴입니다. 화면의 계획표를 확인 후 승인해 주세요.");
                         return;
                     } else if (isNegative) {
                         routineNegotiationState = 'AWAITING_FREE_CONFIRM';
@@ -8115,10 +8218,8 @@
                 if (routineNegotiationState === 'AWAITING_FREE_CONFIRM') {
                     if (isAffirmative || /(?:자율|내맘|알아서)/i.test(lower)) {
                         closeRoutineProposalModal();
-                        routineNegotiationState = 'FREE_WORKOUT';
-                        activeRoutinePlan = null;
-                        updateRoutineStatusBadge('자율 운동 모드', '사용자 설정 기반 자율 운동 진행 중', '');
-                        agentReply = `[자율 운동 모드]로 설정되었습니다. 원하시는 무게와 반복수로 자유롭게 운동을 진행해 주세요!`;
+                        openFreeWorkoutModal();
+                        agentReply = "자율 운동 설정을 진행합니다. 화면에서 원하시는 무게, 랩, 세트 수를 입력해 주세요.";
                         renderAgentDecision(agentReply);
                         speakAgentVoice(agentReply);
                         return;
@@ -8147,7 +8248,7 @@
 
 화면의 계획표를 확인해 주세요. 이대로 적용할까요?`;
                     renderAgentDecision(agentReply);
-                    speakAgentVoice(agentReply);
+                    speakAgentVoice("오늘의 맞춤 운동 루틴입니다. 화면의 계획표를 확인 후 승인해 주세요.");
                     return;
                 }
 
@@ -9782,6 +9883,44 @@
             if (modal) modal.classList.remove('active');
         }
 
+        // 자율 운동 목표 설정 모달 제어 함수
+        function openFreeWorkoutModal(initWeight = 60, initReps = 10, initSets = 5, initRest = 60) {
+            const modal = document.getElementById('freeWorkoutModal');
+            if (!modal) return;
+
+            const wInput = document.getElementById('fwmWeightInput');
+            const rInput = document.getElementById('fwmRepsInput');
+            const sInput = document.getElementById('fwmSetsInput');
+            const restInput = document.getElementById('fwmRestInput');
+
+            const currentW = currentLoadKg > 0 ? currentLoadKg : (currentUserWeightKg > 0 ? currentUserWeightKg : initWeight);
+            if (wInput) wInput.value = currentW;
+            if (rInput) rInput.value = aiTargetReps || initReps;
+            if (sInput) sInput.value = aiTargetSets || initSets;
+            if (restInput) restInput.value = aiRestTimeSeconds || initRest;
+
+            // 칩 active 상태 동기화
+            syncChipsToVal('#fwmWeightChips', currentW);
+            syncChipsToVal('#fwmRepsChips', aiTargetReps || initReps);
+            syncChipsToVal('#fwmSetsChips', aiTargetSets || initSets);
+            syncChipsToVal('#fwmRestChips', aiRestTimeSeconds || initRest);
+
+            modal.classList.add('active');
+        }
+
+        function closeFreeWorkoutModal() {
+            const modal = document.getElementById('freeWorkoutModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function syncChipsToVal(selector, val) {
+            const chips = document.querySelectorAll(`${selector} .setting-chip`);
+            chips.forEach(c => {
+                const cVal = parseFloat(c.getAttribute('data-val'));
+                c.classList.toggle('active', cVal === parseFloat(val));
+            });
+        }
+
         // ------------------ AI 운동 패턴 분석 및 챗 기반 무게 제안 엔진 ------------------
         let latestProposedWeightKg = null;
 
@@ -10076,7 +10215,7 @@
                 openRoutineProposalModal(pendingRoutinePlan);
                 const reply = `[2차 대안 루틴]\n• 랩 (REPS): ${pendingRoutinePlan.targetReps}회\n• 세트 (SET): ${pendingRoutinePlan.sets.length}세트\n• 무게 (WEIGHT): START ${pendingRoutinePlan.startWeightKg.toFixed(1)}kg → END ${pendingRoutinePlan.endWeightKg.toFixed(1)}kg\n• 휴식 시간 (REST): ${pendingRoutinePlan.restSeconds}초\n\n화면의 대안 계획표를 확인해 주세요. 이대로 적용할까요?`;
                 renderAgentDecision(reply);
-                speakAgentVoice(reply);
+                speakAgentVoice("2차 대안 운동 루틴입니다. 화면의 계획표를 확인 후 승인해 주세요.");
             });
         }
 
@@ -10084,18 +10223,86 @@
         if (btnRpmFreeWorkout) {
             btnRpmFreeWorkout.addEventListener('click', () => {
                 closeRoutineProposalModal();
+                openFreeWorkoutModal();
+                const promptMsg = "자율 운동 설정을 진행합니다. 원하시는 무게, 랩, 세트 수를 입력해 주세요.";
+                renderAgentDecision(promptMsg);
+                speakAgentVoice(promptMsg);
+            });
+        }
+
+        // 자율 운동 팝업 칩 & 인풋 양방향 바인딩 헬퍼
+        function bindChipGroupWithInput(chipGroupSelector, inputId) {
+            const input = document.getElementById(inputId);
+            const chips = document.querySelectorAll(`${chipGroupSelector} .setting-chip`);
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    chips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    if (input) input.value = chip.getAttribute('data-val');
+                });
+            });
+            if (input) {
+                input.addEventListener('input', () => {
+                    const val = parseFloat(input.value);
+                    chips.forEach(c => c.classList.toggle('active', parseFloat(c.getAttribute('data-val')) === val));
+                });
+            }
+        }
+
+        bindChipGroupWithInput('#fwmWeightChips', 'fwmWeightInput');
+        bindChipGroupWithInput('#fwmRepsChips', 'fwmRepsInput');
+        bindChipGroupWithInput('#fwmSetsChips', 'fwmSetsInput');
+        bindChipGroupWithInput('#fwmRestChips', 'fwmRestInput');
+
+        const btnCloseFwm = document.getElementById('btnCloseFreeWorkoutModal');
+        if (btnCloseFwm) btnCloseFwm.addEventListener('click', closeFreeWorkoutModal);
+
+        const btnCancelFwm = document.getElementById('btnCancelFreeWorkoutModal');
+        if (btnCancelFwm) btnCancelFwm.addEventListener('click', closeFreeWorkoutModal);
+
+        const btnApplyFwm = document.getElementById('btnApplyFreeWorkoutModal');
+        if (btnApplyFwm) {
+            btnApplyFwm.addEventListener('click', () => {
+                const wVal = parseFloat(document.getElementById('fwmWeightInput')?.value) || 60;
+                const rVal = parseInt(document.getElementById('fwmRepsInput')?.value, 10) || 10;
+                const sVal = parseInt(document.getElementById('fwmSetsInput')?.value, 10) || 5;
+                const restVal = parseInt(document.getElementById('fwmRestInput')?.value, 10) || 60;
+
+                currentLoadKg = Math.max(5, Math.min(180, wVal));
+                currentUserWeightKg = currentLoadKg;
+                aiTargetReps = Math.max(1, Math.min(50, rVal));
+                aiTargetSets = Math.max(1, Math.min(20, sVal));
+                aiRestTimeSeconds = Math.max(15, Math.min(300, restVal));
+                selectedRestTime = aiRestTimeSeconds;
+
                 routineNegotiationState = 'FREE_WORKOUT';
                 activeRoutinePlan = null;
                 pendingRoutinePlan = null;
-                const freeWeight = currentLoadKg > 0 ? currentLoadKg : 60.0;
-                currentLoadKg = freeWeight;
-                currentUserWeightKg = freeWeight;
+
                 updateLoadDisplay(0, 'NORMAL', currentLoadKg, currentLoadKg);
-                socket.emit('updateWeight', { weight: currentLoadKg });
-                updateRoutineStatusBadge('자율 운동 모드', '사용자 설정 기반 자율 운동 진행 중', '');
-                const reply = `[자율 운동 모드]로 설정되었습니다. 원하시는 무게(${currentLoadKg.toFixed(1)}kg)와 반복수로 자유롭게 운동을 진행해 주세요!`;
-                renderAgentDecision(reply);
-                speakAgentVoice(reply);
+                syncRepsToUI(aiTargetReps);
+                syncSetsToUI(aiTargetSets);
+                syncRestTimeToUI(aiRestTimeSeconds);
+
+                socket.emit('updateSettings', {
+                    targetReps: aiTargetReps,
+                    targetSets: aiTargetSets,
+                    restTime: aiRestTimeSeconds
+                });
+                socket.emit('updateWeight', {
+                    weightKg: currentLoadKg,
+                    userWeight: currentLoadKg,
+                    targetReps: aiTargetReps,
+                    targetSets: aiTargetSets,
+                    restTime: aiRestTimeSeconds
+                });
+
+                closeFreeWorkoutModal();
+                updateRoutineStatusBadge('자율 운동 모드', `설정 부하 ${currentLoadKg.toFixed(1)}kg · 세트당 ${aiTargetReps}회`, `1 / ${aiTargetSets}`);
+
+                const successReply = `[자율 운동 모드] 설정 무게 ${currentLoadKg.toFixed(1)}kg, 목표 ${aiTargetReps}회, 총 ${aiTargetSets}세트로 설정되었습니다. 준비되시면 바를 잡고 시작하세요!`;
+                renderAgentDecision(successReply);
+                speakAgentVoice(`자율 운동 설정을 적용했습니다. 설정 무게 ${currentLoadKg.toFixed(1)}kg, 목표 ${aiTargetReps}회, 총 ${aiTargetSets}세트입니다. 준비되시면 시작하세요!`);
             });
         }
 
