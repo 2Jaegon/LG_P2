@@ -1514,13 +1514,17 @@ io.on('connection', (socket) => {
     // 목표 반복수 및 권장 휴식 시간 설정 변경
     socket.on('updateSettings', (settings) => {
         if (settings) {
+            if (typeof settings.currentSet !== 'undefined') {
+                currentSet = Math.max(1, parseInt(settings.currentSet, 10));
+                currentSetReps = 0;
+            }
             if (settings.targetReps) aiTargetReps = parseInt(settings.targetReps, 10);
             if (settings.targetSets) aiTargetSets = parseInt(settings.targetSets, 10);
             if (settings.restTime) {
                 aiRestTimeSeconds = parseInt(settings.restTime, 10);
                 isUserCustomRestTime = true;
             }
-            console.log(`[설정 변경] 목표 반복수: ${aiTargetReps}회, 목표 세트: ${aiTargetSets}세트, 권장 휴식: ${aiRestTimeSeconds}초`);
+            console.log(`[설정 변경] 현재 세트: ${currentSet}세트, 목표 반복수: ${aiTargetReps}회, 목표 세트: ${aiTargetSets}세트, 권장 휴식: ${aiRestTimeSeconds}초`);
             io.emit('workoutState', getWorkoutStatePayload());
         }
     });
@@ -1528,10 +1532,14 @@ io.on('connection', (socket) => {
     // 체중 / 기준 무게 및 부하 설정 변경 (사용자 직접 입력 / AI 음성 명령)
     socket.on('updateWeight', (data) => {
         if (data) {
+            if (typeof data.currentSet !== 'undefined') {
+                currentSet = Math.max(1, parseInt(data.currentSet, 10));
+                currentSetReps = 0;
+            }
             const w = typeof data.weightKg !== 'undefined' ? data.weightKg : (typeof data.userWeight !== 'undefined' ? data.userWeight : data.weight);
             if (typeof w !== 'undefined') {
                 const targetW = !isNaN(parseFloat(w)) ? parseFloat(w) : 60.0;
-                // 🔒 불균형 교정 중 증량 차단!
+                // 불균형 교정 중 증량 차단!
                 if (isWeightLocked && targetW > userWeightKg) {
                     console.log(`[증량 차단] 좌우 불균형 교정 진행 중이므로 증량 거부 (${userWeightKg}kg -> ${targetW}kg)`);
                     socket.emit('agentChatResponse', {
@@ -1557,7 +1565,7 @@ io.on('connection', (socket) => {
             currentSetStartWeightKg = getCurrentLoadKg();
             currentSetStartLevel = assistLevel;
 
-            console.log(`[무게/목표 설정 변경] 체중: ${userWeightKg}kg, 부하: Lv.${assistLevel} (${getCurrentLoadKg()}kg), 목표: ${aiTargetReps}회, ${aiTargetSets}세트`);
+            console.log(`[무게/목표 설정 변경] 현재 세트: ${currentSet}세트, 체중: ${userWeightKg}kg, 부하: Lv.${assistLevel} (${getCurrentLoadKg()}kg), 목표: ${aiTargetReps}회, ${aiTargetSets}세트`);
             io.emit('workoutState', getWorkoutStatePayload());
         }
     });
