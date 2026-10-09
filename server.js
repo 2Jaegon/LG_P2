@@ -1572,13 +1572,16 @@ io.on('connection', (socket) => {
         });
     });
 
-    // 운동 기록 초기화 요청
+    // 오늘 운동 기록 초기화 요청 (과거 38일간 가상 일지 및 차트 데이터는 안전하게 보존)
     socket.on('resetWorkout', () => {
+        const todayStr = getFormattedDate();
+        // 오늘 날짜의 세트만 필터링하여 삭제, 과거 기록은 영구 보존!
+        setHistory = (setHistory || []).filter(item => (item.date || todayStr) !== todayStr);
+
         currentSet = 1;
         currentSetReps = 0;
         totalReps = 0;
         recentTempos = [];
-        setHistory = [];
         isResting = false;
         isDangerActive = false;
         awaitingDangerEscapeConfirm = false;
@@ -1607,14 +1610,14 @@ io.on('connection', (socket) => {
         currentSetStartLevel = 0;
 
         if (port && port.isOpen) port.write('N\n');
-        console.log('[운동 기록 초기화됨]');
+        console.log(`[오늘(${todayStr}) 운동 기록만 초기화 완료 - 과거 ${setHistory.length}개 세트 영구 보존]`);
         io.emit('workoutState', getWorkoutStatePayload());
         io.emit('sensorData', {
             value: lastValue,
             status: 'WAITING',
             loadKg: getCurrentLoadKg(),
             userWeightKg: userWeightKg,
-            decision: "안녕하세요!\n오늘도 건강하고 활기찬 하루 되세요."
+            decision: "오늘 운동 기록이 초기화되었습니다.\n새로운 세트를 준비해 주세요."
         });
     });
 });

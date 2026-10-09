@@ -4635,8 +4635,8 @@
                 <li>
                     <button type="button" class="sidebar-link-btn" id="sidebarResetBtn">
                         <div class="sidebar-link-text">
-                            <span class="title" style="color: var(--lg-red);">운동 기록 전체 초기화</span>
-                            <span class="desc">현재 세트/반복/부하 데이터 리셋</span>
+                            <span class="title" style="color: var(--lg-red);">오늘 운동 기록 초기화</span>
+                            <span class="desc">오늘 세트/반복 데이터 리셋 (과거 일지 보존)</span>
                         </div>
                     </button>
                 </li>
@@ -7907,6 +7907,20 @@
                     return;
                 }
 
+                // 🧹 오늘 운동 기록 초기화 챗/음성 명령
+                const isResetCommand = /(?:오늘\s*기록\s*초기화|운동\s*기록\s*초기화|기록\s*초기화|오늘\s*기록\s*지워|세트\s*초기화|세트\s*리셋|오늘\s*리셋)/i.test(lower);
+                if (isResetCommand) {
+                    socket.emit('resetWorkout');
+                    routineNegotiationState = 'IDLE';
+                    activeRoutinePlan = null;
+                    pendingRoutinePlan = null;
+                    updateRoutineStatusBadge('자율 운동 모드', '원하는 무게와 반복수로 자유롭게 진행 중', '');
+                    agentReply = "오늘의 운동 세트 기록을 초기화했습니다. (과거 38일간의 일지 및 차트 데이터는 안전하게 보존되었습니다)";
+                    renderAgentDecision(agentReply);
+                    speakAgentVoice(agentReply);
+                    return;
+                }
+
                 // 🤖 [AI 대화형 루틴 추천 FSM 분기]
                 const isAffirmative = /(?:응|네|좋아|좋네|그래|이대로|적용|수락|오케이|ok|yes|그렇게|할게|가자|시작해|해줘|맞아|콜)/i.test(lower);
                 const isNegative = /(?:아니|아뇨|별로|싫어|다른|취소|노|no|다시|글쎄)/i.test(lower);
@@ -9811,13 +9825,17 @@
         if (btnCloseSafetyModal) btnCloseSafetyModal.addEventListener('click', closeSafetyModal);
         if (btnConfirmSafetyModal) btnConfirmSafetyModal.addEventListener('click', closeSafetyModal);
 
-        // 메뉴 항목 6: 사이드바 운동 기록 초기화 버튼
+        // 메뉴 항목 6: 사이드바 오늘 운동 기록 초기화 버튼 (과거 가상 데이터 보존)
         const sidebarResetBtn = document.getElementById('sidebarResetBtn');
         if (sidebarResetBtn) {
             sidebarResetBtn.addEventListener('click', () => {
                 closeSidebar();
-                if (confirm('운동 기록을 초기화하시겠습니까?')) {
+                if (confirm('오늘의 운동 기록을 초기화하시겠습니까?\n(과거 38일간의 가상 일지 및 차트 데이터는 안전하게 보존됩니다)')) {
                     socket.emit('resetWorkout');
+                    routineNegotiationState = 'IDLE';
+                    activeRoutinePlan = null;
+                    pendingRoutinePlan = null;
+                    updateRoutineStatusBadge('자율 운동 모드', '원하는 무게와 반복수로 자유롭게 진행 중', '');
                     updateLoadDisplay(0, 'NORMAL', currentUserWeightKg, currentUserWeightKg);
                     if (dangerSafetyInterval) {
                         clearInterval(dangerSafetyInterval);
