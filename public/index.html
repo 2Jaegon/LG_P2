@@ -5199,16 +5199,6 @@
                             </div>
                         </div>
 
-                        <!-- ⏱️ 가용 시간 빠른 선택 칩 바 (가용 시간 질문 시 동적 노출) -->
-                        <div id="routineTimePromptBar" style="display: none; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
-                            <span style="font-size: 0.72rem; color: #0066FF; font-weight: 700;">⏱️ 가용 시간:</span>
-                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(20)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">20분</button>
-                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(30)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">30분</button>
-                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(40)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">40분</button>
-                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(50)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">50분</button>
-                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(60)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">60분</button>
-                        </div>
-
                         <!-- 사용자 명령 입력창 -->
                         <form id="voiceChatForm" class="voice-chat-form" onsubmit="return false;">
                             <input type="text" id="voiceChatInput" class="voice-chat-input"
@@ -5359,16 +5349,6 @@
                             <div class="action-box-content" id="journalAgentDecision">
                                 <span class="agent-line">운동 일지 데이터를 기반으로 AI 코칭을 제공합니다. 질문을 입력하세요.</span>
                             </div>
-                        </div>
-
-                        <!-- ⏱️ 일지 뷰 가용 시간 빠른 선택 칩 바 -->
-                        <div id="journalRoutineTimePromptBar" style="display: none; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
-                            <span style="font-size: 0.72rem; color: #0066FF; font-weight: 700;">⏱️ 가용 시간:</span>
-                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(20)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">20분</button>
-                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(30)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">30분</button>
-                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(40)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">40분</button>
-                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(50)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">50분</button>
-                            <button type="button" class="voice-chip" onclick="handleTimeBudgetSelection(60)" style="background: rgba(0,102,255,0.12); border-color: #0066FF; color: #0066FF; font-weight: 700; padding: 4px 10px; font-size: 0.76rem;">60분</button>
                         </div>
 
                         <!-- 추천 질문 칩 바 -->
@@ -8229,7 +8209,6 @@
                 if (routineNegotiationState === 'AWAITING_TIME_BUDGET') {
                     const parsedMin = extractWorkoutDurationMinutes(text);
                     if (parsedMin) {
-                        toggleRoutineTimePromptBar(false);
                         routineRequestedMinutes = parsedMin;
                         pendingRoutinePlan = generateTimeBudgetRoutine(parsedMin, 1);
                         routineNegotiationState = 'AWAITING_ROUTINE_CONFIRM_1';
@@ -8245,7 +8224,6 @@
                         speakAgentVoice(`과거 운동 일지 분석을 바탕으로 설계된 ${parsedMin}분 맞춤 루틴입니다. 화면의 계획표를 확인 후 승인해 주세요.`);
                         return;
                     } else if (isNegative) {
-                        toggleRoutineTimePromptBar(false);
                         routineNegotiationState = 'IDLE';
                         agentReply = "루틴 추천을 취소했습니다. 원하시는 명령이나 다른 운동 시간을 편하게 말씀해 주세요.";
                         renderAgentDecision(agentReply);
@@ -8342,7 +8320,6 @@
 
                 if (hasExplicitMin && (isRoutineIntent || /(?:분|시간|운동)/i.test(lower))) {
                     // 1) 사용자가 처음부터 시간을 명시한 경우 (예: "40분 루틴 추천해줘", "30분 운동할래")
-                    toggleRoutineTimePromptBar(false);
                     const parsedMin = hasExplicitMin;
                     routineRequestedMinutes = parsedMin;
                     pendingRoutinePlan = generateTimeBudgetRoutine(parsedMin, 1);
@@ -8361,8 +8338,7 @@
                 } else if (isRoutineIntent) {
                     // 2) 시간을 말하지 않고 루틴을 요청한 경우 -> 먼저 가능한 시간이 몇 분인지 질문!
                     routineNegotiationState = 'AWAITING_TIME_BUDGET';
-                    toggleRoutineTimePromptBar(true);
-                    agentReply = "오늘 운동에 투자하실 수 있는 가용 시간이 몇 분이신가요?\n(예: 20분, 30분, 40분, 50분, 60분)";
+                    agentReply = "오늘 운동에 투자하실 수 있는 가용 시간이 몇 분이신가요?";
                     renderAgentDecision(agentReply);
                     speakAgentVoice("오늘 운동에 투자하실 수 있는 가용 시간이 몇 분이신가요?");
                     return;
@@ -10502,21 +10478,6 @@
                 speakAgentVoice(promptMsg);
             });
         }
-
-        // ⏱️ 가용 시간 선택 칩 바 제어 헬퍼
-        function toggleRoutineTimePromptBar(show) {
-            const bar1 = document.getElementById('routineTimePromptBar');
-            const bar2 = document.getElementById('journalRoutineTimePromptBar');
-            if (bar1) bar1.style.display = show ? 'flex' : 'none';
-            if (bar2) bar2.style.display = show ? 'flex' : 'none';
-        }
-
-        // ⏱️ 루틴 가용 시간 빠른 선택 칩 클릭 핸들러
-        window.handleTimeBudgetSelection = function(min) {
-            toggleRoutineTimePromptBar(false);
-            if (voiceChatInput) voiceChatInput.value = `${min}분`;
-            handleUserVoiceCommand(`${min}분`);
-        };
 
         // 자율 운동 팝업 칩 & 인풋 양방향 바인딩 헬퍼
         function bindChipGroupWithInput(chipGroupSelector, inputId) {
